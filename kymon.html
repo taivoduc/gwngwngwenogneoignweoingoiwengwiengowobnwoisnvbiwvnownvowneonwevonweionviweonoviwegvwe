@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kỳ Môn Độn Giáp – Bản chuẩn</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0b0e1a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            padding: 15px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+        .control {
+            width: 100%;
+            max-width: 920px;
+            padding: 8px 0 12px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 16px 40px;
+            width: 100%;
+        }
+        .control-row .group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .group label {
+            font-size: 1.8rem;
+            margin-right: 4px;
+            color: #aaa;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .group label:hover { transform: scale(1.15); color: #f7971e; }
+        .group .val-input {
+            width: 52px;
+            text-align: center;
+            font-weight: bold;
+            color: #fff;
+            font-size: 1.2rem;
+            padding: 6px 4px;
+            background: #1a2a4a;
+            border: 1px solid #2a4a7a;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .group .val-input:focus { border-color: #f7971e; background: #1a2a5a; }
+        .group .val-input.year-input { width: 72px; }
+        .group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #f7971e;
+            cursor: pointer;
+            margin: 0 4px;
+        }
+        .group .am-label { font-size: 0.85rem; color: #aaa; font-weight: 500; }
+
+        .gio-compact {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 3px;
+            padding: 4px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #f7971e #2a4a7a;
+            max-width: 100%;
+        }
+        .gio-compact::-webkit-scrollbar { height: 5px; }
+        .gio-compact::-webkit-scrollbar-track { background: #1a2a4a; border-radius: 4px; }
+        .gio-compact::-webkit-scrollbar-thumb { background: #f7971e; border-radius: 4px; }
+
+        .gio-item-mini {
+            flex: 0 0 auto;
+            min-width: 48px;
+            padding: 3px 5px;
+            height: 34px;
+            border-radius: 8px;
+            border: 2px solid #2a4a7a;
+            background: #1a1a3e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .gio-item-mini:hover { transform: scale(1.08); border-color: #f7971e; }
+        .gio-item-mini .emoji { font-size: 0.9rem; }
+        .gio-item-mini .chi { font-size: 0.7rem; color: #ddd; font-weight: 600; }
+        .gio-item-mini .khung-gio { font-size: 0.55rem; color: #aaa; margin-left: 1px; }
+
+        #board {
+            width: 100%;
+            max-width: 920px;
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+            margin-bottom: 20px;
+            border: none;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+        .cell {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 100%;
+            border-radius: 50%;
+            border: 5px solid #2a4a7a;
+            background: #1a1a40;
+            overflow: hidden;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 4px 14px rgba(0, 0, 0, 0.5);
+        }
+        .cell:hover { border-color: #f7971e; z-index: 2; }
+        .cell-inner {
+            position: absolute;
+            inset: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: transform 0.4s ease;
+        }
+        .cell .cung { font-weight: bold; font-size: 0.9rem; color: #fff; }
+        .cell .row { line-height: 1.3; font-size: 0.72rem; color: #b0b0b0; }
+        .cell .mon { font-weight: bold; color: #7bed9f; }
+        .cell .than { font-weight: bold; color: #ffa502; }
+        .cell .tinh { color: #70a1ff; }
+        .cell .thien { color: #e0a0ff; }
+        .cell .dia { color: #a4b0be; }
+        .cell .do { color: #7bed9f; font-size: 0.72rem; }
+        .cell .dont { color: #ff6b6b; font-size: 0.72rem; }
+        .cell .hoa-giai { color: #ffd93d; font-size: 0.72rem; }
+
+        @media (max-width: 700px) {
+            .control-row { gap: 12px 20px; }
+            .group .val-input { width: 42px; font-size: 1rem; padding: 4px 2px; }
+            .group .val-input.year-input { width: 58px; }
+            .group label { font-size: 1.4rem; }
+            .gio-item-mini { min-width: 40px; height: 30px; padding: 2px 4px; font-size: 0.6rem; }
+            .cell .cung { font-size: 0.8rem; }
+            .cell .row { font-size: 0.62rem; }
+            .cell .do, .cell .dont, .cell .hoa-giai { font-size: 0.62rem; }
+        }
+        @media (max-width: 450px) {
+            .control-row { gap: 8px 12px; }
+            .group .val-input { width: 34px; font-size: 0.85rem; padding: 2px; }
+            .group .val-input.year-input { width: 48px; }
+            .group label { font-size: 1.2rem; }
+            .gio-item-mini { min-width: 34px; height: 26px; padding: 1px 3px; font-size: 0.5rem; }
+            .cell-inner { inset: 4px; gap: 1px; }
+            .cell .cung { font-size: 0.58rem; }
+            .cell .row { font-size: 0.46rem; }
+            .cell .do, .cell .dont, .cell .hoa-giai { font-size: 0.46rem; }
+        }
+
+        /* ===== La bàn (Compass) ===== */
+        .compass-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: #111633;
+            border: 2px solid #2a4a7a;
+            border-radius: 18px;
+            padding: 16px 22px;
+            margin: 0 0 18px;
+            width: 100%;
+            max-width: 920px;
+        }
+        .rose {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, #1a1a40 0%, #0b0e1a 100%);
+            border: 3px solid #2a4a7a;
+            box-shadow: 0 0 18px rgba(42, 74, 122, 0.6);
+        }
+        .rose-ring { position: absolute; inset: 0; transition: transform 0.25s ease; }
+        .rose-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #a4b0be;
+        }
+        .rose-label.main { color: #ff6b6b; font-size: 1.05rem; }
+        .rose-marker {
+            position: absolute;
+            left: 50%;
+            top: -3px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-top: 18px solid #ffd93d;
+            z-index: 2;
+        }
+        .compass-right { min-width: 230px; flex: 1; max-width: 480px; }
+        .compass-loc { color: #a4b0be; font-size: 0.85rem; margin-bottom: 6px; }
+        .compass-heading { display: flex; align-items: baseline; gap: 10px; }
+        .compass-heading .deg { font-size: 2.2rem; font-weight: bold; color: #fff; }
+        .compass-heading .dir { font-size: 1.15rem; font-weight: bold; color: #7bed9f; }
+        .compass-palace {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            color: #ffd93d;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+        .compass-controls {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #a4b0be;
+        }
+        .compass-controls input[type="range"] { flex: 1; min-width: 120px; accent-color: #f7971e; }
+        .compass-panel.hidden { display: none; }
+        .compass-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #1a2a4a, #2a4a7a);
+            border: 2px solid #f7971e;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .compass-toggle:hover { transform: scale(1.05); box-shadow: 0 0 14px rgba(247, 151, 30, 0.5); }
+        .compass-toggle.active { background: linear-gradient(135deg, #f7971e, #e07b00); border-color: #ffd93d; }
+        .compass-status { font-size: 0.85rem; color: #a4b0be; margin-top: 10px; }
+        .compass-status.live { color: #7bed9f; }
+        .grid { transition: transform 0.4s ease; transform-origin: center center; }
+    </style>
+</head>
+<body>
+
+    <div class="control">
+        <div class="control-row">
+            <div class="group">
+                <label id="resetSun" title="Click để reset về giờ hiện tại">☀️</label>
+                <input type="text" class="val-input" id="duongDay" data-field="day" value="01" inputmode="numeric">
+                <input type="text" class="val-input" id="duongMonth" data-field="month" value="01" inputmode="numeric">
+                <input type="text" class="val-input year-input" id="duongYear" data-field="year" value="2024" inputmode="numeric">
+                <input type="text" class="val-input" id="duongHour" data-field="hour" value="00" inputmode="numeric">
+            </div>
+            <div class="group">
+                <label id="resetMoon" title="Click để reset về giờ hiện tại">🌙</label>
+                <input type="text" class="val-input" id="amDay" data-field="day" value="01" inputmode="numeric">
+                <input type="text" class="val-input" id="amMonth" data-field="month" value="01" inputmode="numeric">
+                <input type="text" class="val-input year-input" id="amYear" data-field="year" value="2024" inputmode="numeric">
+                <input type="text" class="val-input" id="amHour" data-field="hour" value="00" inputmode="numeric">
+                <label class="am-label">Nhuận</label>
+                <input type="checkbox" id="amNhuan" onchange="capNhatTuAm()">
+            </div>
+        </div>
+        <div class="control-row" style="justify-content: center; width: 100%; overflow: hidden;">
+            <div class="gio-compact" id="gioCompact"></div>
+        </div>
+        <div class="control-row" style="justify-content: center;">
+            <button type="button" id="compassToggle" class="compass-toggle">🧭 Mở la bàn</button>
+        </div>
+    </div>
+
+    <div class="compass-panel hidden" id="compassPanel">
+        <div class="rose">
+            <div class="rose-ring" id="roseRing">
+                <span class="rose-label main" style="top:4%;left:50%">N</span>
+                <span class="rose-label" style="top:13%;left:85%">NE</span>
+                <span class="rose-label" style="top:50%;left:94%">E</span>
+                <span class="rose-label" style="top:87%;left:85%">SE</span>
+                <span class="rose-label" style="top:96%;left:50%">S</span>
+                <span class="rose-label" style="top:87%;left:15%">SW</span>
+                <span class="rose-label" style="top:50%;left:6%">W</span>
+                <span class="rose-label" style="top:13%;left:15%">NW</span>
+            </div>
+            <div class="rose-marker"></div>
+        </div>
+        <div class="compass-right">
+            <div class="compass-loc" id="compassLoc">📍</div>
+            <div class="compass-heading">
+                <span class="deg" id="compassDeg">0°</span>
+                <span class="dir" id="compassDir">Bắc (N)</span>
+            </div>
+            <div class="compass-palace" id="compassPalace">Cung Khảm — Bắc</div>
+            <div class="compass-controls">
+                <label>Xoay thử:</label>
+                <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
+                <span id="headingVal">0°</span>
+            </div>
+            <div class="compass-status" id="compassStatus"></div>
+        </div>
+    </div>
+
+    <div id="board"></div>
+
+    <script>
+        // ================================================================
+        // 1. THƯ VIỆN ÂM LỊCH HỒ NGỌC ĐỨC (đầy đủ)
+        // ================================================================
+        const PI = Math.PI;
+        function INT(x) { return Math.floor(x); }
+
+        function jdFromDate(dd, mm, yy) {
+            var a, y, m, jd;
+            a = INT((14 - mm) / 12);
+            y = yy + 4800 - a;
+            m = mm + 12 * a - 3;
+            jd = dd + INT((153 * m + 2) / 5) + 365 * y + INT(y / 4) - INT(y / 100) + INT(y / 400) - 32045;
+            if (jd < 2299161) {
+                jd = dd + INT((153 * m + 2) / 5) + 365 * y + INT(y / 4) - 32083;
+            }
+            return jd;
+        }
+
+        function jdToDate(jd) {
+            var a, b, c, d, e, m, day, month, year;
+            if (jd > 2299160) {
+                a = jd + 32044;
+                b = INT((4 * a + 3) / 146097);
+                c = a - INT((b * 146097) / 4);
+            } else {
+                b = 0;
+                c = jd + 32082;
+            }
+            d = INT((4 * c + 3) / 1461);
+            e = c - INT((1461 * d) / 4);
+            m = INT((5 * e + 2) / 153);
+            day = e - INT((153 * m + 2) / 5) + 1;
+            month = m + 3 - 12 * INT(m / 10);
+            year = b * 100 + d - 4800 + INT(m / 10);
+            return { day: day, month: month, year: year };
+        }
+
+        function getNewMoonDay(k, timeZone) {
+            var T, T2, T3, dr, Jd1, M, Mpr, F, C1, deltat, JdNew;
+            T = k / 1236.85;
+            T2 = T * T;
+            T3 = T2 * T;
+            dr = PI / 180;
+            Jd1 = 2415020.75933 + 29.53058868 * k + 0.0001178 * T2 - 0.000000155 * T3;
+            Jd1 = Jd1 + 0.00033 * Math.sin((166.56 + 132.87 * T - 0.009173 * T2) * dr);
+            M = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
+            Mpr = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 0.00001236 * T3;
+            F = 21.2964 + 390.67050646 * k - 0.0016528 * T2 - 0.00000239 * T3;
+            C1 = (0.1734 - 0.000393 * T) * Math.sin(M * dr) + 0.0021 * Math.sin(2 * dr * M);
+            C1 = C1 - 0.4068 * Math.sin(Mpr * dr) + 0.0161 * Math.sin(dr * 2 * Mpr);
+            C1 = C1 - 0.0004 * Math.sin(dr * 3 * Mpr);
+            C1 = C1 + 0.0104 * Math.sin(dr * 2 * F) - 0.0051 * Math.sin(dr * (M + Mpr));
+            C1 = C1 - 0.0074 * Math.sin(dr * (M - Mpr)) + 0.0004 * Math.sin(dr * (2 * F + M));
+            C1 = C1 - 0.0004 * Math.sin(dr * (2 * F - M)) - 0.0006 * Math.sin(dr * (2 * F + Mpr));
+            C1 = C1 + 0.0010 * Math.sin(dr * (2 * F - Mpr)) + 0.0005 * Math.sin(dr * (2 * Mpr + M));
+            if (T < -11) {
+                deltat = 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3;
+            } else {
+                deltat = -0.000278 + 0.000265 * T + 0.000262 * T2;
+            }
+            JdNew = Jd1 + C1 - deltat;
+            return INT(JdNew + 0.5 + timeZone / 24);
+        }
+
+        function getSunLongitude(jdn, timeZone) {
+            var T, T2, dr, M, L0, DL, L;
+            T = (jdn - 2451545.5 - timeZone / 24) / 36525;
+            T2 = T * T;
+            dr = PI / 180;
+            M = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+            L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+            DL = (1.914600 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+            DL = DL + (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.000290 * Math.sin(dr * 3 * M);
+            L = L0 + DL;
+            L = L * dr;
+            L = L - PI * 2 * (INT(L / (PI * 2)));
+            return INT(L / PI * 6);
+        }
+
+        function getLunarMonth11(yy, timeZone) {
+            var k, off, nm, sunLong;
+            off = jdFromDate(31, 12, yy) - 2415021;
+            k = INT(off / 29.530588853);
+            nm = getNewMoonDay(k, timeZone);
+            sunLong = getSunLongitude(nm, timeZone);
+            if (sunLong >= 9) {
+                nm = getNewMoonDay(k - 1, timeZone);
+            }
+            return nm;
+        }
+
+        function getLeapMonthOffset(a11, timeZone) {
+            var k, last, arc, i;
+            k = INT((a11 - 2415021.076998695) / 29.530588853 + 0.5);
+            last = 0;
+            i = 1;
+            arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+            do {
+                last = arc;
+                i++;
+                arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+            } while (arc != last && i < 14);
+            return i - 1;
+        }
+
+        function convertSolar2Lunar(dd, mm, yy, timeZone) {
+            var k, dayNumber, monthStart, a11, b11, lunarDay, lunarMonth, lunarYear, lunarLeap, diff, leapMonthDiff;
+            dayNumber = jdFromDate(dd, mm, yy);
+            k = INT((dayNumber - 2415021.076998695) / 29.530588853);
+            monthStart = getNewMoonDay(k + 1, timeZone);
+            if (monthStart > dayNumber) {
+                monthStart = getNewMoonDay(k, timeZone);
+            }
+            a11 = getLunarMonth11(yy, timeZone);
+            b11 = a11;
+            if (a11 >= monthStart) {
+                lunarYear = yy;
+                a11 = getLunarMonth11(yy - 1, timeZone);
+            } else {
+                lunarYear = yy + 1;
+                b11 = getLunarMonth11(yy + 1, timeZone);
+            }
+            lunarDay = dayNumber - monthStart + 1;
+            diff = INT((monthStart - a11) / 29);
+            lunarLeap = 0;
+            lunarMonth = diff + 11;
+            if (b11 - a11 > 365) {
+                leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+                if (diff >= leapMonthDiff) {
+                    lunarMonth = diff + 10;
+                    if (diff == leapMonthDiff) {
+                        lunarLeap = 1;
+                    }
+                }
+            }
+            if (lunarMonth > 12) {
+                lunarMonth = lunarMonth - 12;
+            }
+            if (lunarMonth >= 11 && diff < 4) {
+                lunarYear -= 1;
+            }
+            return { day: lunarDay, month: lunarMonth, year: lunarYear, leap: lunarLeap };
+        }
+
+        function convertLunar2Solar(lunarDay, lunarMonth, lunarYear, lunarLeap, timeZone) {
+            let a11 = getLunarMonth11(lunarYear, timeZone);
+            let leapMonth = getLeapMonthOffset(a11, timeZone);
+            let months = [];
+            for (let i = 11; i <= 12; i++) months.push(i);
+            for (let i = 1; i <= 10; i++) months.push(i);
+            if (leapMonth > 0 && leapMonth < months.length) {
+                months.splice(leapMonth, 0, -1);
+            }
+            let targetIndex = -1;
+            if (lunarLeap === 1) {
+                for (let i = 0; i < months.length; i++) {
+                    if (months[i] === -1) { targetIndex = i; break; }
+                }
+            } else {
+                for (let i = 0; i < months.length; i++) {
+                    if (months[i] === lunarMonth) { targetIndex = i; break; }
+                }
+            }
+            if (targetIndex === -1) return null;
+            let jd = a11;
+            for (let i = 0; i < targetIndex; i++) {
+                let nextNewMoon = getNewMoonDay(Math.floor((jd - 2415021.076998695) / 29.530588853) + 1, timeZone);
+                jd = nextNewMoon;
+            }
+            jd = jd + lunarDay - 1;
+            return jdToDate(jd);
+        }
+
+        // ================================================================
+        // 2. HẰNG SỐ KỲ MÔN
+        // ================================================================
+        const TEN_CUNG = ['', 'Khảm', 'Khôn', 'Chấn', 'Tốn', 'Trung', 'Càn', 'Đoài', 'Cấn', 'Ly'];
+        const HUONG = ['', 'Bắc', 'Tây Nam', 'Đông', 'Đông Nam', 'Trung ương', 'Tây Bắc', 'Tây', 'Đông Bắc', 'Nam'];
+
+        const TEN_MON = ['', 'Hưu', 'Sinh', 'Thương', 'Đỗ', 'Cảnh', 'Tử', 'Kinh', 'Khai'];
+        // Bát Thần có hai bộ tên tùy theo Dương độn / Âm độn:
+        //   Dương độn: Câu Trần, Chu Tước
+        //   Âm độn:    Bạch Hổ, Huyền Vũ
+        const TEN_THAN_DUONG = ['', 'Trực Phù', 'Đằng Xà', 'Thái Âm', 'Lục Hợp', 'Câu Trần', 'Chu Tước', 'Cửu Địa', 'Cửu Thiên'];
+        const TEN_THAN_AM = ['', 'Trực Phù', 'Đằng Xà', 'Thái Âm', 'Lục Hợp', 'Bạch Hổ', 'Huyền Vũ', 'Cửu Địa', 'Cửu Thiên'];
+        const TEN_TINH = ['', 'Thiên Bồng', 'Thiên Nhuế', 'Thiên Xung', 'Thiên Phụ', 'Thiên Cầm', 'Thiên Tâm', 'Thiên Trụ',
+            'Thiên Nhậm', 'Thiên Anh'
+        ];
+        // Địa bàn cố định (Kỳ Nghi)
+        const TEN_KI = ['', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý', 'Đinh', 'Bính', 'Át'];
+
+        // Ngũ hành của 9 cung (Hậu Thiên Bát Quái) + màu vòng tương ứng
+        const CUNG_HANH = ['', 'Thủy', 'Thổ', 'Mộc', 'Mộc', 'Thổ', 'Kim', 'Kim', 'Thổ', 'Hỏa'];
+        const HANH_COLOR = { 'Kim': '#ffffff', 'Mộc': '#2ecc71', 'Thủy': '#000000', 'Hỏa': '#ef4444', 'Thổ': '#f1c40f' };
+
+        // Nội dung ngắn gọn theo môn (được / không được / hóa giải - tăng cường)
+        const MON_ADVICE = {
+            'Sinh':   { do: 'Khởi công, cầu tài', dont: 'Tránh kiện tụng', hg: '✨ Tăng: xuất hành, khởi sự' },
+            'Khai':   { do: 'Mở mang, gặp gỡ', dont: 'Tránh động thổ', hg: '✨ Tăng: mở mang, gặp gỡ' },
+            'Hưu':    { do: 'Nghỉ ngơi, tĩnh tâm', dont: 'Tránh đầu tư lớn', hg: '✨ Tăng: nghỉ ngơi, dưỡng sức' },
+            'Thương': { do: 'Sửa chữa, thanh tẩy', dont: 'Tránh khởi công', hg: '🧹 Hóa giải: đổi hướng, đổi giờ' },
+            'Đỗ':     { do: 'Học tập, lên kế hoạch', dont: 'Tránh ký kết', hg: '🧹 Hóa giải: chọn hướng Sinh/Khai' },
+            'Cảnh':   { do: 'Quảng bá, giao tiếp', dont: 'Tránh ẩn mình', hg: '⚠️ Thận trọng giao tiếp' },
+            'Tử':     { do: 'Kết thúc, dọn dẹp', dont: 'Tránh việc mới', hg: '🧹 Hóa giải: tránh việc mới' },
+            'Kinh':   { do: 'Cảnh giác, bảo vệ', dont: 'Tránh tin người lạ', hg: '🧹 Hóa giải: chọn hướng tốt' }
+        };
+        const MON_ADVICE_DEFAULT = { do: 'Cân nhắc kỹ', dont: 'Tránh vội vàng', hg: '⚖️ Trung tính' };
+
+        const MON_TOT = ['Sinh', 'Khai', 'Hưu'];
+        const MON_XAU = ['Thương', 'Đỗ', 'Cảnh', 'Tử', 'Kinh'];
+
+        const GiapEmoji = ['🐭', '🐮', '🐯', '🐰', '🐲', '🐍', '🐴', '🐐', '🐵', '🐔', '🐶', '🐷'];
+        const GiapName = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+        const GioBatDau = ['23h', '1h', '3h', '5h', '7h', '9h', '11h', '13h', '15h', '17h', '19h', '21h'];
+
+        // ================================================================
+        // 3. BẢNG TRA TRỰC PHÙ – TRỰC SỬ (60 GIÁP TÝ)
+        // ================================================================
+        // Bảng tra Trực Phù (sao) – Trực Sử (cửa) theo 60 Giáp Tý.
+        // Sáu tuần (旬), mỗi tuần 10 can chi:
+        // Giáp Tý: Trực Phù = Thiên Bồng (1), Trực Sử = Hưu (1)
+        // Giáp Tuất: Trực Phù = Thiên Nhuế (2), Trực Sử = Tử (6)
+        // Giáp Thân: Trực Phù = Thiên Xung (3), Trực Sử = Thương (3)
+        // Giáp Ngọ: Trực Phù = Thiên Phụ (4), Trực Sử = Đỗ (4)
+        // Giáp Thìn: Trực Phù = Thiên Cầm (5), Trực Sử = Tử (6, Trung cung)
+        // Giáp Dần: Trực Phù = Thiên Tâm (6), Trực Sử = Khai (8)
+        const TRUC_MAP = {};
+        const TUAN = [
+            { tinh: 1, mon: 1 }, // Tuần 0: Giáp Tý
+            { tinh: 2, mon: 6 }, // Tuần 1: Giáp Tuất
+            { tinh: 3, mon: 3 }, // Tuần 2: Giáp Thân
+            { tinh: 4, mon: 4 }, // Tuần 3: Giáp Ngọ
+            { tinh: 5, mon: 6 }, // Tuần 4: Giáp Thìn
+            { tinh: 6, mon: 8 } // Tuần 5: Giáp Dần
+        ];
+        for (let tuan = 0; tuan < 6; tuan++) {
+            for (let i = 0; i < 10; i++) {
+                const idx = tuan * 10 + i;
+                TRUC_MAP[idx] = { tinh: TUAN[tuan].tinh, mon: TUAN[tuan].mon };
+            }
+        }
+
+        // ================================================================
+        // THỨ TỰ LẠC THƯ & BẢNG TRA BỔ TRỢ
+        // ================================================================
+        // Thứ tự Lạc Thư cho 8 cung ngoài (dùng cho sao/cửa/thần di chuyển)
+        const LUO_SHU = [1, 8, 3, 4, 9, 2, 7, 6];
+        // Thứ tự Lạc Thư đầy đủ 9 cung (gồm Trung cung ở cuối, dùng cho Cửu tinh)
+        const LUO_SHU_FULL = [1, 8, 3, 4, 9, 2, 7, 6, 5];
+        // Bản cung (home) của Bát Môn -> số thứ tự môn (TEN_MON index).
+        // Hưu->Khảm1, Sinh->Cấn8, Thương->Chấn3, Đỗ->Tốn4, Cảnh->Ly9, Tử->Khôn2, Kinh->Đoài7, Khai->Càn6.
+        const MON_HOME_INV = { 1: 1, 8: 2, 3: 3, 4: 4, 9: 5, 2: 6, 7: 7, 6: 8 };
+        // Thập Can -> Kỳ Nghi (cho quy tắc Trực Phù tùy Thì Can).
+        // Giáp (0) ẩn; Ất->9, Bính->8, Đinh->7, Mậu->1, Kỷ->2, Canh->3, Tân->4, Nhâm->5, Quý->6
+        const CAN_TO_KY = { 1: 9, 2: 8, 3: 7, 4: 1, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6 };
+        // Tuần Thủ (旬首): Lục Nghi ẩn Giáp, Địa chi, Trực Phù, Trực Sử
+        const TUAN_INFO = {
+            0: { ky: 1, chi: 0, tinh: 1, mon: 1 }, // Giáp Tý: Mậu, Tý
+            1: { ky: 2, chi: 10, tinh: 2, mon: 6 }, // Giáp Tuất: Kỷ, Tuất
+            2: { ky: 3, chi: 8, tinh: 3, mon: 3 }, // Giáp Thân: Canh, Thân
+            3: { ky: 4, chi: 6, tinh: 4, mon: 4 }, // Giáp Ngọ: Tân, Ngọ
+            4: { ky: 5, chi: 4, tinh: 5, mon: 6 }, // Giáp Thìn: Nhâm, Thìn
+            5: { ky: 6, chi: 2, tinh: 6, mon: 8 } // Giáp Dần: Quý, Dần
+        };
+
+        // Hàm lấy số thứ tự của can chi (0-59)
+        // Input: ganIdx (0-9), chiIdx (0-11)
+        // Output: số thứ tự (0-59)
+        function getCanChiIndex(ganIdx, chiIdx) {
+            // Dùng CRT: n ≡ ganIdx (mod 10), n ≡ chiIdx (mod 12)
+            // Giải hệ: n = ganIdx + 10*k, với k từ 0-5, thỏa mãn n % 12 == chiIdx
+            for (let k = 0; k < 6; k++) {
+                let n = ganIdx + 10 * k;
+                if (n % 12 === chiIdx) return n;
+            }
+            return 0;
+        }
+
+        // ================================================================
+        // 4. HÀM XÁC ĐỊNH TIẾT KHÍ & CỤC
+        // ================================================================
+        const TIET_KHI = [
+            { name: 'Lập Xuân', m: 2, d: 4 }, { name: 'Vũ Thủy', m: 2, d: 19 },
+            { name: 'Kinh Trập', m: 3, d: 6 }, { name: 'Xuân Phân', m: 3, d: 21 },
+            { name: 'Thanh Minh', m: 4, d: 5 }, { name: 'Cốc Vũ', m: 4, d: 20 },
+            { name: 'Lập Hạ', m: 5, d: 6 }, { name: 'Tiểu Mãn', m: 5, d: 21 },
+            { name: 'Mang Chủng', m: 6, d: 6 }, { name: 'Hạ Chí', m: 6, d: 21 },
+            { name: 'Tiểu Thử', m: 7, d: 7 }, { name: 'Đại Thử', m: 7, d: 23 },
+            { name: 'Lập Thu', m: 8, d: 8 }, { name: 'Xử Thử', m: 8, d: 23 },
+            { name: 'Bạch Lộ', m: 9, d: 8 }, { name: 'Thu Phân', m: 9, d: 23 },
+            { name: 'Hàn Lộ', m: 10, d: 8 }, { name: 'Sương Giáng', m: 10, d: 24 },
+            { name: 'Lập Đông', m: 11, d: 8 }, { name: 'Tiểu Tuyết', m: 11, d: 22 },
+            { name: 'Đại Tuyết', m: 12, d: 7 }, { name: 'Đông Chí', m: 12, d: 22 },
+            { name: 'Tiểu Hàn', m: 1, d: 5 }, { name: 'Đại Hàn', m: 1, d: 20 }
+        ];
+
+        const CUC_TRA = {
+            'Lập Xuân': { 'Thượng': { cuc: 8, duong: true }, 'Trung': { cuc: 5, duong: true }, 'Hạ': { cuc: 2,
+                    duong: true } },
+            'Vũ Thủy': { 'Thượng': { cuc: 9, duong: true }, 'Trung': { cuc: 6, duong: true }, 'Hạ': { cuc: 3,
+                    duong: true } },
+            'Kinh Trập': { 'Thượng': { cuc: 1, duong: true }, 'Trung': { cuc: 7, duong: true }, 'Hạ': { cuc: 4,
+                    duong: true } },
+            'Xuân Phân': { 'Thượng': { cuc: 3, duong: true }, 'Trung': { cuc: 9, duong: true }, 'Hạ': { cuc: 6,
+                    duong: true } },
+            'Thanh Minh': { 'Thượng': { cuc: 4, duong: true }, 'Trung': { cuc: 1, duong: true }, 'Hạ': { cuc: 7,
+                    duong: true } },
+            'Cốc Vũ': { 'Thượng': { cuc: 5, duong: true }, 'Trung': { cuc: 2, duong: true }, 'Hạ': { cuc: 8,
+                    duong: true } },
+            'Lập Hạ': { 'Thượng': { cuc: 4, duong: true }, 'Trung': { cuc: 1, duong: true }, 'Hạ': { cuc: 7,
+                    duong: true } },
+            'Tiểu Mãn': { 'Thượng': { cuc: 5, duong: true }, 'Trung': { cuc: 2, duong: true }, 'Hạ': { cuc: 8,
+                    duong: true } },
+            'Mang Chủng': { 'Thượng': { cuc: 6, duong: true }, 'Trung': { cuc: 3, duong: true }, 'Hạ': { cuc: 9,
+                    duong: true } },
+            'Hạ Chí': { 'Thượng': { cuc: 9, duong: false }, 'Trung': { cuc: 3, duong: false }, 'Hạ': { cuc: 6,
+                    duong: false } },
+            'Tiểu Thử': { 'Thượng': { cuc: 8, duong: false }, 'Trung': { cuc: 2, duong: false }, 'Hạ': { cuc: 5,
+                    duong: false } },
+            'Đại Thử': { 'Thượng': { cuc: 7, duong: false }, 'Trung': { cuc: 1, duong: false }, 'Hạ': { cuc: 4,
+                    duong: false } },
+            'Lập Thu': { 'Thượng': { cuc: 2, duong: false }, 'Trung': { cuc: 5, duong: false }, 'Hạ': { cuc: 8,
+                    duong: false } },
+            'Xử Thử': { 'Thượng': { cuc: 1, duong: false }, 'Trung': { cuc: 4, duong: false }, 'Hạ': { cuc: 7,
+                    duong: false } },
+            'Bạch Lộ': { 'Thượng': { cuc: 9, duong: false }, 'Trung': { cuc: 3, duong: false }, 'Hạ': { cuc: 6,
+                    duong: false } },
+            'Thu Phân': { 'Thượng': { cuc: 7, duong: false }, 'Trung': { cuc: 1, duong: false }, 'Hạ': { cuc: 4,
+                    duong: false } },
+            'Hàn Lộ': { 'Thượng': { cuc: 6, duong: false }, 'Trung': { cuc: 9, duong: false }, 'Hạ': { cuc: 3,
+                    duong: false } },
+            'Sương Giáng': { 'Thượng': { cuc: 5, duong: false }, 'Trung': { cuc: 8, duong: false }, 'Hạ': { cuc: 2,
+                    duong: false } },
+            'Lập Đông': { 'Thượng': { cuc: 6, duong: false }, 'Trung': { cuc: 9, duong: false }, 'Hạ': { cuc: 3,
+                    duong: false } },
+            'Tiểu Tuyết': { 'Thượng': { cuc: 5, duong: false }, 'Trung': { cuc: 8, duong: false }, 'Hạ': { cuc: 2,
+                    duong: false } },
+            'Đại Tuyết': { 'Thượng': { cuc: 4, duong: false }, 'Trung': { cuc: 7, duong: false }, 'Hạ': { cuc: 1,
+                    duong: false } },
+            'Đông Chí': { 'Thượng': { cuc: 1, duong: true }, 'Trung': { cuc: 7, duong: true }, 'Hạ': { cuc: 4,
+                    duong: true } },
+            'Tiểu Hàn': { 'Thượng': { cuc: 2, duong: true }, 'Trung': { cuc: 8, duong: true }, 'Hạ': { cuc: 5,
+                    duong: true } },
+            'Đại Hàn': { 'Thượng': { cuc: 3, duong: true }, 'Trung': { cuc: 9, duong: true }, 'Hạ': { cuc: 6,
+                    duong: true } }
+        };
+
+        // ================================================================
+        // TÍNH NGÀY GIAO TIẾT KHÍ CHÍNH XÁC (theo kinh độ hoàng đạo Mặt Trời)
+        // ================================================================
+        function getSunLongitudeDeg(jdn, timeZone) {
+            var T = (jdn - 2451545.5 - timeZone / 24) / 36525;
+            var T2 = T * T;
+            var dr = PI / 180;
+            var M = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+            var L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+            var DL = (1.914600 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+            DL = DL + (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.000290 * Math.sin(dr * 3 * M);
+            var L = (L0 + DL) % 360;
+            if (L < 0) L += 360;
+            return L;
+        }
+
+        // Kinh độ hoàng đạo của 24 tiết khí (theo đúng thứ tự mảng TIET_KHI)
+        const TIET_KHI_LONG = [315, 330, 345, 0, 15, 30, 45, 60, 75, 90, 105, 120,
+            135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300];
+
+        // Tìm ngày Julian khi Mặt Trời đạt kinh độ hoàng đạo nhất định (ngày giao tiết)
+        function findTietKhiJd(name, year) {
+            const t = TIET_KHI.find(x => x.name === name);
+            if (!t) return jdFromDate(1, 1, year);
+            const idx = TIET_KHI.indexOf(t);
+            const longitude = TIET_KHI_LONG[idx];
+            const approxJd = jdFromDate(t.d, t.m, year);
+
+            let jd1 = approxJd - 3;
+            let lng1 = getSunLongitudeDeg(jd1, 7.0);
+            for (let i = 0; i < 8; i++) {
+                const jd2 = jd1 + 1;
+                const lng2 = getSunLongitudeDeg(jd2, 7.0);
+                let diff = lng2 - lng1;
+                if (diff < -180) diff += 360;
+                if (diff > 180) diff -= 360;
+                const start = ((longitude - lng1) % 360 + 360) % 360;
+                if (diff > 0 && start <= diff) {
+                    const frac = start / diff;
+                    const crossJd = jd1 + frac;
+                    return Math.floor(crossJd + 0.5);
+                }
+                jd1 = jd2;
+                lng1 = lng2;
+            }
+            return approxJd;
+        }
+
+        // Tiết khí sắp tới (sau hoặc bằng ngày đang xét) — bản chuẩn dùng tiết khí KẾ TIẾP
+        function getTietKhi(month, day, year) {
+            const targetJd = jdFromDate(day, month, year);
+            let best = null;
+            for (let y of [year, year + 1]) {
+                for (let t of TIET_KHI) {
+                    const termJd = findTietKhiJd(t.name, y);
+                    if (termJd >= targetJd) {
+                        if (!best || termJd < best.jd) best = { name: t.name, jd: termJd };
+                    }
+                }
+            }
+            return best || { name: 'Đông Chí', jd: targetJd - 15 };
+        }
+
+        function tinhCuc(month, day, year) {
+            const jd = jdFromDate(day, month, year);
+
+            // Xác định Nguyên (Thượng/Trung/Hạ) theo chu kỳ 60 Giáp Tý (cố định):
+            // Phù Đầu là ngày Giáp/Kỷ, chỉ số luôn là bội của 5 trong 60 Giáp Tý.
+            // Địa chi của Phù Đầu quyết định Nguyên:
+            //   Tý/Ngọ/Mão/Dậu (Tứ Trọng, chi % 3 == 0) -> Thượng nguyên
+            //   Thìn/Tuất/Sửu/Mùi (Tứ Mộ, chi % 3 == 1) -> Hạ nguyên
+            //   Dần/Thân/Tỵ/Hợi (Tứ Sinh, chi % 3 == 2) -> Trung nguyên
+            const dayInfo = getDayCanChi(jd);
+            const n = getCanChiIndex(dayInfo.ganIdx, dayInfo.chiIdx);
+            const fu = n - (n % 5);   // chỉ số Phù Đầu (bội của 5)
+            const chi = fu % 12;      // Địa chi của Phù Đầu
+            const yuanIdx = chi % 3;  // 0=Thượng, 1=Hạ, 2=Trung
+            const nguyen = ['Thượng', 'Hạ', 'Trung'][yuanIdx];
+
+            // Tiết khí xét theo ngày Phù Đầu (超神接气): lấy tiết khí kế tiếp tính từ Phù Đầu.
+            const fuDate = jdToDate(jd - (n % 5));
+            const tiet = getTietKhi(fuDate.month, fuDate.day, fuDate.year);
+
+            const info = CUC_TRA[tiet.name];
+            if (info && info[nguyen]) {
+                return {
+                    so: info[nguyen].cuc,
+                    duong: info[nguyen].duong,
+                    tiet: tiet.name,
+                    nguyen: nguyen
+                };
+            }
+            return { so: 5, duong: true, tiet: tiet.name, nguyen: nguyen };
+        }
+
+        // ================================================================
+        // 5. HÀM AN BÀN KỲ MÔN (CHUẨN)
+        // ================================================================
+        function getCanChi(year) {
+            const gan = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
+            const chi = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+            let ganIdx = (year - 4) % 10;
+            let chiIdx = (year - 4) % 12;
+            if (ganIdx < 0) ganIdx += 10;
+            if (chiIdx < 0) chiIdx += 12;
+            return { gan: gan[ganIdx], chi: chi[chiIdx], ganIdx: ganIdx, chiIdx: chiIdx };
+        }
+
+        function getDayCanChi(jd) {
+            const gan = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
+            const chi = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+            // Can chi ngày chuẩn: số thứ tự 60 Giáp Tý = (jd + 49) % 60 (Giáp Tý = 0)
+            // Kiểm chứng: 01/10/1949 (jd=2433191) -> Giáp Tý; 10/02/2024 (jd=2460351) -> Giáp Thìn
+            const idx = ((jd + 49) % 60 + 60) % 60;
+            const ganIdx = idx % 10;
+            const chiIdx = idx % 12;
+            return { gan: gan[ganIdx], chi: chi[chiIdx], ganIdx: ganIdx, chiIdx: chiIdx };
+        }
+
+        function anBan(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const hours = date.getHours();
+            const jd = jdFromDate(day, month, year);
+            const lunar = convertSolar2Lunar(day, month, year, 7.0);
+            const yearCanChi = getCanChi(lunar.year);
+            const dayInfo = getDayCanChi(jd);
+
+            // 1. Can chi giờ
+            const gioChi = Math.floor((hours + 1) / 2) % 12; // 0=Tý, 1=Sửu, ...
+            const gioGan = (dayInfo.ganIdx * 2 + gioChi) % 10;
+
+            // 2. Xác định cục (phép Sách Bổ)
+            const cuc = tinhCuc(month, day, year);
+
+            // 3. Sắp Địa bàn (Kỳ Nghi) theo cục số.
+            // Thứ tự Kỳ Nghi: Mậu(1) Kỷ(2) Canh(3) Tân(4) Nhâm(5) Quý(6) Đinh(7) Bính(8) Ất(9).
+            // Dương độn đi thuận (tăng cung), Âm độn đi nghịch (giảm cung).
+            const diaBan = {};    // cung -> kỳ nghi index (1..9)
+            const kyTaiCung = {}; // kỳ nghi index -> cung
+            let kyIdx = 1;
+            let cungIdx = cuc.so;
+            for (let i = 0; i < 9; i++) {
+                diaBan[cungIdx] = kyIdx;
+                kyTaiCung[kyIdx] = cungIdx;
+                if (cuc.duong) {
+                    cungIdx = (cungIdx % 9) + 1;
+                } else {
+                    cungIdx = ((cungIdx - 2 + 9) % 9) + 1;
+                }
+                kyIdx++;
+            }
+
+            // 4. Tìm Trực Phù (sao) và Trực Sử (cửa) theo Tuần (旬) của GIỜ (时旬首).
+            // Trực Phù = Cửu Tinh có bản cung chứa Lục Nghi của Tuần Thủ (trên Địa bàn);
+            // Trực Sử = Bát Môn có bản cung đó. Trung cung (5) ký gửi Khôn (2).
+            const chiIndex = getCanChiIndex(gioGan, gioChi);
+            const tuanIdx = Math.floor(chiIndex / 10);
+            const tuan = TUAN_INFO[tuanIdx] || TUAN_INFO[0];
+            const giapKyCung = kyTaiCung[tuan.ky];      // cung chứa Lục Nghi của Tuần Thủ
+            const chiefHome = (giapKyCung === 5) ? 2 : giapKyCung; // Trung cung ký Khôn
+            const trucPhuTinh = chiefHome;              // sao có bản cung = cung chứa Tuần Thủ
+            const trucSuMon = MON_HOME_INV[chiefHome];  // cửa có bản cung = cung đó
+
+            // 5. Trực Phù tùy Thì Can (值符随时干)
+            let trucPhuCung;
+            if (gioGan === 0) {
+                // Giờ Giáp: Trực Phù về bản cung của Tuần Thủ
+                trucPhuCung = giapKyCung;
+            } else {
+                trucPhuCung = kyTaiCung[CAN_TO_KY[gioGan]];
+            }
+
+            // 6. Xoay Thiên bàn theo vòng Lạc Thư: Lục Nghi của Tuần Thủ di chuyển tới cung Thì Can.
+            const chiefCung = (giapKyCung === 5) ? 2 : giapKyCung;
+            const thiCanCung = (trucPhuCung === 5) ? 2 : trucPhuCung;
+            const chiefRing = LUO_SHU.indexOf(chiefCung);
+            const thiCanRing = LUO_SHU.indexOf(thiCanCung);
+            const ringSteps = cuc.duong
+                ? ((thiCanRing - chiefRing + 8) % 8)   // Dương độn: bay thuận
+                : ((chiefRing - thiCanRing + 8) % 8);  // Âm độn: bay nghịch
+            const thienBan = {};
+            thienBan[5] = diaBan[5]; // Trung cung giữ nguyên Kỳ Nghi
+            for (let i = 0; i < 8; i++) {
+                const palace = LUO_SHU[i];
+                const src = cuc.duong
+                    ? LUO_SHU[(i - ringSteps + 8) % 8]
+                    : LUO_SHU[(i + ringSteps) % 8];
+                thienBan[palace] = diaBan[src];
+            }
+
+            // 7. An Cửu tinh (转盘: 8 sao ngoài xoay theo vòng Lạc Thư, Thiên Cầm giữ Trung cung)
+            const starAtPalace = {};
+            const starRing = [1, 8, 3, 4, 9, 2, 7, 6]; // Bồng Nhậm Xung Phụ Anh Nhuế Trụ Tâm (theo vòng Lạc Thư)
+            let anchor = (trucPhuCung === 5) ? 2 : trucPhuCung; // Trung cung ký Khôn
+            let ringPos = LUO_SHU.indexOf(anchor);
+            if (ringPos === -1) ringPos = 0;
+            let starIdx = starRing.indexOf(trucPhuTinh);
+            if (starIdx === -1) starIdx = 0; // Trực Phù là Thiên Cầm (số 5): ký Khôn
+            for (let i = 0; i < 8; i++) {
+                const palace = LUO_SHU[ringPos];
+                starAtPalace[palace] = starRing[starIdx];
+                ringPos = (ringPos + (cuc.duong ? 1 : -1) + 8) % 8;
+                starIdx = (starIdx + (cuc.duong ? 1 : -1) + 8) % 8;
+            }
+            starAtPalace[5] = 5; // Thiên Cầm luôn giữ Trung cung
+
+            // 8. An Bát môn - Trực Sử tùy Thì Cung (值使随时宫).
+            // Cửa Trực Sử bay tới cung của Thì Chi (giờ). SHI_TARGET: vị trí vòng Lạc Thư theo Địa chi giờ (Tý..Hợi).
+            const SHI_TARGET = [6, 7, 5, 3, 2, 5, 0, 4, 1, 6, 7, 5]; // index trong LUO_SHU
+            const gatePos = SHI_TARGET[gioChi];
+            const trucSuCung = LUO_SHU[gatePos];
+
+            const doorAtPalace = {};
+            const doorOrder = [1, 2, 3, 4, 5, 6, 7, 8]; // Hưu Sinh Thương Đỗ Cảnh Tử Kinh Khai
+            let doorIdx = doorOrder.indexOf(trucSuMon);
+            let pos = gatePos;
+            for (let i = 0; i < 8; i++) {
+                const palace = LUO_SHU[pos];
+                doorAtPalace[palace] = doorOrder[doorIdx];
+                pos = (pos + (cuc.duong ? 1 : -1) + 8) % 8;
+                doorIdx = (doorIdx + (cuc.duong ? 1 : -1) + 8) % 8;
+            }
+
+            // 9. An Bát thần
+            const spiritAtPalace = {};
+            let spiritStart = trucPhuCung;
+            if (spiritStart === 5) spiritStart = 2; // Trực Phù ở Trung cung thì thần ký Khôn
+            let spiritPos = LUO_SHU.indexOf(spiritStart);
+            for (let i = 0; i < 8; i++) {
+                const palace = LUO_SHU[spiritPos];
+                spiritAtPalace[palace] = i + 1;
+                spiritPos = (spiritPos + (cuc.duong ? 1 : -1) + 8) % 8;
+            }
+
+            // 10. Đổ vào bàn
+            const cung = [];
+            for (let i = 0; i <= 9; i++) {
+                cung[i] = { ten: TEN_CUNG[i], huong: HUONG[i], mon: '', than: '', tinh: '', dia: '', thien: '' };
+            }
+            for (let p = 1; p <= 9; p++) {
+                cung[p].mon = TEN_MON[doorAtPalace[p]] || '';
+                cung[p].than = (cuc.duong ? TEN_THAN_DUONG : TEN_THAN_AM)[spiritAtPalace[p]] || '';
+                cung[p].tinh = TEN_TINH[starAtPalace[p]] || '';
+                cung[p].dia = TEN_KI[diaBan[p]] || '';
+                cung[p].thien = TEN_KI[thienBan[p]] || '';
+            }
+
+            // Lưu thông tin
+            cung['info'] = {
+                lunar: lunar,
+                yearCanChi: yearCanChi,
+                dayCanChi: dayInfo.gan + ' ' + dayInfo.chi,
+                dayGanIdx: dayInfo.ganIdx,
+                cuc: cuc,
+                gioGan: gioGan,
+                gioChi: gioChi,
+                trucPhu: { cung: trucPhuCung, tinh: trucPhuTinh },
+                trucSu: { mon: trucSuMon, cung: trucSuCung },
+                date: date
+            };
+
+            return cung;
+        }
+
+        // ================================================================
+        // 6. HIỂN THỊ BÀN VÀ CÁC
+
+        // ================================================================
+        // 5. HIỂN THỊ BÀN
+        // ================================================================
+        function getMauSac(mon) {
+            // Càng tốt càng xanh, càng xấu càng đỏ (theo thứ tự lành dữ của Bát Môn):
+            // Tốt: Sinh (nhất) -> Khai -> Hưu ; Xấu tăng dần: Cảnh -> Đỗ -> Thương -> Kinh -> Tử (nặng nhất)
+            const doTot = {
+                'Sinh': '#008040',
+                'Khai': '#0a6a38',
+                'Hưu': '#145430',
+                'Trung': '#3a3a0a',
+                'Cảnh': '#5a2a20',
+                'Đỗ': '#6a2020',
+                'Thương': '#7a1616',
+                'Kinh': '#8a0c0c',
+                'Tử': '#9a0000'
+            };
+            return doTot[mon] || '#1a1a40';
+        }
+
+        function getBorderColor(mon) {
+            if (MON_TOT.includes(mon)) return '#2ecc71';
+            if (MON_XAU.includes(mon)) return '#e74c3c';
+            return '#f1c40f';
+        }
+
+        function renderHoaGiai(mon, than) {
+            let s = '';
+            if (mon === 'Sinh') s = '✨ Gia tăng: Mặc xanh lá, đeo ngọc, đặt 7 cây xanh.';
+            else if (mon === 'Khai') s = '✨ Gia tăng: Màu đỏ/vàng, thắp 3 nến đỏ.';
+            else if (mon === 'Hưu') s = '✨ Gia tăng: Màu trắng/bạc, thiền 15 phút.';
+            else if (mon === 'Thương') s = '🧹 Hóa giải: Treo 5 chuông gió, bể cá 3 con.';
+            else if (mon === 'Đỗ') s = '🧹 Hóa giải: Bình hoa 7 bông, màu xanh dương.';
+            else if (mon === 'Cảnh') s = '🧹 Hóa giải: Gương bát quái, 5 viên đá thạch anh.';
+            else if (mon === 'Tử') s = '🧹 Hóa giải: 9 nén nhang, trầm, màu tím.';
+            else if (mon === 'Kinh') s = '🧹 Hóa giải: 3 quả pha lê, màu hồng/cam.';
+            else s = '⚖️ Trung tính, không cần hóa giải.';
+            return s;
+        }
+
+        function hienThiBan(cung) {
+            const board = document.getElementById('board');
+            // Bố cục 3x3: Nam ở trên, Bắc ở dưới (truyền thống Kỳ Môn)
+            const gridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
+            let html = '<div class="grid">';
+            for (let i = 0; i < 9; i++) {
+                const idx = gridOrder[i];
+                const cell = cung[idx];
+                const mon = cell.mon;
+                const bg = getMauSac(mon);
+                const hanh = CUNG_HANH[idx];
+                const ring = HANH_COLOR[hanh];
+                const adv = MON_ADVICE[mon] || MON_ADVICE_DEFAULT;
+                const cungName = cell.ten + ' (' + cell.huong + ')';
+                html += `<div class="cell" style="background:${bg}; border-color:${ring};">
+                            <div class="cell-inner">
+                                <div class="cung" style="color:${ring};">${cungName} · ${hanh}</div>
+                                <div class="row"><span class="mon">🚪 ${cell.mon || '—'}</span> · <span class="than">👹 ${cell.than || '—'}</span></div>
+                                <div class="row"><span class="tinh">⭐ ${cell.tinh || '—'}</span></div>
+                                <div class="row"><span class="thien">☁️ ${cell.thien || '—'}</span> · <span class="dia">📌 ${cell.dia || '—'}</span></div>
+                                <div class="do">✅ ${adv.do}</div>
+                                <div class="dont">❌ ${adv.dont}</div>
+                                <div class="hoa-giai">${adv.hg}</div>
+                            </div>
+                        </div>`;
+            }
+            html += '</div>';
+            board.innerHTML = html;
+            updateCompass();
+        }
+		function getAdvice(mon, than) {
+            let doList = '',
+                dontList = '';
+            if (mon === 'Sinh') {
+                doList = 'Khởi công, ký hợp đồng, cầu tài, xuất hành, mở tiệm.';
+                dontList = 'Tránh tang chế, kiện tụng, đào móng.';
+            } else if (mon === 'Khai') {
+                doList = 'Mở cửa hàng, hội họp, gặp gỡ đối tác, du lịch.';
+                dontList = 'Tránh cãi cọ, đâm thủng, động thổ.';
+            } else if (mon === 'Hưu') {
+                doList = 'Nghỉ ngơi, chữa bệnh, tĩnh tâm, cầu an, họp gia đình.';
+                dontList = 'Tránh đầu tư lớn, tranh luận, xuất hành xa.';
+            } else if (mon === 'Thương') {
+                doList = 'Điều trị bệnh, sửa chữa, thanh tẩy, loại bỏ vật cũ.';
+                dontList = 'Tránh khởi công, kết hôn, nhậm chức, xuất hành.';
+            } else if (mon === 'Đỗ') {
+                doList = 'Lên kế hoạch, học tập, nghiên cứu, lưu trữ hồ sơ.';
+                dontList = 'Tránh ra quyết định quan trọng, ký kết, di chuyển.';
+            } else if (mon === 'Cảnh') {
+                doList = 'Quảng bá, tiếp thị, giao tiếp, trình diễn.';
+                dontList = 'Tránh ẩn mình, trì hoãn, để lộ bí mật.';
+            } else if (mon === 'Tử') {
+                doList = 'Từ bỏ thói quen xấu, dọn dẹp, kết thúc dự án cũ.';
+                dontList = 'Tránh bắt đầu việc mới, đầu tư, di chuyển xa.';
+            } else if (mon === 'Kinh') {
+                doList = 'Cảnh giác, bảo vệ tài sản, củng cố an ninh.';
+                dontList = 'Tránh tin người lạ, ký giấy tờ quan trọng, xuất hành đêm.';
+            } else {
+                doList = 'Cân nhắc trước khi quyết định, giữ thái độ trung lập.';
+                dontList = 'Tránh những hành động cực đoan hoặc vội vàng.';
+            }
+            if (than === 'Bạch Hổ') {
+                doList += ' Cẩn trọng về an toàn, tránh tranh cãi.';
+                dontList += ' Không leo trèo, tham gia giao thông cẩn thận.';
+            } else if (than === 'Câu Trần') {
+                doList += ' Tránh kiện tụng, tranh chấp, giữ hòa khí.';
+                dontList += ' Không ký kết vội vàng, tránh mâu thuẫn.';
+            } else if (than === 'Huyền Vũ') {
+                doList += ' Tránh giao dịch tiền bạc lớn, kiểm tra kỹ giấy tờ.';
+                dontList += ' Không cho vay, tránh rượu chè.';
+            } else if (than === 'Chu Tước') {
+                doList += ' Tránh thị phi, cẩn trọng lời ăn tiếng nói.';
+                dontList += ' Không tranh cãi, hạn chế đối đầu.';
+            } else if (than === 'Đằng Xà') {
+                doList += ' Sử dụng lời nói khéo léo, tránh thẳng thắn quá mức.';
+                dontList += ' Không nói dối, tránh mưu mô.';
+            } else if (than === 'Trực Phù') {
+                doList += ' Lắng nghe ý kiến người lớn tuổi, cấp trên.';
+                dontList += ' Tránh tự cao, gây mất lòng.';
+            } else if (than === 'Lục Hợp') {
+                doList += ' Hợp tác, đoàn kết, giúp đỡ người khác.';
+                dontList += ' Tránh đơn độc, ích kỷ.';
+            }
+            return { do: doList, dont: dontList };
+        }
+        // ================================================================
+        // 6. GIỜ HOÀNG ĐẠO / HẮC ĐẠO (thu nhỏ, chỉ giờ bắt đầu)
+        // ================================================================
+        // 12 sao Hoàng Đạo / Hắc Đạo (thứ tự cố định, luân phiên theo chi can giờ).
+        // good=true: Hoàng Đạo (cát); false: Hắc Đạo (hung).
+        // level để tô gradient: càng tốt càng xanh, càng xấu càng đỏ.
+        const HOANG_HAC_STARS = [
+            { name: 'Thanh Long', good: true,  level: 0 },  // cát nhất
+            { name: 'Minh Đường', good: true,  level: 1 },
+            { name: 'Thiên Hình', good: false, level: 7 },
+            { name: 'Chu Tước',   good: false, level: 6 },
+            { name: 'Kim Quỹ',    good: true,  level: 2 },
+            { name: 'Thiên Đức',  good: true,  level: 3 },
+            { name: 'Bạch Hổ',    good: false, level: 10 },
+            { name: 'Ngọc Đường', good: true,  level: 4 },
+            { name: 'Thiên Lao',  good: false, level: 8 },
+            { name: 'Huyền Vũ',   good: false, level: 9 },
+            { name: 'Tư Mệnh',    good: true,  level: 5 },
+            { name: 'Câu Trần',   good: false, level: 11 } // hung nhất
+        ];
+
+        // Giờ khởi đầu của Thanh Long theo Can ngày (quy tắc "Thanh Long khởi thời"):
+        // Giáp/Kỷ -> Tý(0), Ất/Canh -> Dần(2), Bính/Tân -> Thìn(4), Đinh/Nhâm -> Ngọ(6), Mậu/Quý -> Thân(8)
+        const THANH_LONG_START = { 0: 0, 5: 0, 1: 2, 6: 2, 2: 4, 7: 4, 3: 6, 8: 6, 4: 8, 9: 8 };
+
+        function getGioStarInfo(dayGanIdx, chiIdx) {
+            const start = (THANH_LONG_START[dayGanIdx] !== undefined) ? THANH_LONG_START[dayGanIdx] : 0;
+            const pos = ((chiIdx - start) % 12 + 12) % 12;
+            return HOANG_HAC_STARS[pos];
+        }
+
+        function getGioBackgroundColor(level) {
+            const colors = [
+                '#00a040', '#1aa848', '#34b050', '#4eb858', '#68c060', '#82c868', // 0-5 xanh (tốt, đậm -> nhạt)
+                '#d8786a', '#c85a5c', '#b83c4e', '#a81e40', '#980832', '#880024' // 6-11 đỏ (xấu, nhạt -> đậm)
+            ];
+            return colors[Math.min(Math.max(level, 0), colors.length - 1)] || '#2a4a7a';
+        }
+
+        function renderGioCompact(dayGanIdx) {
+            const chi = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+
+            let container = document.getElementById('gioCompact');
+            let html = '';
+            for (let i = 0; i < 12; i++) {
+                const star = getGioStarInfo(dayGanIdx, i);
+                const isHoang = star.good;
+                const bg = getGioBackgroundColor(star.level);
+                const border = isHoang ? '#2ecc71' : '#e74c3c';
+                const emoji = GiapEmoji[i];
+                const tenChi = chi[i];
+                const gioBD = GioBatDau[i];
+                html += `<div class="gio-item-mini" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} - ${star.name} (${isHoang?'Hoàng Đạo':'Hắc Đạo'})">
+                            <span class="emoji">${emoji}</span>
+                            <span class="chi">${tenChi}</span>
+                            <span class="khung-gio">${gioBD}</span>
+                        </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // ================================================================
+        // 7. ĐIỀU KHIỂN INPUT + DRAG + RESET
+        // ================================================================
+        document.getElementById('resetSun').addEventListener('click', layGioHienTai);
+        document.getElementById('resetMoon').addEventListener('click', layGioHienTai);
+
+        document.querySelectorAll('.val-input').forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                const field = this.dataset.field;
+                let val = parseInt(this.value) || 0;
+                if (field === 'year') val = Math.max(1900, Math.min(2100, val));
+                else if (field === 'month') val = Math.max(1, Math.min(12, val));
+                else if (field === 'day') val = Math.max(1, Math.min(31, val));
+                else if (field === 'hour') val = Math.max(0, Math.min(23, val));
+                if (val !== parseInt(this.value)) this.value = String(val).padStart(2, '0');
+                else if (this.value.length === 1 && field !== 'year') this.value = '0' + this.value;
+            });
+
+            input.addEventListener('change', function() {
+                const field = this.dataset.field;
+                let val = parseInt(this.value) || 0;
+                if (field === 'year') val = Math.max(1900, Math.min(2100, val));
+                else if (field === 'month') val = Math.max(1, Math.min(12, val));
+                else if (field === 'day') val = Math.max(1, Math.min(31, val));
+                else if (field === 'hour') val = Math.max(0, Math.min(23, val));
+                this.value = (field === 'year') ? String(val) : String(val).padStart(2, '0');
+                const isAm = this.id.startsWith('am');
+                if (isAm) capNhatTuAm();
+                else capNhatTuDuong();
+            });
+
+            // Drag
+            let isDragging = false, startY = 0, startVal = 0;
+            input.addEventListener('mousedown', function(e) {
+                if (document.activeElement === this) return;
+                isDragging = true;
+                startY = e.clientY;
+                startVal = parseInt(this.value) || 0;
+                document.addEventListener('mousemove', onDragMove);
+                document.addEventListener('mouseup', onDragEnd);
+                e.preventDefault();
+                this.style.borderColor = '#f7971e';
+            });
+
+            const onDragMove = (e) => {
+                if (!isDragging) return;
+                const deltaY = startY - e.clientY;
+                const steps = Math.round(deltaY / 12);
+                if (steps !== 0) {
+                    let newVal = startVal + steps;
+                    const field = input.dataset.field;
+                    if (field === 'year') newVal = Math.max(1900, Math.min(2100, newVal));
+                    else if (field === 'month') newVal = Math.max(1, Math.min(12, newVal));
+                    else if (field === 'day') newVal = Math.max(1, Math.min(31, newVal));
+                    else if (field === 'hour') newVal = Math.max(0, Math.min(23, newVal));
+                    input.value = (field === 'year') ? String(newVal) : String(newVal).padStart(2, '0');
+                    startVal = newVal;
+                    startY = e.clientY;
+                    const isAm = input.id.startsWith('am');
+                    if (isAm) capNhatTuAm();
+                    else capNhatTuDuong();
+                }
+            };
+
+            const onDragEnd = () => {
+                isDragging = false;
+                input.style.borderColor = '#2a4a7a';
+                document.removeEventListener('mousemove', onDragMove);
+                document.removeEventListener('mouseup', onDragEnd);
+            };
+        });
+
+        // ================================================================
+        // 8. CẬP NHẬT
+        // ================================================================
+        function capNhatTuDuong() {
+            const day = parseInt(document.getElementById('duongDay').value) || 1;
+            const month = parseInt(document.getElementById('duongMonth').value) || 1;
+            const year = parseInt(document.getElementById('duongYear').value) || 2024;
+            const hour = parseInt(document.getElementById('duongHour').value) || 0;
+            const date = new Date(year, month - 1, day, hour, 0, 0);
+            if (isNaN(date.getTime())) return;
+
+            const lunar = convertSolar2Lunar(day, month, year, 7.0);
+            document.getElementById('amDay').value = String(lunar.day).padStart(2, '0');
+            document.getElementById('amMonth').value = String(lunar.month).padStart(2, '0');
+            document.getElementById('amYear').value = lunar.year;
+            document.getElementById('amHour').value = String(hour).padStart(2, '0');
+            document.getElementById('amNhuan').checked = lunar.leap === 1;
+
+            const jd = jdFromDate(day, month, year);
+            const dayInfo = getDayCanChi(jd);
+            renderGioCompact(dayInfo.ganIdx);
+
+            const cung = anBan(date);
+            window._cungData = cung;
+            if (cung) hienThiBan(cung);
+        }
+
+        function capNhatTuAm() {
+            const day = parseInt(document.getElementById('amDay').value) || 1;
+            const month = parseInt(document.getElementById('amMonth').value) || 1;
+            const year = parseInt(document.getElementById('amYear').value) || 2024;
+            const hour = parseInt(document.getElementById('amHour').value) || 0;
+            const leap = document.getElementById('amNhuan').checked ? 1 : 0;
+
+            const solar = convertLunar2Solar(day, month, year, leap, 7.0);
+            if (!solar) {
+                alert('Âm lịch không hợp lệ!');
+                return;
+            }
+            document.getElementById('duongDay').value = String(solar.day).padStart(2, '0');
+            document.getElementById('duongMonth').value = String(solar.month).padStart(2, '0');
+            document.getElementById('duongYear').value = solar.year;
+            document.getElementById('duongHour').value = String(hour).padStart(2, '0');
+
+            const date = new Date(solar.year, solar.month - 1, solar.day, hour, 0, 0);
+            const jd = jdFromDate(solar.day, solar.month, solar.year);
+            const dayInfo = getDayCanChi(jd);
+            renderGioCompact(dayInfo.ganIdx);
+
+            const cung = anBan(date);
+            window._cungData = cung;
+            if (cung) hienThiBan(cung);
+        }
+
+        function layGioHienTai() {
+            const now = new Date();
+            document.getElementById('duongDay').value = String(now.getDate()).padStart(2, '0');
+            document.getElementById('duongMonth').value = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('duongYear').value = now.getFullYear();
+            document.getElementById('duongHour').value = String(now.getHours()).padStart(2, '0');
+            capNhatTuDuong();
+        }
+
+        function chonGio(chiIndex) {
+            let startHour = (chiIndex * 2 - 1) % 24;
+            if (startHour < 0) startHour = 23;
+            document.getElementById('duongHour').value = String(startHour).padStart(2, '0');
+            capNhatTuDuong();
+        }
+
+        // ================================================================
+        // 9. LA BÀN (Compass) + XOAY BÀN THEO HƯỚNG THỰC TẾ
+        // ================================================================
+        window._compass = { heading: 0, active: false, listening: false, sensor: null };
+
+        // heading (0–359) -> 8 hướng + cung Kỳ Môn tương ứng
+        function getDirection(h) {
+            h = ((h % 360) + 360) % 360;
+            if (h >= 337.5 || h < 22.5) return { name: 'Bắc', short: 'N', palace: 1, cung: 'Khảm' };
+            if (h < 67.5) return { name: 'Đông Bắc', short: 'NE', palace: 8, cung: 'Cấn' };
+            if (h < 112.5) return { name: 'Đông', short: 'E', palace: 3, cung: 'Chấn' };
+            if (h < 157.5) return { name: 'Đông Nam', short: 'SE', palace: 4, cung: 'Tốn' };
+            if (h < 202.5) return { name: 'Nam', short: 'S', palace: 9, cung: 'Ly' };
+            if (h < 247.5) return { name: 'Tây Nam', short: 'SW', palace: 2, cung: 'Khôn' };
+            if (h < 292.5) return { name: 'Tây', short: 'W', palace: 7, cung: 'Đoài' };
+            return { name: 'Tây Bắc', short: 'NW', palace: 6, cung: 'Càn' };
+        }
+
+        // Xoay bàn: "Bắc" (Khảm) của bàn luôn hướng về Bắc thực tế.
+        // Bố cục truyền thống: Bắc ở đáy (180°); bản đồ: Bắc ở đỉnh (0°).
+        function applyCompassRotation() {
+            const grid = document.querySelectorAll('#board .grid')[0];
+            if (!grid) return;
+            // Mặc định: Nam ở trên (không xoay). Chỉ khi la bàn hoạt động mới xoay để Bắc chỉ về Bắc thực.
+            const angle = window._compass.active ? (-window._compass.heading - 180) : 0;
+            grid.style.transform = 'rotate(' + angle + 'deg)';
+            // Xoay ngược nội dung để chữ luôn thẳng, đọc được
+            const inners = grid.querySelectorAll('.cell-inner');
+            for (let i = 0; i < inners.length; i++) {
+                inners[i].style.transform = 'rotate(' + (-angle) + 'deg)';
+            }
+        }
+
+        function updateCompass() {
+            const h = window._compass.heading;
+            const dir = getDirection(h);
+            document.getElementById('compassDeg').textContent = h + '°';
+            document.getElementById('compassDir').textContent = dir.name + ' (' + dir.short + ')';
+            document.getElementById('headingVal').textContent = h + '°';
+            document.getElementById('headingSlider').value = h;
+            // Thông tin cung + môn/tinh/thần tại hướng đang quay về
+            let info = 'Cung ' + dir.cung + ' (' + dir.name + ')';
+            if (window._cungData && window._cungData[dir.palace]) {
+                const cell = window._cungData[dir.palace];
+                info += ' — Môn: ' + (cell.mon || '—') + ' · Tinh: ' + (cell.tinh || '—') + ' · Thần: ' + (cell.than || '—');
+            }
+            document.getElementById('compassPalace').textContent = info;
+            // Xoay mặt la bàn: nhãn N luôn chỉ về Bắc thực
+            const ring = document.getElementById('roseRing');
+            if (ring) ring.style.transform = 'rotate(' + (-h) + 'deg)';
+            applyCompassRotation();
+        }
+
+        // ---- La bàn thực: cảm biến định hướng (từ kế + con quay hồi chuyển) ----
+        function setStatus(live, text) {
+            const el = document.getElementById('compassStatus');
+            if (!el) return;
+            el.textContent = text || '';
+            el.className = 'compass-status' + (live ? ' live' : '');
+        }
+
+        // Chuẩn hoá + áp heading (0–359) từ cảm biến
+        function setHeading(h) {
+            if (typeof h !== 'number' || isNaN(h)) return;
+            h = ((h % 360) + 360) % 360;
+            window._compass.heading = Math.round(h);
+            window._compass.active = true;
+            setStatus(true, 'Đang xoay theo hướng điện thoại');
+            updateCompass();
+        }
+
+        // iOS Safari: webkitCompassHeading (0 = Bắc, tăng theo chiều kim đồng hồ)
+        function onDeviceOrientation(e) {
+            if (typeof e.webkitCompassHeading === 'number') {
+                setHeading(e.webkitCompassHeading);
+            } else if (e.absolute === true && typeof e.alpha === 'number') {
+                setHeading(360 - e.alpha);
+            }
+        }
+
+        // Android Chrome/Firefox: deviceorientationabsolute (alpha: 0 = Bắc, ngược chiều kim)
+        function onDeviceOrientationAbsolute(e) {
+            if (typeof e.alpha === 'number') {
+                setHeading(360 - e.alpha);
+            }
+        }
+
+        // Android: Generic Sensor API (AbsoluteOrientationSensor) — dự phòng
+        function startAbsoluteSensor() {
+            if (typeof AbsoluteOrientationSensor === 'undefined') return false;
+            try {
+                const sensor = new AbsoluteOrientationSensor({ frequency: 30 });
+                sensor.addEventListener('reading', function () {
+                    const q = sensor.quaternion;
+                    if (!q) return;
+                    const yaw = Math.atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2]));
+                    setHeading((yaw * 180 / Math.PI + 360) % 360);
+                });
+                sensor.addEventListener('error', function () {});
+                sensor.start();
+                window._compass.sensor = sensor;
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        // Bật la bàn (gọi khi người dùng MỞ la bàn)
+        function startCompass() {
+            if (window._compass.listening) return;
+            window._compass.listening = true;
+            window.addEventListener('deviceorientation', onDeviceOrientation, true);
+            window.addEventListener('deviceorientationabsolute', onDeviceOrientationAbsolute, true);
+            startAbsoluteSensor();
+            setStatus(false, 'Đang khởi động cảm biến…');
+        }
+
+        // Tắt la bàn (gọi khi ĐÓNG la bàn)
+        function stopCompass() {
+            window._compass.listening = false;
+            window.removeEventListener('deviceorientation', onDeviceOrientation, true);
+            window.removeEventListener('deviceorientationabsolute', onDeviceOrientationAbsolute, true);
+            if (window._compass.sensor) {
+                try { window._compass.sensor.stop(); } catch (e) {}
+                window._compass.sensor = null;
+            }
+            window._compass.active = false;
+            setStatus(false, '');
+            updateCompass();
+        }
+
+        // ---- Mở / đóng la bàn + xin quyền iOS ----
+        const compassPanel = document.getElementById('compassPanel');
+        const compassToggle = document.getElementById('compassToggle');
+        let compassOpen = false;
+
+        function openCompass() {
+            compassOpen = true;
+            if (compassPanel) compassPanel.classList.remove('hidden');
+            if (compassToggle) {
+                compassToggle.textContent = '🧭 Đóng la bàn';
+                compassToggle.classList.add('active');
+            }
+            // iOS cần xin quyền cảm biến trong một cử chỉ người dùng
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(function (state) {
+                    if (state === 'granted') startCompass();
+                    else setStatus(false, 'Chưa cấp quyền cảm biến (vào Settings)');
+                }).catch(function () { setStatus(false, 'Không cấp được quyền cảm biến'); });
+            } else {
+                startCompass(); // Android/desktop không cần xin quyền
+            }
+        }
+
+        function closeCompass() {
+            compassOpen = false;
+            if (compassPanel) compassPanel.classList.add('hidden');
+            if (compassToggle) {
+                compassToggle.textContent = '🧭 Mở la bàn';
+                compassToggle.classList.remove('active');
+            }
+            stopCompass();
+        }
+
+        if (compassToggle) {
+            compassToggle.addEventListener('click', function () {
+                if (compassOpen) closeCompass();
+                else openCompass();
+            });
+        }
+
+        // Xoay thử (khi mở trên máy tính không có la bàn)
+        document.getElementById('headingSlider').addEventListener('input', function () {
+            window._compass.heading = parseInt(this.value, 10) || 0;
+            window._compass.active = true;                  // xoay thủ công
+            setStatus(false, 'Xoay thử (thủ công)');
+            updateCompass();
+        });
+
+        // GPS — tự lấy vị trí; nếu không được thì để trống
+        if (typeof navigator !== 'undefined' && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                document.getElementById('compassLoc').textContent =
+                    '📍 ' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4);
+            }, function () {
+                document.getElementById('compassLoc').textContent = '📍';
+            }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+        }
+
+        updateCompass();
+
+        window.onload = function() {
+            layGioHienTai();
+            updateCompass();
+        };
+    </script>
+
+</body>
+</html>
