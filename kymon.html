@@ -116,18 +116,18 @@
 
         #board {
             width: 100%;
-            max-width: 600px;
+            max-width: 400px;
             background: transparent;
             border-radius: 0;
             padding: 0;
             box-shadow: none;
-            margin: 30px auto;
+            margin: 50px auto 30px auto;
             border: none;
         }
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            gap: 5px;
         }
         .cell {
             position: relative;
@@ -1168,8 +1168,7 @@
                                 <div class="cell-inner" style="color:${st.txt}">
                                     <table class="cell-table">
                                         <tr><td class="ct" colspan="2">${hi.gioHTML} ${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
-                                        <tr><td class="ct" colspan="2">${hi.thinh}</td></tr>
-                                        <tr><td class="ct" colspan="2">${hi.suy}</td></tr>
+                                        <tr><td class="ct" colspan="2">${hi.summary}</td></tr>
                                     </table>
                                 </div>
                             </div>`;
@@ -1736,7 +1735,7 @@
             const h = window._compass.heading;
             const dir = getDirection(h);
             const cell = (cung && cung[dir.palace]) ? cung[dir.palace] : null;
-            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '', gioHTML = '', gioBtn = '';
+            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', gioHTML = '', gioBtn = '';
             if (cung && cell) {
                 const chiIndex = cung.info.gioChi;
                 const emoji = GiapEmoji[chiIndex];
@@ -1746,12 +1745,10 @@
                 scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
                 const p = phanTichNguHanh(dir.palace, cell);
                 summary = renderNguHanhSummary(p);
-                thinh = renderThinh(p);
-                suy = renderSuy(p);
                 gioHTML = '<span class="gio-ico">' + emoji + '</span><span class="gio-txt">' + tenChi + '</span>';
                 gioBtn = '<span>' + emoji + '</span><span class="gio-txt">' + tenChi + '</span>';
             }
-            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy, gioHTML: gioHTML, gioBtn: gioBtn };
+            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, gioHTML: gioHTML, gioBtn: gioBtn };
         }
 
         // Phân tích ngũ hành thịnh/suy của cung hiện tại:
@@ -1768,20 +1765,10 @@
             return { count: count };
         }
 
-        function renderThinh(p) {
-            const arr = NGU_HANH_ORDER.filter(function (k) { return p.count[k] > 0; });
-            return arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
-        }
-
-        function renderSuy(p) {
-            const arr = NGU_HANH_ORDER.filter(function (k) { return p.count[k] === 0; });
-            if (arr.length === 0) return '';
-            return arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k; }).join(', ');
-        }
-
         function renderNguHanhSummary(p) {
-            const s = renderSuy(p);
-            return renderThinh(p) + (s ? ' · ' + s : '');
+            return NGU_HANH_ORDER.map(function (k) {
+                return (HANH_ICON[k] || '') + ' ' + k + (p.count[k] > 0 ? ' (' + p.count[k] + ')' : '');
+            }).join(', ');
         }
 
         // Cập nhật ô trung tâm (Trung cung): hướng + điểm + ngũ hành thịnh/khuyết
@@ -1799,8 +1786,7 @@
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
                     + '<tr><td class="ct" colspan="2">' + hi.gioHTML + ' ' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
-                    + '<tr><td class="ct" colspan="2">' + hi.thinh + '</td></tr>'
-                    + '<tr><td class="ct" colspan="2">' + hi.suy + '</td></tr>'
+                    + '<tr><td class="ct" colspan="2">' + hi.summary + '</td></tr>'
                     + '</table>';
                 inner.style.color = st.txt;
             }
