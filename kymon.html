@@ -121,9 +121,7 @@
             border-radius: 0;
             padding: 0;
             box-shadow: none;
-            margin-top: 28px;
-            padding-top: 25px;
-            margin-bottom: 20px;
+            margin: 30px auto;
             border: none;
         }
         .grid {
@@ -326,6 +324,7 @@
         .compass-controls input[type="range"] { flex: 1; min-width: 120px; accent-color: #f7971e; touch-action: none; }
         .compass-controls .heading-val { font-weight: bold; color: #fff; min-width: 42px; text-align: right; }
         .compass-panel.hidden { display: none; }
+        .compass-luan-giai.hidden { display: none; }
         .compass-toggle {
             display: inline-flex;
             align-items: center;
@@ -419,7 +418,7 @@
         </div>
     </div>
 
-    <div class="compass-panel hidden" id="compassPanel">
+    <div class="compass-panel" id="compassPanel">
         <div class="compass-top">
             <table class="compass-top-table">
                 <tr>
@@ -466,7 +465,7 @@
                 </tr>
             </table>
         </div>
-        <div class="compass-luan-giai" id="compassLuanGiai"></div>
+        <div class="compass-luan-giai hidden" id="compassLuanGiai"></div>
         <div class="compass-status" id="compassStatus"></div>
     </div>
 
@@ -675,6 +674,9 @@
             'Hỏa': '🔥',
             'Thổ': '⛰️'
         };
+
+        // Thứ tự ngũ hành cố định (tương sinh): Kim -> Thủy -> Mộc -> Hỏa -> Thổ
+        const NGU_HANH_ORDER = ['Kim', 'Thủy', 'Mộc', 'Hỏa', 'Thổ'];
 
         // 12 địa chi (canh giờ)
         const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
@@ -1767,14 +1769,12 @@
         }
 
         function renderThinh(p) {
-            const arr = Object.keys(p.count)
-                .filter(function (k) { return p.count[k] > 0; })
-                .sort(function (a, b) { return p.count[b] - p.count[a]; });
+            const arr = NGU_HANH_ORDER.filter(function (k) { return p.count[k] > 0; });
             return arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
         }
 
         function renderSuy(p) {
-            const arr = Object.keys(p.count).filter(function (k) { return p.count[k] === 0; });
+            const arr = NGU_HANH_ORDER.filter(function (k) { return p.count[k] === 0; });
             if (arr.length === 0) return '';
             return arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k; }).join(', ');
         }
@@ -2028,12 +2028,13 @@
 
         // ---- Mở / đóng la bàn + xin quyền iOS ----
         const compassPanel = document.getElementById('compassPanel');
+        const compassLuanGiai = document.getElementById('compassLuanGiai');
         const compassToggle = document.getElementById('compassToggle');
         let compassOpen = false;
 
         function openCompass() {
             compassOpen = true;
-            if (compassPanel) compassPanel.classList.remove('hidden');
+            if (compassLuanGiai) compassLuanGiai.classList.remove('hidden');
             if (compassToggle) {
                 compassToggle.classList.add('active');
             }
@@ -2050,7 +2051,7 @@
 
         function closeCompass() {
             compassOpen = false;
-            if (compassPanel) compassPanel.classList.add('hidden');
+            if (compassLuanGiai) compassLuanGiai.classList.add('hidden');
             if (compassToggle) {
                 compassToggle.classList.remove('active');
             }
@@ -2106,6 +2107,7 @@
                 setHeading(startHeading - delta);
             }
             function onEnd() {
+                if (!dragging) return;
                 dragging = false;
                 window._compass.manual = false;
                 // Tự động chọn lại giờ hiện tại khi thao tác vào các vòng tròn
