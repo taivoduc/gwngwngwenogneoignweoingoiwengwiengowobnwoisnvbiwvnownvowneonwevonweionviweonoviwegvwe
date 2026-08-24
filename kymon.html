@@ -184,37 +184,42 @@
         /* ===== La bàn (Compass) ===== */
         .compass-panel {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
             background: #111633;
             border: 2px solid #2a4a7a;
             border-radius: 18px;
-            padding: 16px 22px;
+            padding: 14px 18px;
             margin: 0 0 18px;
             width: 100%;
             max-width: 920px;
         }
+        .compass-top {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
         .rose {
             position: relative;
-            width: 150px;
-            height: 150px;
+            width: 96px;
+            height: 96px;
             flex: 0 0 auto;
             border-radius: 50%;
             background: radial-gradient(circle, #1a1a40 0%, #0b0e1a 100%);
             border: 3px solid #2a4a7a;
-            box-shadow: 0 0 18px rgba(42, 74, 122, 0.6);
+            box-shadow: 0 0 14px rgba(42, 74, 122, 0.6);
         }
         .rose-ring { position: absolute; inset: 0; transition: transform 0.25s ease; }
         .rose-label {
             position: absolute;
             transform: translate(-50%, -50%);
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.62rem;
             color: #a4b0be;
         }
-        .rose-label.main { color: #ff6b6b; font-size: 1.05rem; }
+        .rose-label.main { color: #ff6b6b; font-size: 0.85rem; }
         .rose-marker {
             position: absolute;
             left: 50%;
@@ -222,16 +227,16 @@
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 9px solid transparent;
-            border-right: 9px solid transparent;
-            border-top: 18px solid #ffd93d;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 14px solid #ffd93d;
             z-index: 2;
         }
-        .compass-right { min-width: 230px; flex: 1; max-width: 480px; }
-        .compass-loc { color: #a4b0be; font-size: 0.85rem; margin-bottom: 6px; }
+        .compass-info { min-width: 200px; flex: 1; max-width: 560px; }
+        .compass-loc { color: #a4b0be; font-size: 0.8rem; margin-top: 4px; }
         .compass-heading { display: flex; align-items: baseline; gap: 10px; }
-        .compass-heading .deg { font-size: 2.2rem; font-weight: bold; color: #fff; }
-        .compass-heading .dir { font-size: 1.15rem; font-weight: bold; color: #7bed9f; }
+        .compass-heading .deg { font-size: 1.9rem; font-weight: bold; color: #fff; }
+        .compass-heading .dir { font-size: 1.1rem; font-weight: bold; color: #7bed9f; }
         .compass-palace {
             margin-top: 6px;
             font-size: 0.95rem;
@@ -241,14 +246,12 @@
             padding: 6px 10px;
         }
         .compass-luan-giai {
-            margin-top: 12px;
-            max-height: 340px;
-            overflow-y: auto;
+            margin-top: 4px;
             text-align: left;
             background: rgba(0, 0, 0, 0.35);
             border: 1px solid #2a4a7a;
             border-radius: 10px;
-            padding: 10px 12px;
+            padding: 12px 14px;
             font-size: 0.85rem;
             line-height: 1.5;
             color: #d8d8e0;
@@ -269,6 +272,16 @@
         .compass-luan-giai .lg-dont { color: #ff6b6b; }
         .compass-luan-giai .lg-boost { color: #7dd3fc; }
         .compass-luan-giai .lg-hoa { color: #ffd93d; }
+        .compass-luan-giai .lg-cards { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+        .compass-luan-giai .lg-card {
+            flex: 1 1 200px;
+            background: rgba(26, 42, 74, 0.4);
+            border: 1px solid #2a4a7a;
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+        .compass-luan-giai .lg-cols { display: flex; flex-wrap: wrap; gap: 12px; }
+        .compass-luan-giai .lg-col { flex: 1 1 220px; min-width: 0; }
         .compass-controls {
             margin-top: 10px;
             display: flex;
@@ -331,34 +344,36 @@
     </div>
 
     <div class="compass-panel hidden" id="compassPanel">
-        <div class="rose">
-            <div class="rose-ring" id="roseRing">
-                <span class="rose-label main" style="top:4%;left:50%">N</span>
-                <span class="rose-label" style="top:13%;left:85%">NE</span>
-                <span class="rose-label" style="top:50%;left:94%">E</span>
-                <span class="rose-label" style="top:87%;left:85%">SE</span>
-                <span class="rose-label" style="top:96%;left:50%">S</span>
-                <span class="rose-label" style="top:87%;left:15%">SW</span>
-                <span class="rose-label" style="top:50%;left:6%">W</span>
-                <span class="rose-label" style="top:13%;left:15%">NW</span>
+        <div class="compass-top">
+            <div class="rose">
+                <div class="rose-ring" id="roseRing">
+                    <span class="rose-label main" style="top:4%;left:50%">N</span>
+                    <span class="rose-label" style="top:13%;left:85%">NE</span>
+                    <span class="rose-label" style="top:50%;left:94%">E</span>
+                    <span class="rose-label" style="top:87%;left:85%">SE</span>
+                    <span class="rose-label" style="top:96%;left:50%">S</span>
+                    <span class="rose-label" style="top:87%;left:15%">SW</span>
+                    <span class="rose-label" style="top:50%;left:6%">W</span>
+                    <span class="rose-label" style="top:13%;left:15%">NW</span>
+                </div>
+                <div class="rose-marker"></div>
             </div>
-            <div class="rose-marker"></div>
+            <div class="compass-info">
+                <div class="compass-heading">
+                    <span class="deg" id="compassDeg">0°</span>
+                    <span class="dir" id="compassDir">Bắc (N)</span>
+                </div>
+                <div class="compass-palace" id="compassPalace">Cung Khảm — Bắc</div>
+                <div class="compass-loc" id="compassLoc">📍</div>
+            </div>
         </div>
-        <div class="compass-right">
-            <div class="compass-loc" id="compassLoc">📍</div>
-            <div class="compass-heading">
-                <span class="deg" id="compassDeg">0°</span>
-                <span class="dir" id="compassDir">Bắc (N)</span>
-            </div>
-            <div class="compass-palace" id="compassPalace">Cung Khảm — Bắc</div>
-            <div class="compass-luan-giai" id="compassLuanGiai"></div>
-            <div class="compass-controls">
-                <label>Xoay thử:</label>
-                <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
-                <span id="headingVal">0°</span>
-            </div>
-            <div class="compass-status" id="compassStatus"></div>
+        <div class="compass-luan-giai" id="compassLuanGiai"></div>
+        <div class="compass-controls">
+            <label>Xoay thử:</label>
+            <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
+            <span id="headingVal">0°</span>
         </div>
+        <div class="compass-status" id="compassStatus"></div>
     </div>
 
     <div id="board"></div>
@@ -1439,27 +1454,35 @@
             const monInfo = MON_LUAN[mon] || null;
             const tinhInfo = TINH_LUAN[tinh] || null;
             const thanInfo = THAN_LUAN[than] || null;
+            const verdict = danhGiaCung(mon, tinh, than);
 
             let html = '';
             html += '<div class="lg-title">🔮 LUẬN GIẢI HƯỚNG ' + dir.name.toUpperCase() + ' (' + dir.short + ') — CUNG ' + dir.cung.toUpperCase() + '</div>';
-            html += '<div class="lg-sec"><span class="lg-tag">🧭 Bản chất hướng &amp; cung:</span> ' + cungChat + ' <span class="lg-hanh">(Ngũ hành: ' + hanhCung + ' — ' + (HANH_MO_TA[hanhCung] || '') + ')</span></div>';
-            if (monInfo) html += '<div class="lg-sec"><span class="lg-tag">🚪 Môn ' + mon + ' Môn</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span>: ' + monInfo.chat + '</div>';
-            if (tinhInfo) html += '<div class="lg-sec"><span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span>: ' + tinhInfo.chat + '</div>';
-            if (thanInfo) html += '<div class="lg-sec"><span class="lg-tag">👹 Thần ' + than + ':</span> ' + thanInfo + '</div>';
 
-            const verdict = danhGiaCung(mon, tinh, than);
+            html += '<div class="lg-cards">';
+            html += '<div class="lg-card"><span class="lg-tag">🧭 Hướng &amp; Cung</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
+            if (monInfo) html += '<div class="lg-card"><span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat + '</div>';
+            if (tinhInfo) html += '<div class="lg-card"><span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat + '</div>';
+            if (thanInfo) html += '<div class="lg-card"><span class="lg-tag">👹 Thần ' + than + '</span><br>' + thanInfo + '</div>';
+            html += '</div>';
+
             html += '<div class="lg-verdict ' + verdict.cls + '">' + verdict.icon + ' TỔNG KẾT: ' + verdict.text + '</div>';
 
-            if (monInfo && monInfo.do) {
-                html += '<div class="lg-block"><div class="lg-h">✅ VIỆC NÊN LÀM</div><ul>';
-                monInfo.do.forEach(function (x) { html += '<li class="lg-do">' + x + '</li>'; });
-                html += '</ul></div>';
+            if (monInfo && (monInfo.do || monInfo.dont)) {
+                html += '<div class="lg-cols">';
+                if (monInfo.do) {
+                    html += '<div class="lg-col"><div class="lg-h">✅ VIỆC NÊN LÀM</div><ul>';
+                    monInfo.do.forEach(function (x) { html += '<li class="lg-do">' + x + '</li>'; });
+                    html += '</ul></div>';
+                }
+                if (monInfo.dont) {
+                    html += '<div class="lg-col"><div class="lg-h">❌ VIỆC KHÔNG NÊN LÀM</div><ul>';
+                    monInfo.dont.forEach(function (x) { html += '<li class="lg-dont">' + x + '</li>'; });
+                    html += '</ul></div>';
+                }
+                html += '</div>';
             }
-            if (monInfo && monInfo.dont) {
-                html += '<div class="lg-block"><div class="lg-h">❌ VIỆC KHÔNG NÊN LÀM</div><ul>';
-                monInfo.dont.forEach(function (x) { html += '<li class="lg-dont">' + x + '</li>'; });
-                html += '</ul></div>';
-            }
+
             if (monInfo && monInfo.boost) {
                 html += '<div class="lg-block"><div class="lg-h">⚡ TĂNG NĂNG LƯỢNG</div><div class="lg-boost">' + monInfo.boost + '</div></div>';
             }
