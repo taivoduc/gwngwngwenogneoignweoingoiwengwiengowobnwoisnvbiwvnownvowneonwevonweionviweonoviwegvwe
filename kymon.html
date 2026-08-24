@@ -170,6 +170,10 @@
         .cell-table .ct { text-align: left; font-size: 0.7rem; white-space: nowrap; }
         /* Ô trung tâm (Trung cung): cho chữ xuống dòng, căn giữa */
         .cell.center-cell .cell-table .ct { white-space: normal; text-align: center; line-height: 1.3; }
+        /* 8 hướng thuần Việt quanh ô trung tâm (như la bàn), luôn thẳng đứng */
+        .center-dirs { position: absolute; inset: 0; pointer-events: none; }
+        .center-dirs .cdir { position: absolute; transform: translate(-50%, -50%); font-size: 0.5rem; color: #a4b0be; font-weight: bold; }
+        .compass-controls .gio-icon { font-size: 1.2rem; margin-left: 6px; }
 
         @media (max-width: 700px) {
             .control-row { gap: 12px 20px; }
@@ -238,13 +242,13 @@
             z-index: 2;
         }
         .compass-heading { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
-        .compass-heading .deg { font-size: 1.9rem; font-weight: bold; color: #fff; }
+        .compass-heading .deg { font-size: 1.1rem; font-weight: bold; color: #fff; }
         .compass-heading .dir { font-size: 1.1rem; font-weight: bold; color: #7bed9f; }
-        .compass-heading .diem-heading { font-size: 1rem; font-weight: bold; }
+        .compass-heading .diem-heading { font-size: 1.1rem; font-weight: bold; }
         .compass-heading .diem-heading.diem-tot { color: #7bed9f; }
         .compass-heading .diem-heading.diem-xau { color: #ff6b6b; }
         .compass-heading .diem-heading.diem-trung { color: #c8c8d0; }
-        .compass-heading .gio-heading { font-size: 0.85rem; font-weight: normal; color: #ffd93d; white-space: nowrap; }
+        .compass-heading .gio-heading { font-size: 1.1rem; font-weight: normal; color: #ffd93d; white-space: nowrap; }
         .compass-palace {
             margin-top: 2px;
             font-size: 0.95rem;
@@ -355,10 +359,10 @@
             /* La bàn nhỏ lại, dòng 2 wrap, bar vừa màn hình */
             .rose { width: 72px; height: 72px; }
             .rose-cell { width: 72px; }
-            .compass-heading .deg { font-size: 1.4rem; }
+            .compass-heading .deg { font-size: 0.9rem; }
             .compass-heading .dir { font-size: 0.9rem; }
-            .compass-heading .diem-heading { font-size: 0.85rem; }
-            .compass-heading .gio-heading { font-size: 0.75rem; }
+            .compass-heading .diem-heading { font-size: 0.9rem; }
+            .compass-heading .gio-heading { font-size: 0.9rem; }
             .compass-palace { white-space: normal; font-size: 0.8rem; }
             .compass-controls input[type="range"] { min-width: 0; }
             .cell-table td { padding: 0 1px; }
@@ -425,8 +429,8 @@
                         <div class="compass-heading">
                             <span class="deg" id="compassDeg">0°</span>
                             <span class="dir" id="compassDir">Bắc</span>
-                            <span class="diem-heading" id="compassDiem"></span>
                             <span class="gio-heading" id="compassGio"></span>
+                            <span class="diem-heading" id="compassDiem"></span>
                         </div>
                     </td>
                 </tr>
@@ -440,6 +444,10 @@
                         <div class="compass-controls">
                             <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
                             <span class="heading-val" id="headingVal">0°</span>
+                        </div>
+                        <div class="compass-controls gio-controls">
+                            <input type="range" id="gioSlider" min="0" max="11" value="0" step="1">
+                            <span class="gio-icon" id="gioIcon">🐭</span>
                         </div>
                     </td>
                 </tr>
@@ -1137,9 +1145,19 @@
                     const hi = headingInfo(cung);
                     const st = scoreStyle(hi.scoreCls);
                     html += `<div class="cell center-cell" style="background:${st.bg}; border-color:${st.bd};">
+                                <div class="center-dirs">
+                                    <span class="cdir" style="top:7%;left:50%">B</span>
+                                    <span class="cdir" style="top:15%;left:82%">ĐB</span>
+                                    <span class="cdir" style="top:50%;left:91%">Đ</span>
+                                    <span class="cdir" style="top:85%;left:82%">ĐN</span>
+                                    <span class="cdir" style="top:93%;left:50%">N</span>
+                                    <span class="cdir" style="top:85%;left:18%">TN</span>
+                                    <span class="cdir" style="top:50%;left:9%">T</span>
+                                    <span class="cdir" style="top:15%;left:18%">TB</span>
+                                </div>
                                 <div class="cell-inner">
                                     <table class="cell-table">
-                                        <tr><td class="ct" colspan="2">${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span>${hi.gio}</td></tr>
+                                        <tr><td class="ct" colspan="2">${hi.h}° ${hi.dir.name}, ${hi.gio}, <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
                                         <tr><td class="ct" colspan="2">${hi.thinh}</td></tr>
                                         <tr><td class="ct" colspan="2">${hi.suy}</td></tr>
                                     </table>
@@ -1705,18 +1723,6 @@
             return { bg: '#1a1a4a', bd: '#f1c40f', glow: 'rgba(241, 196, 15, 0.40)' };
         }
 
-        // HTML hiển thị canh giờ (icon + tên chi + khoảng giờ); mobile tự ẩn tên chi và giờ kết thúc
-        function gioHTML(cung) {
-            if (!cung || !cung.info) return '';
-            const i = cung.info.gioChi;
-            if (i === undefined || i === null) return '';
-            const emoji = GiapEmoji[i];
-            const tenChi = CHI[i];
-            const gioBD = GioBatDau[i];
-            const gioEnd = GioBatDau[(i + 1) % 12];
-            return '<span class="gio-emoji">' + emoji + '</span><span class="gio-ten"> ' + tenChi + '</span> <span class="gio-bd">' + gioBD + '</span><span class="gio-end"> - ' + gioEnd + '</span>';
-        }
-
         // Tổng hợp thông tin cung hiện tại: điểm trọng số + ngũ hành thịnh/suy
         function headingInfo(cung) {
             const h = window._compass.heading;
@@ -1732,7 +1738,7 @@
                 summary = renderNguHanhSummary(p);
                 thinh = renderThinh(p);
                 suy = renderSuy(p);
-                gio = ', ' + gioHTML(cung);
+                gio = 'Giờ ' + CHI[cung.info.gioChi];
             }
             return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy, gio: gio };
         }
@@ -1784,7 +1790,7 @@
             const inner = center.querySelector('.cell-inner');
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
-                    + '<tr><td class="ct" colspan="2">' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span>' + hi.gio + '</td></tr>'
+                    + '<tr><td class="ct" colspan="2">' + hi.h + '° ' + hi.dir.name + ', ' + hi.gio + ', <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
                     + '<tr><td class="ct" colspan="2">' + hi.thinh + '</td></tr>'
                     + '<tr><td class="ct" colspan="2">' + hi.suy + '</td></tr>'
                     + '</table>';
@@ -1851,6 +1857,11 @@
             for (let i = 0; i < inners.length; i++) {
                 inners[i].style.transform = 'rotate(' + (-angle) + 'deg)';
             }
+            // Nhãn 8 hướng ở ô trung tâm: luôn thẳng đứng, B chỉ hướng Bắc thực
+            const dirs = grid.querySelectorAll('.center-dirs');
+            for (let i = 0; i < dirs.length; i++) {
+                dirs[i].style.transform = 'rotate(' + (-angle) + 'deg)';
+            }
         }
 
         function updateCompass() {
@@ -1879,16 +1890,25 @@
                 rose.style.boxShadow = '0 0 24px ' + st.glow;
             }
 
+            // Canh giờ hiện tại/chọn (dòng 1: Hướng, Giờ, Điểm)
+            const gioEl = document.getElementById('compassGio');
+            if (gioEl) gioEl.textContent = ', ' + hi.gio;
+
             // Điểm trọng số trên heading
             const diem = document.getElementById('compassDiem');
             if (diem) {
-                diem.textContent = scoreText;
+                diem.textContent = ', ' + scoreText;
                 diem.className = 'diem-heading ' + scoreCls;
             }
 
-            // Canh giờ hiện tại/chọn
-            const gioEl = document.getElementById('compassGio');
-            if (gioEl) gioEl.innerHTML = hi.gio;
+            // Đồng bộ slider giờ + icon con giáp
+            if (window._cungData && window._cungData.info) {
+                const gioChi = window._cungData.info.gioChi;
+                const gioSlider = document.getElementById('gioSlider');
+                if (gioSlider) gioSlider.value = gioChi;
+                const gioIcon = document.getElementById('gioIcon');
+                if (gioIcon) gioIcon.textContent = GiapEmoji[gioChi];
+            }
 
             // Tổng hợp ngũ hành thịnh/khuyết
             document.getElementById('compassPalace').textContent = hi.summary;
@@ -2040,6 +2060,13 @@
         });
         document.getElementById('headingSlider').addEventListener('change', function () {
             window._compass.manual = false;
+        });
+
+        // Slider canh giờ: kéo đổi giờ, icon con giáp theo dõi ở cuối
+        document.getElementById('gioSlider').addEventListener('input', function () {
+            const chiIndex = parseInt(this.value, 10) || 0;
+            document.getElementById('gioIcon').textContent = GiapEmoji[chiIndex];
+            chonGio(chiIndex);
         });
 
         // Kéo thả chuột (hoặc chạm) để xoay bàn theo hướng mong muốn
