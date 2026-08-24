@@ -74,21 +74,19 @@
         .group .am-label { font-size: 0.85rem; color: #aaa; font-weight: 500; }
 
         .gio-compact {
-            display: flex;
-            flex-wrap: nowrap;
+            display: grid;
+            grid-template-columns: repeat(12, minmax(46px, 1fr));
+            gap: 4px;
+            width: 100%;
             overflow-x: auto;
-            gap: 3px;
-            padding: 6px 6px;
+            padding: 6px 4px;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            max-width: 100%;
         }
         .gio-compact::-webkit-scrollbar { display: none; }
 
         .gio-item-mini {
-            flex: 0 0 auto;
-            min-width: 58px;
-            padding: 4px 6px;
+            padding: 4px 2px;
             border-radius: 8px;
             border: 2px solid #2a4a7a;
             background: #1a1a3e;
@@ -159,7 +157,7 @@
             .group .val-input { width: 42px; font-size: 1rem; padding: 4px 2px; }
             .group .val-input.year-input { width: 58px; }
             .group label { font-size: 1.4rem; }
-            .gio-item-mini { min-width: 44px; padding: 3px 4px; font-size: 0.6rem; }
+            .gio-item-mini { padding: 3px 2px; font-size: 0.6rem; }
             .cell .cung { font-size: 0.8rem; }
             .cell .row { font-size: 0.62rem; }
         }
@@ -168,7 +166,7 @@
             .group .val-input { width: 34px; font-size: 0.85rem; padding: 2px; }
             .group .val-input.year-input { width: 48px; }
             .group label { font-size: 1.2rem; }
-            .gio-item-mini { min-width: 38px; padding: 2px 3px; font-size: 0.55rem; }
+            .gio-item-mini { padding: 2px 1px; font-size: 0.55rem; }
             .cell-inner { inset: 4px; gap: 1px; }
             .cell .cung { font-size: 0.58rem; }
             .cell .row { font-size: 0.46rem; }
@@ -264,17 +262,14 @@
         .compass-luan-giai .lg-dont { color: #ff6b6b; }
         .compass-luan-giai .lg-boost { color: #7dd3fc; }
         .compass-luan-giai .lg-hoa { color: #ffd93d; }
-        .compass-luan-giai .lg-table-wrap { overflow-x: auto; scrollbar-width: none; }
-        .compass-luan-giai .lg-table-wrap::-webkit-scrollbar { display: none; }
-        .compass-luan-giai .lg-table { width: 100%; min-width: 560px; border-collapse: collapse; table-layout: fixed; }
-        .compass-luan-giai .lg-table td { border: 1px solid transparent; padding: 6px 8px; vertical-align: top; }
+        .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 16px; margin-top: 6px; }
+        .compass-luan-giai .lg-item { padding: 4px 0; }
         .compass-luan-giai .cd-card {
             padding: 4px 0;
-            border-left: 3px solid transparent;
         }
-        .compass-luan-giai .cd-card.tot { border-left-color: #2ecc71; }
-        .compass-luan-giai .cd-card.xau { border-left-color: #e74c3c; }
-        .compass-luan-giai .cd-card.trung { border-left-color: #f1c40f; }
+        @media (max-width: 700px) {
+            .compass-luan-giai .lg-grid { grid-template-columns: repeat(2, 1fr); }
+        }
         .compass-luan-giai .cd-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
         .compass-luan-giai .cd-title { font-weight: bold; color: #fff; font-size: 0.82rem; }
         .compass-luan-giai .cd-verdict { font-weight: bold; font-size: 0.76rem; white-space: nowrap; }
@@ -1550,27 +1545,20 @@
             const thanInfo = THAN_LUAN[than] || null;
 
             let html = '';
-            html += '<div class="lg-table-wrap"><table class="lg-table"><tbody>';
+            html += '<div class="lg-grid">';
 
-            // Dòng 1: Cung + Môn + Tinh + Thần (bản chất)
-            html += '<tr>';
-            html += '<td><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</td>';
-            html += '<td>' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</td>';
-            html += '<td>' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</td>';
-            html += '<td>' + (thanInfo ? ('<span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo) : '') + '</td>';
-            html += '</tr>';
+            // 4 ô bản chất
+            html += '<div class="lg-item"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
+            html += '<div class="lg-item">' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item">' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item">' + (thanInfo ? ('<span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo) : '') + '</div>';
 
-            // Dòng 2-3: 8 chủ đề lớn (4 mỗi dòng)
-            for (let r = 0; r < 2; r++) {
-                html += '<tr>';
-                for (let c = 0; c < 4; c++) {
-                    const idx = r * 4 + c;
-                    html += '<td>' + (idx < CHU_DE.length ? taoChuDe(CHU_DE[idx], mon, tinh, than) : '') + '</td>';
-                }
-                html += '</tr>';
+            // 8 chủ đề lớn
+            for (let i = 0; i < CHU_DE.length; i++) {
+                html += taoChuDe(CHU_DE[i], mon, tinh, than);
             }
 
-            html += '</tbody></table></div>';
+            html += '</div>';
 
             box.innerHTML = html;
         }
