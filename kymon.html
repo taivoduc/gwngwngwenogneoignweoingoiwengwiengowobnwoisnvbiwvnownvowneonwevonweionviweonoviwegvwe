@@ -122,7 +122,7 @@
             padding: 0;
             box-shadow: none;
             margin-top: 28px;
-            padding-top: 15px;
+            padding-top: 20px;
             margin-bottom: 20px;
             border: none;
         }
@@ -164,6 +164,10 @@
         .cell .diem.diem-tot { color: #7bed9f; }
         .cell .diem.diem-xau { color: #ff6b6b; }
         .cell .diem.diem-trung { color: #c8c8d0; }
+        .cell-table { width: 100%; border-collapse: collapse; }
+        .cell-table td { padding: 0 2px; vertical-align: middle; }
+        .cell-table .ci { text-align: right; width: 20px; font-size: 0.7rem; white-space: nowrap; }
+        .cell-table .ct { text-align: left; font-size: 0.7rem; white-space: nowrap; }
 
         @media (max-width: 700px) {
             .control-row { gap: 12px 20px; }
@@ -323,6 +327,9 @@
             transition: 0.2s;
         }
         .compass-toggle:hover { transform: scale(1.05); box-shadow: 0 0 14px rgba(247, 151, 30, 0.5); }
+        .compass-toggle.btn-tot { background: rgba(46, 204, 113, 0.30); border-color: #2ecc71; }
+        .compass-toggle.btn-xau { background: rgba(231, 76, 60, 0.30); border-color: #e74c3c; }
+        .compass-toggle.btn-trung { background: #1a2a4a; border-color: #f1c40f; }
         .compass-toggle.active { background: linear-gradient(135deg, #f7971e, #e07b00); border-color: #ffd93d; }
         .compass-status { font-size: 0.85rem; color: #a4b0be; margin-top: 10px; }
         .compass-status.live { color: #7bed9f; }
@@ -1134,12 +1141,14 @@
                 const gio = CUNG_GIO[idx] || '';
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
-                                <div class="cung">${cell.huong} <span class="diem ${scoreCls}">${scoreText}</span></div>
-                                <div class="row"><span class="mon">${iconCung} ${cell.ten || '—'}</span></div>
-                                <div class="row"><span class="mon">${iconMon} ${cell.mon || '—'}</span></div>
-                                <div class="row"><span class="tinh">${iconTinh} ${cell.tinh || '—'}</span></div>
-                                <div class="row"><span class="than">${iconThan} ${cell.than || '—'}</span></div>
-                                <div class="row"><span class="gio">${gio}</span></div>
+                                <table class="cell-table">
+                                    <tr><td class="ci">${iconCung}</td><td class="ct">${cell.huong} <span class="diem ${scoreCls}">${scoreText}</span></td></tr>
+                                    <tr><td class="ci">${iconCung}</td><td class="ct">${cell.ten || '—'}</td></tr>
+                                    <tr><td class="ci">${iconMon}</td><td class="ct">${cell.mon || '—'}</td></tr>
+                                    <tr><td class="ci">${iconTinh}</td><td class="ct">${cell.tinh || '—'}</td></tr>
+                                    <tr><td class="ci">${iconThan}</td><td class="ct">${cell.than || '—'}</td></tr>
+                                    <tr><td class="ci">${iconCung}</td><td class="ct">${gio}</td></tr>
+                                </table>
                             </div>
                         </div>`;
             }
@@ -1752,9 +1761,15 @@
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
 
-            // Nút mở/đóng la bàn hiển thị hướng + điểm
+            // Nút mở/đóng la bàn hiển thị hướng + điểm, tô màu theo trạng thái
             const btn = document.getElementById('compassToggle');
-            if (btn) btn.textContent = '🧭 ' + h + '° ' + dir.name + ' ' + scoreText;
+            if (btn) {
+                btn.textContent = '🧭 ' + h + '° ' + dir.name + ' ' + scoreText;
+                if (btn.classList) {
+                    btn.classList.remove('btn-tot', 'btn-xau', 'btn-trung');
+                    btn.classList.add(scoreCls === 'diem-tot' ? 'btn-tot' : (scoreCls === 'diem-xau' ? 'btn-xau' : 'btn-trung'));
+                }
+            }
 
             // Điểm trọng số trên heading
             const diem = document.getElementById('compassDiem');
@@ -1890,7 +1905,7 @@
             if (compassToggle) {
                 compassToggle.classList.remove('active');
             }
-            stopCompass();
+            // KHÔNG stopCompass(): giữ cảm biến chạy để 9 vòng tròn vẫn xoay theo khi điện thoại di chuyển
         }
 
         if (compassToggle) {
