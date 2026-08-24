@@ -331,6 +331,10 @@
         .compass-toggle.btn-xau { background: rgba(231, 76, 60, 0.30); border-color: #e74c3c; }
         .compass-toggle.btn-trung { background: #1a2a4a; border-color: #f1c40f; }
         .compass-toggle.active { box-shadow: 0 0 16px rgba(255, 255, 255, 0.55); }
+        /* Trên thiết bị cảm ứng: bỏ hiệu ứng hover (tránh kẹt hover làm lệch màu) */
+        @media (hover: none) {
+            .compass-toggle:hover { transform: none; box-shadow: none; }
+        }
         .compass-status { font-size: 0.85rem; color: #a4b0be; margin-top: 10px; }
         .compass-status.live { color: #7bed9f; }
         .grid { transition: transform 0.4s ease; transform-origin: center center; }
@@ -646,6 +650,9 @@
             'Hỏa': '🔥',
             'Thổ': '⛰️'
         };
+
+        // Ngũ hành của 12 địa chi (giờ)
+        const GIO_HANH = { 'Tý': 'Thủy', 'Sửu': 'Thổ', 'Dần': 'Mộc', 'Mão': 'Mộc', 'Thìn': 'Thổ', 'Tỵ': 'Hỏa', 'Ngọ': 'Hỏa', 'Mùi': 'Thổ', 'Thân': 'Kim', 'Dậu': 'Kim', 'Tuất': 'Thổ', 'Hợi': 'Thủy' };
 
         // Giờ (Địa Chi) tương ứng với từng cung/hướng theo Hậu Thiên Bát Quái
         const CUNG_GIO = {
@@ -1680,6 +1687,40 @@
             return Math.round(score * 2.5);
         }
 
+        // Hành của giờ theo cung (lấy địa chi đầu tiên của cung)
+        function gioHanhOf(idx) {
+            const g = CUNG_GIO[idx] || '';
+            const first = g.split(' ')[0].split('-')[0];
+            return GIO_HANH[first] || CUNG_HANH[idx] || '';
+        }
+
+        // Phân tích ngũ hành thịnh/khuyết (đếm tần suất 5 hành)
+        function phanTichNguHanh() {
+            const args = [].slice.call(arguments);
+            const count = { 'Kim': 0, 'Mộc': 0, 'Thủy': 0, 'Hỏa': 0, 'Thổ': 0 };
+            for (let i = 0; i < args.length; i++) {
+                const h = args[i];
+                if (count[h] !== undefined) count[h]++;
+            }
+            let max = -1, min = 99;
+            for (const k in count) {
+                if (count[k] > max) max = count[k];
+                if (count[k] < min) min = count[k];
+            }
+            const thịnh = [], khuyet = [];
+            for (const k in count) {
+                if (count[k] === max) thịnh.push(k);
+                if (count[k] === min) khuyet.push(k);
+            }
+            return { count, thịnh, khuyet };
+        }
+
+        function renderNguHanhSummary(p) {
+            let s = 'Thịnh: ' + p.thịnh.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
+            s += ' · Khuyết: ' + p.khuyet.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
+            return s;
+        }
+
         // Màu nhạt: xanh (tốt) -> trung tính -> đỏ (xấu), không dùng màu vàng
         function scoreToColor(score) {
             const s = Math.max(-6, Math.min(6, Math.round(score)));
@@ -1761,13 +1802,14 @@
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
 
-            // Nút mở/đóng la bàn hiển thị hướng + điểm, tô màu theo trạng thái
+            // Nút mở/đóng la bàn hiển thị hướng + điểm, tô màu theo trạng thái (dùng inline để nhất quán mobile/desktop)
             const btn = document.getElementById('compassToggle');
             if (btn) {
                 btn.textContent = '🧭 ' + h + '° ' + dir.name + ' ' + scoreText;
-                if (btn.classList) {
-                    btn.classList.remove('btn-tot', 'btn-xau', 'btn-trung');
-                    btn.classList.add(scoreCls === 'diem-tot' ? 'btn-tot' : (scoreCls === 'diem-xau' ? 'btn-xau' : 'btn-trung'));
+                if (btn.style) {
+                    if (scoreCls === 'diem-tot') { btn.style.background = 'rgba(46, 204, 113, 0.30)'; btn.style.borderColor = '#2ecc71'; }
+                    else if (scoreCls === 'diem-xau') { btn.style.background = 'rgba(231, 76, 60, 0.30)'; btn.style.borderColor = '#e74c3c'; }
+                    else { btn.style.background = '#1a2a4a'; btn.style.borderColor = '#f1c40f'; }
                 }
             }
 
@@ -1778,18 +1820,17 @@
                 diem.className = 'diem-heading ' + scoreCls;
             }
 
-            // Thông tin cung + môn/tinh/thần (kèm ngũ hành) tại hướng đang quay về
+            // Tổng hợp ngũ hành thịnh/khuyết (dựa vào 5 hành của cung/môn/tinh/thần/giờ)
             const hanhCung = CUNG_HANH[dir.palace] || '';
-            let info = 'Cung ' + dir.cung + ' (' + hanhCung + ')';
+            let summary = '';
             if (cell) {
                 const monHanh = (MON_LUAN[cell.mon] && MON_LUAN[cell.mon].hanh) || '';
                 const tinhHanh = (TINH_LUAN[cell.tinh] && TINH_LUAN[cell.tinh].hanh) || '';
                 const thanHanh = THAN_HANH[cell.than] || '';
-                info += ' — Môn: ' + (cell.mon || '—') + ' (' + monHanh + ')'
-                    + ' · Tinh: ' + (cell.tinh || '—') + ' (' + tinhHanh + ')'
-                    + ' · Thần: ' + (cell.than || '—') + ' (' + thanHanh + ')';
+                const gioHanh = gioHanhOf(dir.palace);
+                summary = renderNguHanhSummary(phanTichNguHanh(hanhCung, monHanh, tinhHanh, thanHanh, gioHanh));
             }
-            document.getElementById('compassPalace').textContent = info;
+            document.getElementById('compassPalace').textContent = summary;
             renderLuanGiai(dir, cell);
             // Xoay mặt la bàn: nhãn N luôn chỉ về Bắc thực
             const ring = document.getElementById('roseRing');
