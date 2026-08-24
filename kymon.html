@@ -1049,12 +1049,14 @@
             const board = document.getElementById('board');
             // Bố cục 3x3: Nam ở trên, Bắc ở dưới (truyền thống Kỳ Môn)
             const gridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
+            // Giờ đang chọn là Hoàng Đạo (tốt) hay Hắc Đạo (xấu)
+            const hourStar = getGioStarInfo(cung.info.dayGanIdx, cung.info.gioChi);
+            const hourGood = hourStar.good;
             let html = '<div class="grid">';
             for (let i = 0; i < 9; i++) {
                 const idx = gridOrder[i];
                 const cell = cung[idx];
-                const mon = cell.mon;
-                const bg = getMauSac(mon);
+                const bg = scoreToColor(palaceScore(cell, hourGood));
                 const hanh = CUNG_HANH[idx];
                 const ring = HANH_COLOR[hanh];
                 const cungName = cell.ten + ' (' + cell.huong + ')';
@@ -1555,6 +1557,50 @@
                 return 'trung';
             }
             return 'trung';
+        }
+
+        // Trọng số màu: tốt = +1, trung bình = 0, xấu = -1
+        function componentWeight(type, name) {
+            const st = componentStatus(type, name);
+            return st === 'tot' ? 1 : (st === 'xau' ? -1 : 0);
+        }
+
+        // Trọng số của một chủ đề: +1 (thuận) / 0 (trung) / -1 (nghịch)
+        function topicWeight(cfg, mon, tinh, than) {
+            let s = 0;
+            if (cfg.tot.indexOf(mon) >= 0) s++;
+            else if (cfg.xau.indexOf(mon) >= 0) s--;
+            if (cfg.tot.indexOf(tinh) >= 0) s++;
+            else if (cfg.xau.indexOf(tinh) >= 0) s--;
+            if (cfg.tot.indexOf(than) >= 0) s++;
+            else if (cfg.xau.indexOf(than) >= 0) s--;
+            return s >= 1 ? 1 : (s <= -1 ? -1 : 0);
+        }
+
+        // Điểm tổng hợp của 1 cung: 4 thành phần (Cung=0, Môn/Tinh/Thần) + 8 chủ đề + giờ
+        function palaceScore(cell, hourGood) {
+            if (!cell.mon) return 0; // Trung cung (không có môn) -> trung tính
+            let score = 0;
+            score += componentWeight('mon', cell.mon);
+            score += componentWeight('tinh', cell.tinh);
+            score += componentWeight('than', cell.than);
+            for (let t = 0; t < CHU_DE.length; t++) {
+                score += topicWeight(CHU_DE[t], cell.mon, cell.tinh, cell.than);
+            }
+            score += hourGood ? 1 : -1;
+            return score;
+        }
+
+        // Bảng màu: xanh đậm (tốt nhất) -> vàng (0) -> đỏ đậm (xấu nhất)
+        const SCORE_COLORS = [
+            '#880024', '#980832', '#a81e40', '#b83c4e', '#c85a5c', '#d8786a', // -6..-1
+            '#e0c020', // 0
+            '#82c868', '#68c060', '#4eb858', '#34b050', '#1aa848', '#00a040' // +1..+6
+        ];
+
+        function scoreToColor(score) {
+            const idx = Math.max(-6, Math.min(6, Math.round(score)));
+            return SCORE_COLORS[idx + 6];
         }
 
         function renderLuanGiai(dir, cell) {
