@@ -240,6 +240,35 @@
             border-radius: 8px;
             padding: 6px 10px;
         }
+        .compass-luan-giai {
+            margin-top: 12px;
+            max-height: 340px;
+            overflow-y: auto;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid #2a4a7a;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #d8d8e0;
+        }
+        .compass-luan-giai .lg-title { font-weight: bold; color: #ffd93d; font-size: 0.95rem; margin-bottom: 6px; }
+        .compass-luan-giai .lg-sec { margin: 4px 0; }
+        .compass-luan-giai .lg-tag { font-weight: bold; color: #7dd3fc; }
+        .compass-luan-giai .lg-hanh { color: #a4b0be; }
+        .compass-luan-giai .lg-verdict { margin: 8px 0; padding: 6px 8px; border-radius: 6px; font-weight: bold; }
+        .compass-luan-giai .lg-verdict.tot { background: rgba(46, 204, 113, 0.18); color: #7bed9f; }
+        .compass-luan-giai .lg-verdict.xau { background: rgba(231, 76, 60, 0.18); color: #ff6b6b; }
+        .compass-luan-giai .lg-verdict.trung { background: rgba(241, 196, 15, 0.15); color: #ffd93d; }
+        .compass-luan-giai .lg-block { margin: 6px 0; }
+        .compass-luan-giai .lg-h { font-weight: bold; color: #fff; margin-bottom: 2px; }
+        .compass-luan-giai ul { margin: 2px 0 4px 18px; padding: 0; }
+        .compass-luan-giai li { margin: 1px 0; }
+        .compass-luan-giai .lg-do { color: #7bed9f; }
+        .compass-luan-giai .lg-dont { color: #ff6b6b; }
+        .compass-luan-giai .lg-boost { color: #7dd3fc; }
+        .compass-luan-giai .lg-hoa { color: #ffd93d; }
         .compass-controls {
             margin-top: 10px;
             display: flex;
@@ -322,6 +351,7 @@
                 <span class="dir" id="compassDir">Bắc (N)</span>
             </div>
             <div class="compass-palace" id="compassPalace">Cung Khảm — Bắc</div>
+            <div class="compass-luan-giai" id="compassLuanGiai"></div>
             <div class="compass-controls">
                 <label>Xoay thử:</label>
                 <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
@@ -1297,6 +1327,150 @@
             return { name: 'Tây Bắc', short: 'NW', palace: 6, cung: 'Càn' };
         }
 
+        // ================================================================
+        // LUẬN GIẢI CHI TIẾT THEO HƯỚNG (Cung + Môn + Tinh + Thần)
+        // ================================================================
+        const HANH_MO_TA = {
+            'Kim': 'Kim chủ về nghĩa khí, sự quyết đoán, thu liễm, tiền tài, vũ khí. Tính sắc bén, rõ ràng, cứng cỏi.',
+            'Mộc': 'Mộc chủ về nhân từ, sự sinh trưởng, khai phá, cây cối, giáo dục. Tính vươn lên, linh hoạt, nhân hậu.',
+            'Thủy': 'Thủy chủ về trí tuệ, sự lưu thông, giao tiếp, buôn bán, du lịch. Tính mềm dẻo, sâu kín, linh động.',
+            'Hỏa': 'Hỏa chủ về lễ nghĩa, danh tiếng, ánh sáng, văn minh. Tính bùng nổ, nhiệt huyết, nhanh chóng.',
+            'Thổ': 'Thổ chủ về tín nghĩa, sự trung hòa, đất đai, bất động sản, tích trữ. Tính vững chãi, chậm rãi, bao dung.'
+        };
+
+        const CUNG_LUAN = {
+            1: 'Cung Khảm tượng là nước, hố sâu, ẩn chứa sự hiểm nguy lẫn trí tuệ. Chủ sự lưu thông, buôn bán, đi xa; cũng chủ lo âu, bệnh về thận/tai, tai nạn sông nước.',
+            2: 'Cung Khôn tượng là đất, là mẹ, sự bao dung và nuôi dưỡng. Chủ gia đình, hôn nhân, bất động sản, sự chậm rãi, chín chắn.',
+            3: 'Cung Chấn tượng là sấm sét, sự khởi động và bùng phát. Chủ sự khởi đầu, chuyển động, quyết đoán, thể thao, trưởng nam.',
+            4: 'Cung Tốn tượng là gió, sự len lỏi, giao tiếp, thương mại. Chủ sự linh hoạt, học hành, tin tức, buôn bán.',
+            5: 'Trung cung là trung tâm, điều hòa ngũ hành. Chủ sự trung dung, ổn định, giữ vai trò trung tâm của mọi việc.',
+            6: 'Cung Càn tượng là trời, sự cương kiện và quyền uy. Chủ sự lãnh đạo, người cha, công danh, quý nhân, tài lộc.',
+            7: 'Cung Đoài tượng là đầm hồ, sự vui vẻ, lời nói, giao tiếp. Chủ ca hát, ăn nói, thiếu nữ; dễ sinh thị phi, tranh cãi.',
+            8: 'Cung Cấn tượng là núi, sự ngưng đọng, tĩnh lặng. Chủ sự ổn định, bất động sản, tích trữ, cầu tài lâu bền, con cháu, thừa kế.',
+            9: 'Cung Ly tượng là lửa, ánh sáng, văn minh. Chủ danh tiếng, thi cử, sự nổi bật; dễ nóng vội, thị phi.'
+        };
+
+        const MON_LUAN = {
+            'Sinh': { hanh: 'Thổ', chat: 'Sinh Môn là cửa cát bậc nhất, chủ sinh khí, sự phát triển, tài lộc và hy vọng. Vạn sự hanh thông, đặc biệt về tài lộc và khởi sự.',
+                do: ['Khởi công, động thổ, xây dựng', 'Cầu tài, đầu tư, mở cửa hàng', 'Ký kết hợp đồng, giao dịch lớn', 'Xuất hành, khai trương', 'Cầu hôn nhân, con cái'],
+                dont: ['Kiện tụng, tranh chấp', 'Đào móng, đào huyệt', 'Việc tang chế'],
+                boost: 'Đi về hướng Đông Bắc (bản cung), chọn giờ Sinh, dùng màu vàng/nâu (hành Thổ); tránh màu xanh lá (Mộc khắc Thổ).' },
+            'Khai': { hanh: 'Kim', chat: 'Khai Môn là cửa mở mang, khai sáng, chủ công danh, sự nghiệp, quý nhân. Tốt cho mọi sự khởi đầu, thăng tiến, gặp người giúp đỡ.',
+                do: ['Khai trương, mở công ty', 'Xin việc, thăng chức', 'Gặp gỡ đối tác, ngoại giao', 'Du lịch, xuất ngoại', 'Khởi đầu công việc quan trọng'],
+                dont: ['Cãi cọ, tranh chấp', 'Động thổ, đào bới', 'Việc mờ ám, khuất tất'],
+                boost: 'Hướng Tây Bắc (bản cung), màu trắng/bạc (hành Kim); tránh màu đỏ (Hỏa khắc Kim).' },
+            'Hưu': { hanh: 'Thủy', chat: 'Hưu Môn là cửa nghỉ ngơi, an dưỡng, hồi phục. Chủ sự bình an, thư giãn, chữa lành; tốt cho việc tĩnh, nhưng thiếu tính tiến công.',
+                do: ['Nghỉ ngơi, dưỡng bệnh, phục hồi', 'Tĩnh tâm, cầu an', 'Họp mặt gia đình, sum vầy', 'Buôn bán nhỏ, giao dịch êm đềm'],
+                dont: ['Đầu tư lớn, mạo hiểm', 'Xuất hành xa', 'Tranh luận, đối đầu'],
+                boost: 'Hướng Bắc (bản cung), màu đen/xanh dương (hành Thủy); tránh màu vàng/nâu (Thổ khắc Thủy).' },
+            'Thương': { hanh: 'Mộc', chat: 'Thương Môn là cửa của tổn thương, tai nạn, bệnh tật. Khí hung, dễ hao tổn sức khỏe, tiền của, tình cảm; chỉ hợp việc phá bỏ, điều trị.',
+                do: ['Sửa chữa, thay thế, thanh tẩy', 'Điều trị bệnh, phẫu thuật', 'Loại bỏ vật cũ, dọn dẹp triệt để', 'Săn bắn, bắt giữ (theo cổ truyền)'],
+                dont: ['Khởi công, động thổ', 'Kết hôn, cầu tài', 'Xuất hành, nhậm chức'],
+                boost: 'Hạn chế dùng hướng này cho việc trọng đại; nếu buộc phải làm thì chọn giờ Sinh/Khai.',
+                hoaGiai: 'Đổi hướng (tránh hướng Đông), đổi giờ sang giờ cát, dùng màu đỏ (Hỏa hóa Mộc).' },
+            'Đỗ': { hanh: 'Mộc', chat: 'Đỗ Môn là cửa bế tắc, che giấu, ẩn nấp. Chủ sự ngăn trở, khó khăn, thích hợp cho ẩn dật, tu dưỡng, giữ bí mật.',
+                do: ['Học tập, nghiên cứu, lên kế hoạch', 'Ẩn nấp, giữ bí mật, tu dưỡng', 'Lưu trữ hồ sơ, việc nội bộ'],
+                dont: ['Ký kết, quyết định lớn', 'Di chuyển, xuất hành', 'Ra mắt, công khai'],
+                boost: 'Dùng cho việc thầm lặng, học tập; hướng Đông Nam (bản cung).',
+                hoaGiai: 'Nếu cần khởi sự, chọn hướng Sinh/Khai, giờ cát; tránh để kế hoạch đình trệ quá lâu.' },
+            'Cảnh': { hanh: 'Hỏa', chat: 'Cảnh Môn là cửa của danh tiếng, ánh sáng, văn minh. Chủ sự nổi bật, thi cử, quảng bá; nhưng cũng dễ sinh thị phi, kiêu căng.',
+                do: ['Quảng bá, tiếp thị, trình diễn', 'Thi cử, học hành', 'Giao tiếp, phát biểu', 'Cầu danh, sự nổi bật'],
+                dont: ['Ẩn mình, trì hoãn', 'Việc mờ ám, giấu diếm', 'Quá lộ liễu dễ bị đố kỵ'],
+                boost: 'Hướng Nam (bản cung), màu đỏ (hành Hỏa); tránh màu đen (Thủy khắc Hỏa).',
+                hoaGiai: 'Giữ khiêm tốn, tránh thị phi; khi bị đố kỵ hãy tĩnh lại theo hướng Hưu.' },
+            'Tử': { hanh: 'Thổ', chat: 'Tử Môn là cửa của tử khí, kết thúc, đóng lại. Khí hung, chủ sự mất mát, kết thúc; chỉ hợp việc tang lễ, dọn dẹp triệt để, từ bỏ.',
+                do: ['Kết thúc dự án cũ, dọn dẹp, thanh lý', 'Từ bỏ thói quen xấu', 'Việc tang lễ, cầu siêu (theo cổ truyền)'],
+                dont: ['Khởi sự, đầu tư, cầu tài', 'Kết hôn, sinh nở', 'Di chuyển xa, ký kết'],
+                boost: 'Tránh dùng hướng này cho việc mới; chỉ dùng cho việc "kết thúc".',
+                hoaGiai: 'Tuyệt đối tránh việc mới; nếu đang ở hướng Tử hãy quay sang hướng Sinh/Khai, đổi giờ cát, dùng màu trắng/đen (Kim/Thủy) để hóa Thổ.' },
+            'Kinh': { hanh: 'Kim', chat: 'Kinh Môn là cửa của kinh hãi, sợ sệt, bất an, thị phi, trộm cướp. Khí hung, dễ gặp chuyện giật mình, lo sợ, tai tiếng.',
+                do: ['Cảnh giác, bảo vệ tài sản', 'Củng cố an ninh', 'Đòi nợ, xử lý tranh chấp (thận trọng)'],
+                dont: ['Tin người lạ, ký giấy tờ quan trọng', 'Xuất hành đêm', 'Việc lớn, quyết định vội vàng'],
+                boost: 'Hướng Tây (bản cung), giữ tinh thần bình tĩnh, tỉnh táo.',
+                hoaGiai: 'Chọn hướng tốt (Sinh/Khai/Hưu), đổi giờ cát, tránh hướng Tây khi làm việc quan trọng, dùng màu đỏ (Hỏa khắc Kim).' }
+        };
+
+        const TINH_LUAN = {
+            'Thiên Bồng': { hanh: 'Thủy', chat: 'Sao đại hung, chủ hiểm nguy, trộm cướp, mưu đồ đen tối. Là sao Thủy nên hợp việc buôn bán, đi thuyền, thủy lợi.' },
+            'Thiên Nhuế': { hanh: 'Thổ', chat: 'Sao chủ bệnh tật, tu đạo, học hành. Hung về sức khỏe, nhưng tốt cho nghiên cứu, tâm linh, chữa bệnh.' },
+            'Thiên Xung': { hanh: 'Mộc', chat: 'Sao chủ sự xung động, nhanh chóng, quân sự, thể thao. Hành Mộc, thiên về hành động, di chuyển, khởi phát.' },
+            'Thiên Phụ': { hanh: 'Mộc', chat: 'Sao chủ văn chương, học hành, thầy dạy, người phụ tá. Cát về giáo dục, thi cử, cố vấn.' },
+            'Thiên Cầm': { hanh: 'Thổ', chat: 'Sao trung cung, chủ sự trung dung, điều hòa, đứng đầu. Cát, mọi việc ôn hòa, ổn định.' },
+            'Thiên Tâm': { hanh: 'Kim', chat: 'Sao chủ y thuật, cứu giúp, chữa bệnh, phẫu thuật. Cát về y tế, từ thiện, nhưng có lúc hung về binh.' },
+            'Thiên Trụ': { hanh: 'Kim', chat: 'Sao chủ sự phá hoại, đổ vỡ, hư hại. Hung, dễ gặp tổn thất, nhưng hợp việc phá bỏ, sửa chữa.' },
+            'Thiên Nhậm': { hanh: 'Thổ', chat: 'Sao chủ sự gánh vác, trách nhiệm, nông nghiệp, bất động sản. Cát về xây dựng, đất đai, quản lý.' },
+            'Thiên Anh': { hanh: 'Hỏa', chat: 'Sao chủ văn minh, lửa, danh tiếng, nhưng dễ thị phi, tai nạn lửa. Cát về thi cử, quảng bá, tránh nóng vội.' }
+        };
+
+        const THAN_LUAN = {
+            'Trực Phù': 'Thần đứng đầu, chủ sự chỉ huy, quyền lực, người lãnh đạo. Tốt cho việc cần người dẫn dắt và quyết đoán.',
+            'Đằng Xà': 'Thần của sự hư ảo, lừa dối, mơ hồ. Dễ gặp chuyện mờ ám, nên cảnh giác, tránh tin lời ngon ngọt.',
+            'Thái Âm': 'Thần của sự âm thầm, bí mật, mưu kế ngầm. Tốt cho việc kín đáo, kế hoạch dài hạn.',
+            'Lục Hợp': 'Thần của sự hợp tác, đoàn kết, hôn nhân, giao tiếp. Tốt cho hợp tác, cầu hôn, quan hệ.',
+            'Câu Trần': 'Thần của tranh chấp, kiện tụng, đất đai, trì trệ. Dễ gặp mâu thuẫn, nên giữ hòa khí.',
+            'Bạch Hổ': 'Thần của sự hung hăng, tai nạn, binh đao, chấn thương. Dễ gặp sự cố, nên cẩn trọng an toàn.',
+            'Chu Tước': 'Thần của thị phi, lời nói, tin tức, văn thư. Dễ gặp chuyện lời ra tiếng vào, nên cẩn trọng lời nói.',
+            'Huyền Vũ': 'Thần của trộm cắp, lừa gạt, mờ ám. Dễ gặp hao hụt, nên giữ gìn tài sản, tránh giao dịch lớn.',
+            'Cửu Địa': 'Thần của đất, sự thấp kín, ẩn nấp, kiên nhẫn. Tốt cho việc ẩn mình, tích lũy, chậm mà chắc.',
+            'Cửu Thiên': 'Thần của trời, sự cao xa, mở rộng, năng động. Tốt cho việc mở mang, thăng tiến, đi xa.'
+        };
+
+        function danhGiaCung(mon, tinh, than) {
+            let score = 0;
+            if (mon === 'Sinh' || mon === 'Khai' || mon === 'Hưu') score += 1;
+            else if (mon === 'Thương' || mon === 'Tử' || mon === 'Kinh') score -= 1;
+            if (['Thiên Phụ', 'Thiên Cầm', 'Thiên Tâm', 'Thiên Nhậm'].indexOf(tinh) >= 0) score += 1;
+            else if (['Thiên Bồng', 'Thiên Nhuế', 'Thiên Trụ'].indexOf(tinh) >= 0) score -= 1;
+            if (['Trực Phù', 'Lục Hợp', 'Thái Âm', 'Cửu Địa', 'Cửu Thiên'].indexOf(than) >= 0) score += 0.5;
+            else if (['Đằng Xà', 'Bạch Hổ', 'Huyền Vũ', 'Câu Trần', 'Chu Tước'].indexOf(than) >= 0) score -= 0.5;
+            if (score >= 1.5) return { cls: 'tot', icon: '🟢', text: 'Hướng CÁT — thuận lợi, nên tận dụng', hung: false };
+            if (score <= -0.5) return { cls: 'xau', icon: '🔴', text: 'Hướng HUNG — nên tránh hoặc hóa giải', hung: true };
+            return { cls: 'trung', icon: '🟡', text: 'Hướng TRUNG — nên thận trọng, cân nhắc', hung: false };
+        }
+
+        function renderLuanGiai(dir, cell) {
+            const box = document.getElementById('compassLuanGiai');
+            if (!box) return;
+            const hanhCung = CUNG_HANH[dir.palace] || '';
+            const cungChat = CUNG_LUAN[dir.palace] || '';
+            const mon = cell ? (cell.mon || '') : '';
+            const tinh = cell ? (cell.tinh || '') : '';
+            const than = cell ? (cell.than || '') : '';
+            const monInfo = MON_LUAN[mon] || null;
+            const tinhInfo = TINH_LUAN[tinh] || null;
+            const thanInfo = THAN_LUAN[than] || null;
+
+            let html = '';
+            html += '<div class="lg-title">🔮 LUẬN GIẢI HƯỚNG ' + dir.name.toUpperCase() + ' (' + dir.short + ') — CUNG ' + dir.cung.toUpperCase() + '</div>';
+            html += '<div class="lg-sec"><span class="lg-tag">🧭 Bản chất hướng &amp; cung:</span> ' + cungChat + ' <span class="lg-hanh">(Ngũ hành: ' + hanhCung + ' — ' + (HANH_MO_TA[hanhCung] || '') + ')</span></div>';
+            if (monInfo) html += '<div class="lg-sec"><span class="lg-tag">🚪 Môn ' + mon + ' Môn</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span>: ' + monInfo.chat + '</div>';
+            if (tinhInfo) html += '<div class="lg-sec"><span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span>: ' + tinhInfo.chat + '</div>';
+            if (thanInfo) html += '<div class="lg-sec"><span class="lg-tag">👹 Thần ' + than + ':</span> ' + thanInfo + '</div>';
+
+            const verdict = danhGiaCung(mon, tinh, than);
+            html += '<div class="lg-verdict ' + verdict.cls + '">' + verdict.icon + ' TỔNG KẾT: ' + verdict.text + '</div>';
+
+            if (monInfo && monInfo.do) {
+                html += '<div class="lg-block"><div class="lg-h">✅ VIỆC NÊN LÀM</div><ul>';
+                monInfo.do.forEach(function (x) { html += '<li class="lg-do">' + x + '</li>'; });
+                html += '</ul></div>';
+            }
+            if (monInfo && monInfo.dont) {
+                html += '<div class="lg-block"><div class="lg-h">❌ VIỆC KHÔNG NÊN LÀM</div><ul>';
+                monInfo.dont.forEach(function (x) { html += '<li class="lg-dont">' + x + '</li>'; });
+                html += '</ul></div>';
+            }
+            if (monInfo && monInfo.boost) {
+                html += '<div class="lg-block"><div class="lg-h">⚡ TĂNG NĂNG LƯỢNG</div><div class="lg-boost">' + monInfo.boost + '</div></div>';
+            }
+            if (verdict.hung) {
+                const hoaGiaiText = monInfo && monInfo.hoaGiai ? monInfo.hoaGiai : 'Hướng này khí hung, nên tránh làm việc trọng đại; chọn hướng Sinh/Khai/Hưu và giờ cát thay thế.';
+                html += '<div class="lg-block"><div class="lg-h">🧹 HÓA GIẢI</div><div class="lg-hoa">' + hoaGiaiText + '</div></div>';
+            }
+
+            box.innerHTML = html;
+        }
+
         // Xoay bàn: "Bắc" (Khảm) của bàn luôn hướng về Bắc thực tế.
         // Bố cục truyền thống: Bắc ở đáy (180°); bản đồ: Bắc ở đỉnh (0°).
         function applyCompassRotation() {
@@ -1320,12 +1494,13 @@
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
             // Thông tin cung + môn/tinh/thần tại hướng đang quay về
+            const cell = (window._cungData && window._cungData[dir.palace]) ? window._cungData[dir.palace] : null;
             let info = 'Cung ' + dir.cung + ' (' + dir.name + ')';
-            if (window._cungData && window._cungData[dir.palace]) {
-                const cell = window._cungData[dir.palace];
+            if (cell) {
                 info += ' — Môn: ' + (cell.mon || '—') + ' · Tinh: ' + (cell.tinh || '—') + ' · Thần: ' + (cell.than || '—');
             }
             document.getElementById('compassPalace').textContent = info;
+            renderLuanGiai(dir, cell);
             // Xoay mặt la bàn: nhãn N luôn chỉ về Bắc thực
             const ring = document.getElementById('roseRing');
             if (ring) ring.style.transform = 'rotate(' + (-h) + 'deg)';
