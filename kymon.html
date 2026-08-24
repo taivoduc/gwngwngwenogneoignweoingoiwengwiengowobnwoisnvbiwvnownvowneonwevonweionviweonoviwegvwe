@@ -323,7 +323,7 @@
             font-size: 0.85rem;
             color: #a4b0be;
         }
-        .compass-controls input[type="range"] { flex: 1; min-width: 120px; accent-color: #f7971e; }
+        .compass-controls input[type="range"] { flex: 1; min-width: 120px; accent-color: #f7971e; touch-action: none; }
         .compass-controls .heading-val { font-weight: bold; color: #fff; min-width: 42px; text-align: right; }
         .compass-panel.hidden { display: none; }
         .compass-toggle {
@@ -338,6 +338,8 @@
             border: 2px solid #f7971e;
             border-radius: 999px;
             cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             transition: 0.2s;
         }
         .compass-toggle:hover { transform: scale(1.05); box-shadow: 0 0 14px rgba(247, 151, 30, 0.5); }
@@ -369,6 +371,7 @@
             /* La bàn nhỏ lại, dòng 2 wrap, bar vừa màn hình */
             .rose { width: 72px; height: 72px; }
             .rose-cell { width: 72px; }
+            .compass-toggle { width: 100%; justify-content: center; }
             .compass-heading .deg { font-size: 0.9rem; }
             .compass-heading .dir { font-size: 0.9rem; }
             .compass-heading .diem-heading { font-size: 0.9rem; }
@@ -1291,8 +1294,8 @@
 
         function renderGioCompact(dayGanIdx) {
             const chi = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
-            const now = new Date();
-            const currentChi = Math.floor((now.getHours() + 1) / 2) % 12;
+            const selectedHour = parseInt(document.getElementById('duongHour').value) || 0;
+            const currentChi = Math.floor((selectedHour + 1) / 2) % 12;
 
             let container = document.getElementById('gioCompact');
             let html = '<table class="gio-table"><tr>';
@@ -1767,13 +1770,13 @@
             const arr = Object.keys(p.count)
                 .filter(function (k) { return p.count[k] > 0; })
                 .sort(function (a, b) { return p.count[b] - p.count[a]; });
-            return 'Thịnh: ' + arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
+            return arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
         }
 
         function renderSuy(p) {
             const arr = Object.keys(p.count).filter(function (k) { return p.count[k] === 0; });
             if (arr.length === 0) return '';
-            return 'Suy: ' + arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k; }).join(', ');
+            return arr.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k; }).join(', ');
         }
 
         function renderNguHanhSummary(p) {
