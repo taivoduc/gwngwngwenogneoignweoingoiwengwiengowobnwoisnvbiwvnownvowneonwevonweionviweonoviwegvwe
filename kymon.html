@@ -151,6 +151,10 @@
         .cell .thien { color: #e0a0ff; }
         .cell .dia { color: #a4b0be; }
         .cell .gio { color: #ffd93d; }
+        .cell .diem { font-weight: bold; }
+        .cell .diem.diem-tot { color: #7bed9f; }
+        .cell .diem.diem-xau { color: #ff6b6b; }
+        .cell .diem.diem-trung { color: #c8c8d0; }
 
         @media (max-width: 700px) {
             .control-row { gap: 12px 20px; }
@@ -1056,7 +1060,10 @@
             for (let i = 0; i < 9; i++) {
                 const idx = gridOrder[i];
                 const cell = cung[idx];
-                const bg = scoreToColor(palaceScore(cell, hourGood));
+                const score10 = normalizeScore(palaceScore(cell, hourGood));
+                const bg = scoreToColor(score10);
+                const scoreText = (score10 > 0 ? '+' : '') + score10;
+                const scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
                 const hanh = CUNG_HANH[idx];
                 const ring = HANH_COLOR[hanh];
                 const cungName = cell.ten + ' (' + cell.huong + ')';
@@ -1064,6 +1071,7 @@
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
                                 <div class="cung" style="color:${ring};">${cungName}</div>
+                                <div class="row"><span class="diem ${scoreCls}">Điểm: ${scoreText}</span></div>
                                 <div class="row"><span class="mon">🚪 ${cell.mon || '—'}</span></div>
                                 <div class="row"><span class="tinh">⭐ ${cell.tinh || '—'}</span></div>
                                 <div class="row"><span class="than">👹 ${cell.than || '—'}</span></div>
@@ -1339,7 +1347,7 @@
         // ================================================================
         // 9. LA BÀN (Compass) + XOAY BÀN THEO HƯỚNG THỰC TẾ
         // ================================================================
-        window._compass = { heading: 0, active: false, listening: false, sensor: null };
+        window._compass = { heading: 0, active: false, rotation: 0, listening: false, sensor: null };
 
         // heading (0–359) -> 8 hướng + cung Kỳ Môn tương ứng
         function getDirection(h) {
@@ -1592,15 +1600,17 @@
         }
 
         // Bảng màu: xanh đậm (tốt nhất) -> vàng (0) -> đỏ đậm (xấu nhất)
-        const SCORE_COLORS = [
-            '#880024', '#980832', '#a81e40', '#b83c4e', '#c85a5c', '#d8786a', // -6..-1
-            '#e0c020', // 0
-            '#82c868', '#68c060', '#4eb858', '#34b050', '#1aa848', '#00a040' // +1..+6
-        ];
+        // Chuẩn hoá điểm về thang -10..+10
+        function normalizeScore(score) {
+            return Math.round(score * 10 / 12);
+        }
 
+        // Màu nhạt: xanh (tốt) -> trung tính -> đỏ (xấu), không dùng màu vàng
         function scoreToColor(score) {
-            const idx = Math.max(-6, Math.min(6, Math.round(score)));
-            return SCORE_COLORS[idx + 6];
+            const s = Math.max(-6, Math.min(6, Math.round(score)));
+            if (s === 0) return '#2e2e3c';
+            if (s > 0) return 'hsl(135, 38%, ' + (40 - s * 2) + '%)';
+            return 'hsl(0, 45%, ' + (40 + s * 2) + '%)';
         }
 
         function renderLuanGiai(dir, cell) {
@@ -1643,8 +1653,8 @@
         function applyCompassRotation() {
             const grid = document.querySelectorAll('#board .grid')[0];
             if (!grid) return;
-            // Mặc định: Nam ở trên (không xoay). Chỉ khi la bàn hoạt động mới xoay để Bắc chỉ về Bắc thực.
-            const angle = window._compass.active ? (-window._compass.heading - 180) : 0;
+            // Luôn dùng rotation (giữ nguyên vị trí khi đóng la bàn)
+            const angle = window._compass.rotation;
             grid.style.transform = 'rotate(' + angle + 'deg)';
             // Xoay ngược nội dung để chữ luôn thẳng, đọc được
             const inners = grid.querySelectorAll('.cell-inner');
@@ -1660,6 +1670,9 @@
             document.getElementById('compassDir').textContent = dir.name + ' (' + dir.short + ')';
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
+            // Nút mở/đóng la bàn hiển thị hướng hiện tại
+            const btn = document.getElementById('compassToggle');
+            if (btn) btn.textContent = '🧭 ' + h + '° ' + dir.name + ' (' + dir.short + ')';
             // Thông tin cung + môn/tinh/thần (kèm ngũ hành) tại hướng đang quay về
             const cell = (window._cungData && window._cungData[dir.palace]) ? window._cungData[dir.palace] : null;
             const hanhCung = CUNG_HANH[dir.palace] || '';
@@ -1693,6 +1706,7 @@
             if (typeof h !== 'number' || isNaN(h)) return;
             h = ((h % 360) + 360) % 360;
             window._compass.heading = Math.round(h);
+            window._compass.rotation = -window._compass.heading - 180;
             window._compass.active = true;
             updateCompass();
         }
@@ -1765,7 +1779,6 @@
             compassOpen = true;
             if (compassPanel) compassPanel.classList.remove('hidden');
             if (compassToggle) {
-                compassToggle.textContent = '🧭 Đóng la bàn';
                 compassToggle.classList.add('active');
             }
             // iOS cần xin quyền cảm biến trong một cử chỉ người dùng
@@ -1783,7 +1796,6 @@
             compassOpen = false;
             if (compassPanel) compassPanel.classList.add('hidden');
             if (compassToggle) {
-                compassToggle.textContent = '🧭 Mở la bàn';
                 compassToggle.classList.remove('active');
             }
             stopCompass();
@@ -1799,9 +1811,48 @@
         // Xoay thử (khi mở trên máy tính không có la bàn)
         document.getElementById('headingSlider').addEventListener('input', function () {
             window._compass.heading = parseInt(this.value, 10) || 0;
+            window._compass.rotation = -window._compass.heading - 180;
             window._compass.active = true;                  // xoay thủ công
             updateCompass();
         });
+
+        // Kéo thả chuột (hoặc chạm) để xoay bàn theo hướng mong muốn
+        function initBoardDrag() {
+            const board = document.getElementById('board');
+            if (!board || !board.addEventListener) return;
+            let dragging = false, startAngle = 0, startHeading = 0;
+
+            function pointerAngle(clientX, clientY) {
+                const rect = board.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                return Math.atan2(clientY - cy, clientX - cx) * 180 / Math.PI;
+            }
+            function onStart(clientX, clientY) {
+                dragging = true;
+                startAngle = pointerAngle(clientX, clientY);
+                startHeading = window._compass.heading;
+            }
+            function onMove(clientX, clientY) {
+                if (!dragging) return;
+                const a = pointerAngle(clientX, clientY);
+                let delta = a - startAngle;
+                delta = ((delta + 180) % 360 + 360) % 360 - 180;
+                setHeading(startHeading - delta);
+            }
+            function onEnd() { dragging = false; }
+
+            board.addEventListener('mousedown', function (e) { onStart(e.clientX, e.clientY); if (e.preventDefault) e.preventDefault(); });
+            board.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX, e.touches[0].clientY); if (e.preventDefault) e.preventDefault(); }, { passive: false });
+
+            if (document.addEventListener) {
+                document.addEventListener('mousemove', function (e) { onMove(e.clientX, e.clientY); });
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchmove', function (e) { onMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+                document.addEventListener('touchend', onEnd);
+            }
+        }
+        initBoardDrag();
 
         updateCompass();
 
