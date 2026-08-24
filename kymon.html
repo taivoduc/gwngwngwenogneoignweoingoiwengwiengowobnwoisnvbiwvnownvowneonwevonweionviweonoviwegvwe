@@ -107,6 +107,7 @@
             white-space: nowrap;
         }
         .gio-item-mini:hover { transform: scale(1.08); border-color: #f7971e; }
+        .gio-item-mini.now { outline: 2px solid #ffffff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); transform: scale(1.12); z-index: 2; position: relative; }
         .gio-item-mini .emoji { font-size: 0.9rem; }
         .gio-item-mini .chi { font-size: 0.7rem; color: #ddd; font-weight: 600; }
         .gio-item-mini .khung-gio { font-size: 0.55rem; color: #aaa; margin-left: 1px; }
@@ -129,8 +130,7 @@
         .cell {
             position: relative;
             width: 100%;
-            height: 0;
-            padding-bottom: 100%;
+            aspect-ratio: 1 / 1;
             border-radius: 50%;
             border: 5px solid #2a4a7a;
             background: #1a1a40;
@@ -155,6 +155,7 @@
         .cell .tinh { color: #70a1ff; }
         .cell .thien { color: #e0a0ff; }
         .cell .dia { color: #a4b0be; }
+        .cell .gio { color: #ffd93d; }
 
         @media (max-width: 700px) {
             .control-row { gap: 12px 20px; }
@@ -356,19 +357,15 @@
                 <input type="checkbox" id="amNhuan" onchange="capNhatTuAm()">
             </div>
         </div>
-        <div class="control-row" style="justify-content: center; width: 100%; overflow: hidden;">
-            <div class="gio-compact" id="gioCompact"></div>
-        </div>
         <div class="control-row" style="justify-content: center;">
             <button type="button" id="compassToggle" class="compass-toggle">🧭 Mở la bàn</button>
+        </div>
+        <div class="control-row" style="justify-content: center; width: 100%; overflow: hidden;">
+            <div class="gio-compact" id="gioCompact"></div>
         </div>
     </div>
 
     <div class="compass-panel hidden" id="compassPanel">
-        <div class="compass-controls">
-            <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
-            <span class="heading-val" id="headingVal">0°</span>
-        </div>
         <div class="compass-top">
             <div class="rose">
                 <div class="rose-ring" id="roseRing">
@@ -391,6 +388,10 @@
                 <div class="compass-palace" id="compassPalace">Cung Khảm — Bắc</div>
                 <div class="compass-loc" id="compassLoc">📍</div>
             </div>
+        </div>
+        <div class="compass-controls">
+            <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
+            <span class="heading-val" id="headingVal">0°</span>
         </div>
         <div class="compass-luan-giai" id="compassLuanGiai"></div>
         <div class="compass-status" id="compassStatus"></div>
@@ -593,6 +594,18 @@
         // Ngũ hành của 9 cung (Hậu Thiên Bát Quái) + màu vòng tương ứng
         const CUNG_HANH = ['', 'Thủy', 'Thổ', 'Mộc', 'Mộc', 'Thổ', 'Kim', 'Kim', 'Thổ', 'Hỏa'];
         const HANH_COLOR = { 'Kim': '#ffffff', 'Mộc': '#2ecc71', 'Thủy': '#000000', 'Hỏa': '#ef4444', 'Thổ': '#f1c40f' };
+
+        // Giờ (Địa Chi) tương ứng với từng cung/hướng theo Hậu Thiên Bát Quái
+        const CUNG_GIO = {
+            1: 'Tý',
+            8: 'Sửu · Dần',
+            3: 'Mão',
+            4: 'Thìn · Tỵ',
+            9: 'Ngọ',
+            2: 'Mùi · Thân',
+            7: 'Dậu',
+            6: 'Tuất · Hợi'
+        };
 
         // Nội dung ngắn gọn theo môn (được / không được / hóa giải - tăng cường)
         const MON_ADVICE = {
@@ -1068,12 +1081,14 @@
                 const hanh = CUNG_HANH[idx];
                 const ring = HANH_COLOR[hanh];
                 const cungName = cell.ten + ' (' + cell.huong + ')';
+                const gio = CUNG_GIO[idx] || '';
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
-                                <div class="cung" style="color:${ring};">${cungName} · ${hanh}</div>
-                                <div class="row"><span class="mon">🚪 ${cell.mon || '—'}</span> · <span class="than">👹 ${cell.than || '—'}</span></div>
+                                <div class="cung" style="color:${ring};">${cungName}</div>
+                                <div class="row"><span class="mon">🚪 ${cell.mon || '—'}</span></div>
                                 <div class="row"><span class="tinh">⭐ ${cell.tinh || '—'}</span></div>
-                                <div class="row"><span class="thien">☁️ ${cell.thien || '—'}</span> · <span class="dia">📌 ${cell.dia || '—'}</span></div>
+                                <div class="row"><span class="than">👹 ${cell.than || '—'}</span></div>
+                                <div class="row"><span class="gio">🕐 ${gio}</span></div>
                             </div>
                         </div>`;
             }
@@ -1177,6 +1192,8 @@
 
         function renderGioCompact(dayGanIdx) {
             const chi = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+            const now = new Date();
+            const currentChi = Math.floor((now.getHours() + 1) / 2) % 12;
 
             let container = document.getElementById('gioCompact');
             let html = '';
@@ -1188,7 +1205,8 @@
                 const emoji = GiapEmoji[i];
                 const tenChi = chi[i];
                 const gioBD = GioBatDau[i];
-                html += `<div class="gio-item-mini" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} - ${star.name} (${isHoang?'Hoàng Đạo':'Hắc Đạo'})">
+                const isNow = (i === currentChi);
+                html += `<div class="gio-item-mini${isNow ? ' now' : ''}" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} - ${star.name} (${isHoang?'Hoàng Đạo':'Hắc Đạo'})${isNow?' - GIỜ HIỆN TẠI':''}">
                             <span class="emoji">${emoji}</span>
                             <span class="chi">${tenChi}</span>
                             <span class="khung-gio">${gioBD}</span>
@@ -1370,15 +1388,15 @@
         };
 
         const CUNG_LUAN = {
-            1: 'Cung Khảm tượng là nước, hố sâu, ẩn chứa sự hiểm nguy lẫn trí tuệ. Chủ sự lưu thông, buôn bán, đi xa; cũng chủ lo âu, bệnh về thận/tai, tai nạn sông nước.',
-            2: 'Cung Khôn tượng là đất, là mẹ, sự bao dung và nuôi dưỡng. Chủ gia đình, hôn nhân, bất động sản, sự chậm rãi, chín chắn.',
-            3: 'Cung Chấn tượng là sấm sét, sự khởi động và bùng phát. Chủ sự khởi đầu, chuyển động, quyết đoán, thể thao, trưởng nam.',
-            4: 'Cung Tốn tượng là gió, sự len lỏi, giao tiếp, thương mại. Chủ sự linh hoạt, học hành, tin tức, buôn bán.',
-            5: 'Trung cung là trung tâm, điều hòa ngũ hành. Chủ sự trung dung, ổn định, giữ vai trò trung tâm của mọi việc.',
-            6: 'Cung Càn tượng là trời, sự cương kiện và quyền uy. Chủ sự lãnh đạo, người cha, công danh, quý nhân, tài lộc.',
-            7: 'Cung Đoài tượng là đầm hồ, sự vui vẻ, lời nói, giao tiếp. Chủ ca hát, ăn nói, thiếu nữ; dễ sinh thị phi, tranh cãi.',
-            8: 'Cung Cấn tượng là núi, sự ngưng đọng, tĩnh lặng. Chủ sự ổn định, bất động sản, tích trữ, cầu tài lâu bền, con cháu, thừa kế.',
-            9: 'Cung Ly tượng là lửa, ánh sáng, văn minh. Chủ danh tiếng, thi cử, sự nổi bật; dễ nóng vội, thị phi.'
+            1: 'Cung Khảm: tượng là nước, hố sâu, ẩn chứa sự hiểm nguy lẫn trí tuệ. Chủ sự lưu thông, buôn bán, đi xa; cũng chủ lo âu, bệnh về thận/tai, tai nạn sông nước.',
+            2: 'Cung Khôn: tượng là đất, là mẹ, sự bao dung và nuôi dưỡng. Chủ gia đình, hôn nhân, bất động sản, sự chậm rãi, chín chắn.',
+            3: 'Cung Chấn: tượng là sấm sét, sự khởi động và bùng phát. Chủ sự khởi đầu, chuyển động, quyết đoán, thể thao, trưởng nam.',
+            4: 'Cung Tốn: tượng là gió, sự len lỏi, giao tiếp, thương mại. Chủ sự linh hoạt, học hành, tin tức, buôn bán.',
+            5: 'Trung cung: là trung tâm, điều hòa ngũ hành. Chủ sự trung dung, ổn định, giữ vai trò trung tâm của mọi việc.',
+            6: 'Cung Càn: tượng là trời, sự cương kiện và quyền uy. Chủ sự lãnh đạo, người cha, công danh, quý nhân, tài lộc.',
+            7: 'Cung Đoài: tượng là đầm hồ, sự vui vẻ, lời nói, giao tiếp. Chủ ca hát, ăn nói, thiếu nữ; dễ sinh thị phi, tranh cãi.',
+            8: 'Cung Cấn: tượng là núi, sự ngưng đọng, tĩnh lặng. Chủ sự ổn định, bất động sản, tích trữ, cầu tài lâu bền, con cháu, thừa kế.',
+            9: 'Cung Ly: tượng là lửa, ánh sáng, văn minh. Chủ danh tiếng, thi cử, sự nổi bật; dễ nóng vội, thị phi.'
         };
 
         const MON_LUAN = {
@@ -1542,10 +1560,8 @@
             const thanInfo = THAN_LUAN[than] || null;
 
             let html = '';
-            html += '<div class="lg-title">🔮 LUẬN GIẢI HƯỚNG ' + dir.name.toUpperCase() + ' (' + dir.short + ') — CUNG ' + dir.cung.toUpperCase() + '</div>';
-
             html += '<div class="lg-cards">';
-            html += '<div class="lg-card"><span class="lg-tag">🧭 Hướng &amp; Cung</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
+            html += '<div class="lg-card"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
             if (monInfo) html += '<div class="lg-card"><span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat + '</div>';
             if (tinhInfo) html += '<div class="lg-card"><span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat + '</div>';
             if (thanInfo) html += '<div class="lg-card"><span class="lg-tag">👹 Thần ' + than + '</span><br>' + thanInfo + '</div>';
