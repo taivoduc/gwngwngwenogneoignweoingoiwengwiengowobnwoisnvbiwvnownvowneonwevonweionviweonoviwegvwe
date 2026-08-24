@@ -171,9 +171,10 @@
         /* Ô trung tâm (Trung cung): cho chữ xuống dòng, căn giữa */
         .cell.center-cell .cell-table .ct { white-space: normal; text-align: center; line-height: 1.3; }
         /* 8 hướng thuần Việt quanh ô trung tâm (như la bàn), luôn thẳng đứng */
+        .cell.center-cell { overflow: visible; }
         .center-dirs { position: absolute; inset: 0; pointer-events: none; }
         .center-dirs .cdir { position: absolute; transform: translate(-50%, -50%); font-size: 0.5rem; color: #a4b0be; font-weight: bold; }
-        .compass-controls .gio-icon { font-size: 1.2rem; margin-left: 6px; }
+        .compass-controls .gio-icon { font-size: 1.2rem; min-width: 42px; text-align: right; }
 
         @media (max-width: 700px) {
             .control-row { gap: 12px 20px; }
@@ -249,6 +250,13 @@
         .compass-heading .diem-heading.diem-xau { color: #ff6b6b; }
         .compass-heading .diem-heading.diem-trung { color: #c8c8d0; }
         .compass-heading .gio-heading { font-size: 1.1rem; font-weight: normal; color: #ffd93d; white-space: nowrap; }
+        /* Giờ: desktop hiện tên chi, mobile hiện icon con giáp */
+        .gio-ico { display: none; }
+        .gio-txt { display: inline; }
+        /* Màu dòng 1 la bàn theo trọng số */
+        .compass-heading.diem-tot .deg, .compass-heading.diem-tot .dir, .compass-heading.diem-tot .gio-heading { color: #7bed9f; }
+        .compass-heading.diem-xau .deg, .compass-heading.diem-xau .dir, .compass-heading.diem-xau .gio-heading { color: #ff6b6b; }
+        .compass-heading.diem-trung .deg, .compass-heading.diem-trung .dir, .compass-heading.diem-trung .gio-heading { color: #c8c8d0; }
         .compass-palace {
             margin-top: 2px;
             font-size: 0.95rem;
@@ -356,6 +364,9 @@
             .top-table td { padding: 3px 0; }
             /* 12 canh giờ: chỉ icon + giờ bắt đầu */
             .gio-ten, .gio-end { display: none; }
+            /* Giờ: mobile hiện icon con giáp thay tên chi */
+            .gio-ico { display: inline; }
+            .gio-txt { display: none; }
             /* La bàn nhỏ lại, dòng 2 wrap, bar vừa màn hình */
             .rose { width: 72px; height: 72px; }
             .rose-cell { width: 72px; }
@@ -426,10 +437,10 @@
                         </div>
                     </td>
                     <td class="info-cell">
-                        <div class="compass-heading">
+                        <div class="compass-heading" id="compassHeading">
+                            <span class="gio-heading" id="compassGio"></span>
                             <span class="deg" id="compassDeg">0°</span>
                             <span class="dir" id="compassDir">Bắc</span>
-                            <span class="gio-heading" id="compassGio"></span>
                             <span class="diem-heading" id="compassDiem"></span>
                         </div>
                     </td>
@@ -663,12 +674,8 @@
             'Thổ': '⛰️'
         };
 
-        // 12 địa chi (canh giờ) và ngũ hành tương ứng
+        // 12 địa chi (canh giờ)
         const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
-        const GIO_HANH = { 'Tý': 'Thủy', 'Sửu': 'Thổ', 'Dần': 'Mộc', 'Mão': 'Mộc', 'Thìn': 'Thổ', 'Tỵ': 'Hỏa', 'Ngọ': 'Hỏa', 'Mùi': 'Thổ', 'Thân': 'Kim', 'Dậu': 'Kim', 'Tuất': 'Thổ', 'Hợi': 'Thủy' };
-        // Tương sinh (SINH[X] = hành mà X sinh) và tương khắc (KHAC[X] = hành mà X khắc)
-        const SINH = { 'Mộc': 'Hỏa', 'Hỏa': 'Thổ', 'Thổ': 'Kim', 'Kim': 'Thủy', 'Thủy': 'Mộc' };
-        const KHAC = { 'Mộc': 'Thổ', 'Thổ': 'Thủy', 'Thủy': 'Hỏa', 'Hỏa': 'Kim', 'Kim': 'Mộc' };
 
         // Nội dung ngắn gọn theo môn (được / không được / hóa giải - tăng cường)
         const MON_ADVICE = {
@@ -1135,7 +1142,6 @@
             const board = document.getElementById('board');
             // Bố cục 3x3: Nam ở trên, Bắc ở dưới (truyền thống Kỳ Môn)
             const gridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
-            const gioHanh = GIO_HANH[CHI[cung.info.gioChi]] || '';
             let html = '<div class="grid">';
             for (let i = 0; i < 9; i++) {
                 const idx = gridOrder[i];
@@ -1146,18 +1152,18 @@
                     const st = scoreStyle(hi.scoreCls);
                     html += `<div class="cell center-cell" style="background:${st.bg}; border-color:${st.bd};">
                                 <div class="center-dirs">
-                                    <span class="cdir" style="top:7%;left:50%">B</span>
-                                    <span class="cdir" style="top:15%;left:82%">ĐB</span>
-                                    <span class="cdir" style="top:50%;left:91%">Đ</span>
-                                    <span class="cdir" style="top:85%;left:82%">ĐN</span>
-                                    <span class="cdir" style="top:93%;left:50%">N</span>
-                                    <span class="cdir" style="top:85%;left:18%">TN</span>
-                                    <span class="cdir" style="top:50%;left:9%">T</span>
-                                    <span class="cdir" style="top:15%;left:18%">TB</span>
+                                    <span class="cdir" style="top:-16%;left:50%">B</span>
+                                    <span class="cdir" style="top:3%;left:113%">ĐB</span>
+                                    <span class="cdir" style="top:50%;left:115%">Đ</span>
+                                    <span class="cdir" style="top:97%;left:113%">ĐN</span>
+                                    <span class="cdir" style="top:115%;left:50%">N</span>
+                                    <span class="cdir" style="top:97%;left:-13%">TN</span>
+                                    <span class="cdir" style="top:50%;left:-15%">T</span>
+                                    <span class="cdir" style="top:3%;left:-13%">TB</span>
                                 </div>
-                                <div class="cell-inner">
+                                <div class="cell-inner" style="color:${st.txt}">
                                     <table class="cell-table">
-                                        <tr><td class="ct" colspan="2">${hi.h}° ${hi.dir.name}, ${hi.gio}, <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
+                                        <tr><td class="ct" colspan="2">${hi.gioHTML} ${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
                                         <tr><td class="ct" colspan="2">${hi.thinh}</td></tr>
                                         <tr><td class="ct" colspan="2">${hi.suy}</td></tr>
                                     </table>
@@ -1165,7 +1171,7 @@
                             </div>`;
                     continue;
                 }
-                const score10 = normalizeScore(palaceScore(cell, idx, gioHanh));
+                const score10 = normalizeScore(palaceScore(cell));
                 const bg = scoreToColor(score10);
                 const scoreText = (score10 > 0 ? '+' : '') + score10;
                 const scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
@@ -1694,19 +1700,13 @@
             return s >= 1 ? 1 : (s <= -1 ? -1 : 0);
         }
 
-        // Điểm tổng hợp của 1 cung: Môn + Tinh + Thần + thời gian (giờ tương sinh/khắc với cung)
-        function palaceScore(cell, palaceIdx, gioHanh) {
+        // Điểm tổng hợp của 1 cung: Môn + Tinh + Thần (môn/tinh/thần đã theo thời gian nên không cộng thêm giờ)
+        function palaceScore(cell) {
             if (!cell.mon) return 0; // Trung cung (không có môn) -> trung tính
             let score = 0;
             score += componentWeight('mon', cell.mon);
             score += componentWeight('tinh', cell.tinh);
             score += componentWeight('than', cell.than);
-            // Yếu tố thời gian: giờ tương sinh/tương khắc với cung
-            const cungHanh = CUNG_HANH[palaceIdx];
-            if (gioHanh && cungHanh) {
-                if (SINH[gioHanh] === cungHanh) score += 1;       // giờ sinh cung -> tốt
-                else if (KHAC[gioHanh] === cungHanh) score -= 1;  // giờ khắc cung -> xấu
-            }
             return score;
         }
 
@@ -1718,9 +1718,9 @@
 
         // Màu theo trạng thái (dùng chung cho nút, vòng la bàn, ô trung tâm)
         function scoreStyle(scoreCls) {
-            if (scoreCls === 'diem-tot') return { bg: 'rgba(46, 204, 113, 0.28)', bd: '#2ecc71', glow: 'rgba(46, 204, 113, 0.45)' };
-            if (scoreCls === 'diem-xau') return { bg: 'rgba(231, 76, 60, 0.28)', bd: '#e74c3c', glow: 'rgba(231, 76, 60, 0.45)' };
-            return { bg: '#1a1a4a', bd: '#f1c40f', glow: 'rgba(241, 196, 15, 0.40)' };
+            if (scoreCls === 'diem-tot') return { bg: 'rgba(46, 204, 113, 0.28)', bd: '#2ecc71', glow: 'rgba(46, 204, 113, 0.45)', txt: '#7bed9f' };
+            if (scoreCls === 'diem-xau') return { bg: 'rgba(231, 76, 60, 0.28)', bd: '#e74c3c', glow: 'rgba(231, 76, 60, 0.45)', txt: '#ff6b6b' };
+            return { bg: '#1a1a4a', bd: '#f1c40f', glow: 'rgba(241, 196, 15, 0.40)', txt: '#c8c8d0' };
         }
 
         // Tổng hợp thông tin cung hiện tại: điểm trọng số + ngũ hành thịnh/suy
@@ -1728,24 +1728,24 @@
             const h = window._compass.heading;
             const dir = getDirection(h);
             const cell = (cung && cung[dir.palace]) ? cung[dir.palace] : null;
-            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '', gio = '';
+            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '', gioHTML = '';
             if (cung && cell) {
-                const gioHanh = GIO_HANH[CHI[cung.info.gioChi]] || '';
-                score10 = normalizeScore(palaceScore(cell, dir.palace, gioHanh));
+                const chiIndex = cung.info.gioChi;
+                score10 = normalizeScore(palaceScore(cell));
                 scoreText = (score10 > 0 ? '+' : '') + score10;
                 scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
-                const p = phanTichNguHanh(dir.palace, cell, gioHanh);
+                const p = phanTichNguHanh(dir.palace, cell);
                 summary = renderNguHanhSummary(p);
                 thinh = renderThinh(p);
                 suy = renderSuy(p);
-                gio = 'Giờ ' + CHI[cung.info.gioChi];
+                gioHTML = '<span class="gio-ico">' + GiapEmoji[chiIndex] + '</span><span class="gio-txt">' + CHI[chiIndex] + '</span>';
             }
-            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy, gio: gio };
+            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy, gioHTML: gioHTML };
         }
 
         // Phân tích ngũ hành thịnh/suy của cung hiện tại:
-        // đếm ngũ hành của Cung + Môn + Tinh + Thần + Giờ (thời gian).
-        function phanTichNguHanh(palaceIdx, cell, gioHanh) {
+        // đếm ngũ hành của Cung + Môn + Tinh + Thần (không dùng thời gian).
+        function phanTichNguHanh(palaceIdx, cell) {
             const count = { 'Kim': 0, 'Mộc': 0, 'Thủy': 0, 'Hỏa': 0, 'Thổ': 0 };
             const add = function (h) { if (h && count[h] !== undefined) count[h]++; };
             add(CUNG_HANH[palaceIdx]);  // cung
@@ -1754,7 +1754,6 @@
                 add(TINH_LUAN[cell.tinh] ? TINH_LUAN[cell.tinh].hanh : '');
                 add(THAN_HANH[cell.than]);
             }
-            add(gioHanh);  // giờ (thời gian)
             return { count: count };
         }
 
@@ -1790,10 +1789,11 @@
             const inner = center.querySelector('.cell-inner');
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
-                    + '<tr><td class="ct" colspan="2">' + hi.h + '° ' + hi.dir.name + ', ' + hi.gio + ', <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
+                    + '<tr><td class="ct" colspan="2">' + hi.gioHTML + ' ' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
                     + '<tr><td class="ct" colspan="2">' + hi.thinh + '</td></tr>'
                     + '<tr><td class="ct" colspan="2">' + hi.suy + '</td></tr>'
                     + '</table>';
+                inner.style.color = st.txt;
             }
         }
 
@@ -1857,10 +1857,15 @@
             for (let i = 0; i < inners.length; i++) {
                 inners[i].style.transform = 'rotate(' + (-angle) + 'deg)';
             }
-            // Nhãn 8 hướng ở ô trung tâm: luôn thẳng đứng, B chỉ hướng Bắc thực
+            // Nhãn 8 hướng ở ô trung tâm: xoay như la bàn, chữ luôn thẳng đứng
+            const heading = window._compass.heading;
             const dirs = grid.querySelectorAll('.center-dirs');
             for (let i = 0; i < dirs.length; i++) {
-                dirs[i].style.transform = 'rotate(' + (-angle) + 'deg)';
+                dirs[i].style.transform = 'rotate(180deg)';
+            }
+            const cdirs = grid.querySelectorAll('.center-dirs .cdir');
+            for (let i = 0; i < cdirs.length; i++) {
+                cdirs[i].style.transform = 'translate(-50%, -50%) rotate(' + heading + 'deg)';
             }
         }
 
@@ -1875,11 +1880,22 @@
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
 
-            // Nút mở/đóng la bàn hiển thị hướng + điểm, tô màu theo trạng thái (inline để nhất quán mobile/desktop)
+            // Dòng 1 la bàn: <Giờ> <độ, hướng> <điểm> — cùng màu theo trọng số
+            const heading = document.getElementById('compassHeading');
+            if (heading) heading.className = 'compass-heading ' + scoreCls;
+            const gioEl = document.getElementById('compassGio');
+            if (gioEl) gioEl.innerHTML = hi.gioHTML;
+            const diem = document.getElementById('compassDiem');
+            if (diem) {
+                diem.textContent = scoreText;
+                diem.className = 'diem-heading ' + scoreCls;
+            }
+
+            // Nút mở/đóng la bàn: cùng text + màu theo trọng số
             const btn = document.getElementById('compassToggle');
             if (btn) {
-                btn.textContent = '🧭 ' + h + '° ' + dir.name + ' ' + scoreText;
-                if (btn.style) { btn.style.background = st.bg; btn.style.borderColor = st.bd; }
+                btn.innerHTML = '🧭 ' + hi.gioHTML + ' ' + h + '° ' + dir.name + ' ' + scoreText;
+                if (btn.style) { btn.style.background = st.bg; btn.style.borderColor = st.bd; btn.style.color = st.txt; }
             }
 
             // Vòng la bàn tô màu theo trọng số
@@ -1888,17 +1904,6 @@
                 rose.style.background = st.bg;
                 rose.style.borderColor = st.bd;
                 rose.style.boxShadow = '0 0 24px ' + st.glow;
-            }
-
-            // Canh giờ hiện tại/chọn (dòng 1: Hướng, Giờ, Điểm)
-            const gioEl = document.getElementById('compassGio');
-            if (gioEl) gioEl.textContent = ', ' + hi.gio;
-
-            // Điểm trọng số trên heading
-            const diem = document.getElementById('compassDiem');
-            if (diem) {
-                diem.textContent = ', ' + scoreText;
-                diem.className = 'diem-heading ' + scoreCls;
             }
 
             // Đồng bộ slider giờ + icon con giáp
@@ -2058,12 +2063,9 @@
             window._compass.active = true;                  // xoay thủ công
             updateCompass();
         });
-        document.getElementById('headingSlider').addEventListener('change', function () {
-            window._compass.manual = false;
-        });
-
-        // Slider canh giờ: kéo đổi giờ, icon con giáp theo dõi ở cuối
+        // Slider canh giờ: kéo đổi giờ (thủ công), icon con giáp theo dõi ở cuối
         document.getElementById('gioSlider').addEventListener('input', function () {
+            window._compass.manual = true;
             const chiIndex = parseInt(this.value, 10) || 0;
             document.getElementById('gioIcon').textContent = GiapEmoji[chiIndex];
             chonGio(chiIndex);
@@ -2094,7 +2096,15 @@
                 delta = ((delta + 180) % 360 + 360) % 360 - 180;
                 setHeading(startHeading - delta);
             }
-            function onEnd() { dragging = false; window._compass.manual = false; }
+            function onEnd() {
+                dragging = false;
+                window._compass.manual = false;
+                // Tự động chọn lại giờ hiện tại khi thao tác vào các vòng tròn
+                const now = new Date();
+                const hourInput = document.getElementById('duongHour');
+                if (hourInput) hourInput.value = String(now.getHours()).padStart(2, '0');
+                capNhatTuDuong();
+            }
 
             board.addEventListener('mousedown', function (e) { onStart(e.clientX, e.clientY); if (e.preventDefault) e.preventDefault(); });
             board.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX, e.touches[0].clientY); if (e.preventDefault) e.preventDefault(); }, { passive: false });
