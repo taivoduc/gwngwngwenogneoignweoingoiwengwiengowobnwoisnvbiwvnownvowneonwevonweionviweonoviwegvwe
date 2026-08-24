@@ -259,7 +259,13 @@
         .compass-luan-giai .lg-boost { color: #7dd3fc; }
         .compass-luan-giai .lg-hoa { color: #ffd93d; }
         .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 12px; margin-top: 0; }
-        .compass-luan-giai .lg-item { padding: 0; }
+        .compass-luan-giai .lg-item {
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+        .compass-luan-giai .lg-item.tot { background: rgba(46, 204, 113, 0.30); }
+        .compass-luan-giai .lg-item.xau { background: rgba(231, 76, 60, 0.30); }
+        .compass-luan-giai .lg-item.trung { background: rgba(241, 196, 15, 0.26); }
         .compass-luan-giai .cd-card {
             padding: 4px 6px;
             border-radius: 6px;
@@ -1531,6 +1537,26 @@
             return { cls: 'trung', icon: '🟡', text: 'Hướng TRUNG — nên thận trọng, cân nhắc', hung: false };
         }
 
+        // Trạng thái cát/hung của từng thành phần (Môn / Tinh / Thần)
+        function componentStatus(type, name) {
+            if (type === 'mon') {
+                if (MON_TOT.indexOf(name) >= 0) return 'tot';
+                if (MON_XAU.indexOf(name) >= 0) return 'xau';
+                return 'trung';
+            }
+            if (type === 'tinh') {
+                if (['Thiên Phụ', 'Thiên Cầm', 'Thiên Tâm', 'Thiên Nhậm'].indexOf(name) >= 0) return 'tot';
+                if (['Thiên Bồng', 'Thiên Nhuế', 'Thiên Trụ'].indexOf(name) >= 0) return 'xau';
+                return 'trung';
+            }
+            if (type === 'than') {
+                if (['Trực Phù', 'Lục Hợp', 'Thái Âm', 'Cửu Địa', 'Cửu Thiên'].indexOf(name) >= 0) return 'tot';
+                if (['Đằng Xà', 'Bạch Hổ', 'Huyền Vũ', 'Câu Trần', 'Chu Tước'].indexOf(name) >= 0) return 'xau';
+                return 'trung';
+            }
+            return 'trung';
+        }
+
         function renderLuanGiai(dir, cell) {
             const box = document.getElementById('compassLuanGiai');
             if (!box) return;
@@ -1546,11 +1572,15 @@
             let html = '';
             html += '<div class="lg-grid">';
 
-            // 4 ô bản chất
-            html += '<div class="lg-item"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
-            html += '<div class="lg-item">' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</div>';
-            html += '<div class="lg-item">' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</div>';
-            html += '<div class="lg-item">' + (thanInfo ? ('<span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo) : '') + '</div>';
+            // 4 ô bản chất (tô màu theo trạng thái)
+            const stCung = 'trung';
+            const stMon = componentStatus('mon', mon);
+            const stTinh = componentStatus('tinh', tinh);
+            const stThan = componentStatus('than', than);
+            html += '<div class="lg-item ' + stCung + '"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
+            html += '<div class="lg-item ' + stMon + '">' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item ' + stTinh + '">' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item ' + stThan + '">' + (thanInfo ? ('<span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo) : '') + '</div>';
 
             // 8 chủ đề lớn
             for (let i = 0; i < CHU_DE.length; i++) {
