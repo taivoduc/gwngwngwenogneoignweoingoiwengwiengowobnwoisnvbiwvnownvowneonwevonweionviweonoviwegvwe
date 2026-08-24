@@ -168,6 +168,8 @@
         .cell-table td { padding: 0 2px; vertical-align: middle; }
         .cell-table .ci { text-align: right; width: 20px; font-size: 0.7rem; white-space: nowrap; }
         .cell-table .ct { text-align: left; font-size: 0.7rem; white-space: nowrap; }
+        /* Ô trung tâm (Trung cung): cho chữ xuống dòng, căn giữa */
+        .cell.center-cell .cell-table .ct { white-space: normal; text-align: center; font-size: 0.6rem; line-height: 1.3; }
 
         @media (max-width: 700px) {
             .control-row { gap: 12px 20px; }
@@ -403,7 +405,7 @@
             <table class="compass-top-table">
                 <tr>
                     <td class="rose-cell" rowspan="3">
-                        <div class="rose">
+                        <div class="rose" id="rose">
                             <div class="rose-ring" id="roseRing">
                                 <span class="rose-label main" style="top:4%;left:50%">N</span>
                                 <span class="rose-label" style="top:13%;left:85%">NE</span>
@@ -653,6 +655,13 @@
 
         // Ngũ hành của 12 địa chi (giờ)
         const GIO_HANH = { 'Tý': 'Thủy', 'Sửu': 'Thổ', 'Dần': 'Mộc', 'Mão': 'Mộc', 'Thìn': 'Thổ', 'Tỵ': 'Hỏa', 'Ngọ': 'Hỏa', 'Mùi': 'Thổ', 'Thân': 'Kim', 'Dậu': 'Kim', 'Tuất': 'Thổ', 'Hợi': 'Thủy' };
+
+        // 10 thiên can + 12 địa chi (dùng cho phân tích ngũ hành theo Bát Tự)
+        const GAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
+        const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+        const GAN_HANH = { 'Giáp': 'Mộc', 'Ất': 'Mộc', 'Bính': 'Hỏa', 'Đinh': 'Hỏa', 'Mậu': 'Thổ', 'Kỷ': 'Thổ', 'Canh': 'Kim', 'Tân': 'Kim', 'Nhâm': 'Thủy', 'Quý': 'Thủy' };
+        // Tháng đắc lệnh (mùa vượng) theo tháng âm lịch (1..12)
+        const THANG_HANH = { 1: 'Mộc', 2: 'Mộc', 3: 'Thổ', 4: 'Hỏa', 5: 'Hỏa', 6: 'Thổ', 7: 'Kim', 8: 'Kim', 9: 'Thổ', 10: 'Thủy', 11: 'Thủy', 12: 'Thổ' };
 
         // Giờ (Địa Chi) tương ứng với từng cung/hướng theo Hậu Thiên Bát Quái
         const CUNG_GIO = {
@@ -1138,6 +1147,20 @@
             for (let i = 0; i < 9; i++) {
                 const idx = gridOrder[i];
                 const cell = cung[idx];
+                if (idx === 5) {
+                    // Ô trung tâm: hướng hiện tại + điểm + ngũ hành thịnh/khuyết (màu theo trọng số)
+                    const hi = headingInfo(cung);
+                    const st = scoreStyle(hi.scoreCls);
+                    html += `<div class="cell center-cell" style="background:${st.bg}; border-color:${st.bd};">
+                                <div class="cell-inner">
+                                    <table class="cell-table">
+                                        <tr><td class="ct" colspan="2">${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
+                                        <tr><td class="ct" colspan="2">${hi.summary}</td></tr>
+                                    </table>
+                                </div>
+                            </div>`;
+                    continue;
+                }
                 const score10 = normalizeScore(palaceScore(cell, hourGood));
                 const bg = scoreToColor(score10);
                 const scoreText = (score10 > 0 ? '+' : '') + score10;
@@ -1687,38 +1710,91 @@
             return Math.round(score * 2.5);
         }
 
-        // Hành của giờ theo cung (lấy địa chi đầu tiên của cung)
-        function gioHanhOf(idx) {
-            const g = CUNG_GIO[idx] || '';
-            const first = g.split(' ')[0].split('-')[0];
-            return GIO_HANH[first] || CUNG_HANH[idx] || '';
+        // Màu theo trạng thái (dùng chung cho nút, vòng la bàn, ô trung tâm)
+        function scoreStyle(scoreCls) {
+            if (scoreCls === 'diem-tot') return { bg: 'rgba(46, 204, 113, 0.28)', bd: '#2ecc71', glow: 'rgba(46, 204, 113, 0.45)' };
+            if (scoreCls === 'diem-xau') return { bg: 'rgba(231, 76, 60, 0.28)', bd: '#e74c3c', glow: 'rgba(231, 76, 60, 0.45)' };
+            return { bg: '#1a1a4a', bd: '#f1c40f', glow: 'rgba(241, 196, 15, 0.40)' };
         }
 
-        // Phân tích ngũ hành thịnh/khuyết (đếm tần suất 5 hành)
-        function phanTichNguHanh() {
-            const args = [].slice.call(arguments);
+        // Tổng hợp thông tin hướng hiện tại: điểm trọng số + ngũ hành thịnh/khuyết
+        function headingInfo(cung) {
+            const h = window._compass.heading;
+            const dir = getDirection(h);
+            const cell = (cung && cung[dir.palace]) ? cung[dir.palace] : null;
+            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '';
+            if (cung && cell) {
+                const hourStar = getGioStarInfo(cung.info.dayGanIdx, cung.info.gioChi);
+                score10 = normalizeScore(palaceScore(cell, hourStar.good));
+                scoreText = (score10 > 0 ? '+' : '') + score10;
+                scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
+                summary = renderNguHanhSummary(phanTichNguHanh(cung, dir.palace, cell));
+            }
+            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary };
+        }
+
+        // Phân tích ngũ hành thịnh/khuyết theo nguyên tắc Bát Tự (trọng số ưu tiên):
+        //   - Tháng (đắc lệnh / mùa vượng): trọng số 3 — yếu tố mạnh nhất.
+        //   - Thiên can (năm/ngày/giờ): trọng số 2 — can lộ, ưu tiên cao hơn địa chi.
+        //   - Địa chi (năm/ngày/giờ): trọng số 1 — can tàng.
+        //   - Bàn Kỳ Môn (cung/môn/tinh/thần): trọng số 1 mỗi yếu tố.
+        function phanTichNguHanh(cung, palaceIdx, cell) {
             const count = { 'Kim': 0, 'Mộc': 0, 'Thủy': 0, 'Hỏa': 0, 'Thổ': 0 };
-            for (let i = 0; i < args.length; i++) {
-                const h = args[i];
-                if (count[h] !== undefined) count[h]++;
+            const add = function (h, w) { if (h && count[h] !== undefined) count[h] += w; };
+            const info = cung.info;
+            // Tháng (đắc lệnh)
+            add(THANG_HANH[info.lunar.month], 3);
+            // Thiên can năm/ngày/giờ
+            add(GAN_HANH[info.yearCanChi.gan], 2);
+            add(GAN_HANH[GAN[info.dayGanIdx]], 2);
+            add(GAN_HANH[GAN[info.gioGan]], 2);
+            // Địa chi năm/ngày/giờ
+            add(GIO_HANH[info.yearCanChi.chi], 1);
+            const dayChi = String(info.dayCanChi || '').split(' ')[1];
+            add(GIO_HANH[dayChi], 1);
+            add(GIO_HANH[CHI[info.gioChi]], 1);
+            // Bàn Kỳ Môn (cung/môn/tinh/thần)
+            add(CUNG_HANH[palaceIdx], 1);
+            if (cell) {
+                add(MON_LUAN[cell.mon] ? MON_LUAN[cell.mon].hanh : '', 1);
+                add(TINH_LUAN[cell.tinh] ? TINH_LUAN[cell.tinh].hanh : '', 1);
+                add(THAN_HANH[cell.than], 1);
             }
-            let max = -1, min = 99;
-            for (const k in count) {
-                if (count[k] > max) max = count[k];
-                if (count[k] < min) min = count[k];
-            }
+            // Thịnh (nhiều nhất) / khuyết (ít nhất)
+            let max = -1, min = 999;
+            for (const k in count) { if (count[k] > max) max = count[k]; if (count[k] < min) min = count[k]; }
             const thịnh = [], khuyet = [];
-            for (const k in count) {
-                if (count[k] === max) thịnh.push(k);
-                if (count[k] === min) khuyet.push(k);
-            }
-            return { count, thịnh, khuyet };
+            for (const k in count) { if (count[k] === max) thịnh.push(k); if (count[k] === min) khuyet.push(k); }
+            return { count: count, thịnh: thịnh, khuyet: khuyet };
         }
 
         function renderNguHanhSummary(p) {
             let s = 'Thịnh: ' + p.thịnh.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
-            s += ' · Khuyết: ' + p.khuyet.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
+            s += ' · Khuyết: ' + p.khuyet.map(function (k) {
+                const c = p.count[k];
+                return (HANH_ICON[k] || '') + ' ' + k + (c > 0 ? ' (' + c + ')' : '');
+            }).join(', ');
             return s;
+        }
+
+        // Cập nhật ô trung tâm (Trung cung): hướng + điểm + ngũ hành thịnh/khuyết
+        function updateCenterCell(cung) {
+            const grid = document.querySelectorAll('#board .grid')[0];
+            if (!grid || !grid.querySelectorAll) return;
+            const cells = grid.querySelectorAll('.cell');
+            if (!cells || cells.length < 5) return;
+            const center = cells[4]; // Trung cung ở vị trí thứ 5 trong gridOrder [4,9,2,3,5,7,8,1,6]
+            const hi = headingInfo(cung);
+            const st = scoreStyle(hi.scoreCls);
+            center.style.background = st.bg;
+            center.style.borderColor = st.bd;
+            const inner = center.querySelector('.cell-inner');
+            if (inner) {
+                inner.innerHTML = '<table class="cell-table">'
+                    + '<tr><td class="ct" colspan="2">' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
+                    + '<tr><td class="ct" colspan="2">' + hi.summary + '</td></tr>'
+                    + '</table>';
+            }
         }
 
         // Màu nhạt: xanh (tốt) -> trung tính -> đỏ (xấu), không dùng màu vàng
@@ -1784,33 +1860,29 @@
         }
 
         function updateCompass() {
-            const h = window._compass.heading;
-            const dir = getDirection(h);
-            const cell = (window._cungData && window._cungData[dir.palace]) ? window._cungData[dir.palace] : null;
-
-            // Điểm trọng số của hướng đang chọn
-            let scoreText = '0', scoreCls = 'diem-trung';
-            if (window._cungData) {
-                const hourStar = getGioStarInfo(window._cungData.info.dayGanIdx, window._cungData.info.gioChi);
-                const score10 = cell ? normalizeScore(palaceScore(cell, hourStar.good)) : 0;
-                scoreText = (score10 > 0 ? '+' : '') + score10;
-                scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
-            }
+            const hi = headingInfo(window._cungData);
+            const h = hi.h, dir = hi.dir, cell = hi.cell;
+            const scoreText = hi.scoreText, scoreCls = hi.scoreCls;
+            const st = scoreStyle(scoreCls);
 
             document.getElementById('compassDeg').textContent = h + '°';
             document.getElementById('compassDir').textContent = dir.name;
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
 
-            // Nút mở/đóng la bàn hiển thị hướng + điểm, tô màu theo trạng thái (dùng inline để nhất quán mobile/desktop)
+            // Nút mở/đóng la bàn hiển thị hướng + điểm, tô màu theo trạng thái (inline để nhất quán mobile/desktop)
             const btn = document.getElementById('compassToggle');
             if (btn) {
                 btn.textContent = '🧭 ' + h + '° ' + dir.name + ' ' + scoreText;
-                if (btn.style) {
-                    if (scoreCls === 'diem-tot') { btn.style.background = 'rgba(46, 204, 113, 0.30)'; btn.style.borderColor = '#2ecc71'; }
-                    else if (scoreCls === 'diem-xau') { btn.style.background = 'rgba(231, 76, 60, 0.30)'; btn.style.borderColor = '#e74c3c'; }
-                    else { btn.style.background = '#1a2a4a'; btn.style.borderColor = '#f1c40f'; }
-                }
+                if (btn.style) { btn.style.background = st.bg; btn.style.borderColor = st.bd; }
+            }
+
+            // Vòng la bàn tô màu theo trọng số
+            const rose = document.getElementById('rose');
+            if (rose && rose.style) {
+                rose.style.background = st.bg;
+                rose.style.borderColor = st.bd;
+                rose.style.boxShadow = '0 0 24px ' + st.glow;
             }
 
             // Điểm trọng số trên heading
@@ -1820,18 +1892,13 @@
                 diem.className = 'diem-heading ' + scoreCls;
             }
 
-            // Tổng hợp ngũ hành thịnh/khuyết (dựa vào 5 hành của cung/môn/tinh/thần/giờ)
-            const hanhCung = CUNG_HANH[dir.palace] || '';
-            let summary = '';
-            if (cell) {
-                const monHanh = (MON_LUAN[cell.mon] && MON_LUAN[cell.mon].hanh) || '';
-                const tinhHanh = (TINH_LUAN[cell.tinh] && TINH_LUAN[cell.tinh].hanh) || '';
-                const thanHanh = THAN_HANH[cell.than] || '';
-                const gioHanh = gioHanhOf(dir.palace);
-                summary = renderNguHanhSummary(phanTichNguHanh(hanhCung, monHanh, tinhHanh, thanHanh, gioHanh));
-            }
-            document.getElementById('compassPalace').textContent = summary;
+            // Tổng hợp ngũ hành thịnh/khuyết
+            document.getElementById('compassPalace').textContent = hi.summary;
             renderLuanGiai(dir, cell);
+
+            // Cập nhật ô trung tâm (hướng hiện tại + điểm + ngũ hành)
+            updateCenterCell(window._cungData);
+
             // Xoay mặt la bàn: nhãn N luôn chỉ về Bắc thực
             const ring = document.getElementById('roseRing');
             if (ring) {
