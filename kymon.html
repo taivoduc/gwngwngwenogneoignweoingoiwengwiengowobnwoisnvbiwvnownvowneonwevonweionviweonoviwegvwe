@@ -653,28 +653,6 @@
             'Thổ': '⛰️'
         };
 
-        // Ngũ hành của 12 địa chi (giờ)
-        const GIO_HANH = { 'Tý': 'Thủy', 'Sửu': 'Thổ', 'Dần': 'Mộc', 'Mão': 'Mộc', 'Thìn': 'Thổ', 'Tỵ': 'Hỏa', 'Ngọ': 'Hỏa', 'Mùi': 'Thổ', 'Thân': 'Kim', 'Dậu': 'Kim', 'Tuất': 'Thổ', 'Hợi': 'Thủy' };
-
-        // 10 thiên can + 12 địa chi (dùng cho phân tích ngũ hành theo Bát Tự)
-        const GAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
-        const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
-        const GAN_HANH = { 'Giáp': 'Mộc', 'Ất': 'Mộc', 'Bính': 'Hỏa', 'Đinh': 'Hỏa', 'Mậu': 'Thổ', 'Kỷ': 'Thổ', 'Canh': 'Kim', 'Tân': 'Kim', 'Nhâm': 'Thủy', 'Quý': 'Thủy' };
-        // Tháng đắc lệnh (mùa vượng) theo tháng âm lịch (1..12)
-        const THANG_HANH = { 1: 'Mộc', 2: 'Mộc', 3: 'Thổ', 4: 'Hỏa', 5: 'Hỏa', 6: 'Thổ', 7: 'Kim', 8: 'Kim', 9: 'Thổ', 10: 'Thủy', 11: 'Thủy', 12: 'Thổ' };
-
-        // Giờ (Địa Chi) tương ứng với từng cung/hướng theo Hậu Thiên Bát Quái
-        const CUNG_GIO = {
-            1: 'Tý (23h-1h)',
-            8: 'Sửu-Dần (1h-5h)',
-            3: 'Mão (5h-7h)',
-            4: 'Thìn-Tỵ (7h-11h)',
-            9: 'Ngọ (11h-13h)',
-            2: 'Mùi-Thân (13h-17h)',
-            7: 'Dậu (17h-19h)',
-            6: 'Tuất-Hợi (19h-23h)'
-        };
-
         // Nội dung ngắn gọn theo môn (được / không được / hóa giải - tăng cường)
         const MON_ADVICE = {
             'Sinh':   { do: 'Khởi công, cầu tài', dont: 'Tránh kiện tụng', hg: '✨ Tăng: xuất hành, khởi sự' },
@@ -1140,9 +1118,6 @@
             const board = document.getElementById('board');
             // Bố cục 3x3: Nam ở trên, Bắc ở dưới (truyền thống Kỳ Môn)
             const gridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
-            // Giờ đang chọn là Hoàng Đạo (tốt) hay Hắc Đạo (xấu)
-            const hourStar = getGioStarInfo(cung.info.dayGanIdx, cung.info.gioChi);
-            const hourGood = hourStar.good;
             let html = '<div class="grid">';
             for (let i = 0; i < 9; i++) {
                 const idx = gridOrder[i];
@@ -1156,13 +1131,13 @@
                                     <table class="cell-table">
                                         <tr><td class="ct" colspan="2">${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
                                         <tr><td class="ct" colspan="2">${hi.thinh}</td></tr>
-                                        <tr><td class="ct" colspan="2">${hi.khuyet}</td></tr>
+                                        <tr><td class="ct" colspan="2">${hi.suy}</td></tr>
                                     </table>
                                 </div>
                             </div>`;
                     continue;
                 }
-                const score10 = normalizeScore(palaceScore(cell, hourGood));
+                const score10 = normalizeScore(palaceScore(cell));
                 const bg = scoreToColor(score10);
                 const scoreText = (score10 > 0 ? '+' : '') + score10;
                 const scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
@@ -1172,7 +1147,6 @@
                 const iconMon = (cell.mon && MON_LUAN[cell.mon]) ? (HANH_ICON[MON_LUAN[cell.mon].hanh] || '') : '';
                 const iconTinh = (cell.tinh && TINH_LUAN[cell.tinh]) ? (HANH_ICON[TINH_LUAN[cell.tinh].hanh] || '') : '';
                 const iconThan = HANH_ICON[THAN_HANH[cell.than]] || '';
-                const gio = CUNG_GIO[idx] || '';
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
                                 <table class="cell-table">
@@ -1181,7 +1155,6 @@
                                     <tr><td class="ci">${iconMon}</td><td class="ct">${cell.mon || '—'}</td></tr>
                                     <tr><td class="ci">${iconTinh}</td><td class="ct">${cell.tinh || '—'}</td></tr>
                                     <tr><td class="ci">${iconThan}</td><td class="ct">${cell.than || '—'}</td></tr>
-                                    <tr><td class="ci">${iconCung}</td><td class="ct">${gio}</td></tr>
                                 </table>
                             </div>
                         </div>`;
@@ -1694,19 +1667,18 @@
             return s >= 1 ? 1 : (s <= -1 ? -1 : 0);
         }
 
-        // Điểm tổng hợp của 1 cung: Môn + Tinh + Thần + Giờ (không dùng 8 chủ đề)
-        function palaceScore(cell, hourGood) {
+        // Điểm tổng hợp của 1 cung: Môn + Tinh + Thần (không dùng yếu tố thời gian và 8 chủ đề)
+        function palaceScore(cell) {
             if (!cell.mon) return 0; // Trung cung (không có môn) -> trung tính
             let score = 0;
             score += componentWeight('mon', cell.mon);
             score += componentWeight('tinh', cell.tinh);
             score += componentWeight('than', cell.than);
-            score += hourGood ? 1 : -1;
             return score;
         }
 
         // Bảng màu: xanh đậm (tốt nhất) -> vàng (0) -> đỏ đậm (xấu nhất)
-        // Chuẩn hoá điểm về thang -10..+10 (điểm thô từ -4..+4)
+        // Chuẩn hoá điểm về thang -8..+8 (điểm thô -3..+3 = Môn + Tinh + Thần)
         function normalizeScore(score) {
             return Math.round(score * 2.5);
         }
@@ -1723,68 +1695,52 @@
             const h = window._compass.heading;
             const dir = getDirection(h);
             const cell = (cung && cung[dir.palace]) ? cung[dir.palace] : null;
-            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', khuyet = '';
+            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '';
             if (cung && cell) {
-                const hourStar = getGioStarInfo(cung.info.dayGanIdx, cung.info.gioChi);
-                score10 = normalizeScore(palaceScore(cell, hourStar.good));
+                score10 = normalizeScore(palaceScore(cell));
                 scoreText = (score10 > 0 ? '+' : '') + score10;
                 scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
-                const p = phanTichNguHanh(cung, dir.palace, cell);
+                const p = phanTichNguHanh(dir.palace, cell);
                 summary = renderNguHanhSummary(p);
                 thinh = renderThinh(p);
-                khuyet = renderKhuyet(p);
+                suy = renderSuy(p);
             }
-            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, khuyet: khuyet };
+            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy };
         }
 
-        // Phân tích ngũ hành thịnh/khuyết theo nguyên tắc Bát Tự (trọng số ưu tiên):
-        //   - Tháng (đắc lệnh / mùa vượng): trọng số 3 — yếu tố mạnh nhất.
-        //   - Thiên can (năm/ngày/giờ): trọng số 2 — can lộ, ưu tiên cao hơn địa chi.
-        //   - Địa chi (năm/ngày/giờ): trọng số 1 — can tàng.
-        //   - Bàn Kỳ Môn (cung/môn/tinh/thần): trọng số 1 mỗi yếu tố.
-        function phanTichNguHanh(cung, palaceIdx, cell) {
+        // Phân tích ngũ hành thịnh/suy của hướng hiện tại:
+        // đếm ngũ hành của Cung (hướng) + Môn + Tinh + Thần (không dùng yếu tố thời gian).
+        function phanTichNguHanh(palaceIdx, cell) {
             const count = { 'Kim': 0, 'Mộc': 0, 'Thủy': 0, 'Hỏa': 0, 'Thổ': 0 };
-            const add = function (h, w) { if (h && count[h] !== undefined) count[h] += w; };
-            const info = cung.info;
-            // Tháng (đắc lệnh)
-            add(THANG_HANH[info.lunar.month], 3);
-            // Thiên can năm/ngày/giờ
-            add(GAN_HANH[info.yearCanChi.gan], 2);
-            add(GAN_HANH[GAN[info.dayGanIdx]], 2);
-            add(GAN_HANH[GAN[info.gioGan]], 2);
-            // Địa chi năm/ngày/giờ
-            add(GIO_HANH[info.yearCanChi.chi], 1);
-            const dayChi = String(info.dayCanChi || '').split(' ')[1];
-            add(GIO_HANH[dayChi], 1);
-            add(GIO_HANH[CHI[info.gioChi]], 1);
-            // Bàn Kỳ Môn (cung/môn/tinh/thần)
-            add(CUNG_HANH[palaceIdx], 1);
+            const add = function (h) { if (h && count[h] !== undefined) count[h]++; };
+            // Cung/hướng
+            add(CUNG_HANH[palaceIdx]);
             if (cell) {
-                add(MON_LUAN[cell.mon] ? MON_LUAN[cell.mon].hanh : '', 1);
-                add(TINH_LUAN[cell.tinh] ? TINH_LUAN[cell.tinh].hanh : '', 1);
-                add(THAN_HANH[cell.than], 1);
+                add(MON_LUAN[cell.mon] ? MON_LUAN[cell.mon].hanh : '');
+                add(TINH_LUAN[cell.tinh] ? TINH_LUAN[cell.tinh].hanh : '');
+                add(THAN_HANH[cell.than]);
             }
-            // Thịnh (nhiều nhất) / khuyết (ít nhất)
+            // Thịnh (nhiều nhất) / suy (ít nhất)
             let max = -1, min = 999;
             for (const k in count) { if (count[k] > max) max = count[k]; if (count[k] < min) min = count[k]; }
-            const thịnh = [], khuyet = [];
-            for (const k in count) { if (count[k] === max) thịnh.push(k); if (count[k] === min) khuyet.push(k); }
-            return { count: count, thịnh: thịnh, khuyet: khuyet };
+            const thịnh = [], suy = [];
+            for (const k in count) { if (count[k] === max) thịnh.push(k); if (count[k] === min) suy.push(k); }
+            return { count: count, thịnh: thịnh, suy: suy };
         }
 
         function renderThinh(p) {
             return 'Thịnh: ' + p.thịnh.map(function (k) { return (HANH_ICON[k] || '') + ' ' + k + ' (' + p.count[k] + ')'; }).join(', ');
         }
 
-        function renderKhuyet(p) {
-            return 'Khuyết: ' + p.khuyet.map(function (k) {
+        function renderSuy(p) {
+            return 'Suy: ' + p.suy.map(function (k) {
                 const c = p.count[k];
                 return (HANH_ICON[k] || '') + ' ' + k + (c > 0 ? ' (' + c + ')' : '');
             }).join(', ');
         }
 
         function renderNguHanhSummary(p) {
-            return renderThinh(p) + ' · ' + renderKhuyet(p);
+            return renderThinh(p) + ' · ' + renderSuy(p);
         }
 
         // Cập nhật ô trung tâm (Trung cung): hướng + điểm + ngũ hành thịnh/khuyết
@@ -1803,7 +1759,7 @@
                 inner.innerHTML = '<table class="cell-table">'
                     + '<tr><td class="ct" colspan="2">' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
                     + '<tr><td class="ct" colspan="2">' + hi.thinh + '</td></tr>'
-                    + '<tr><td class="ct" colspan="2">' + hi.khuyet + '</td></tr>'
+                    + '<tr><td class="ct" colspan="2">' + hi.suy + '</td></tr>'
                     + '</table>';
             }
         }
