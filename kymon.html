@@ -78,15 +78,12 @@
             flex-wrap: nowrap;
             overflow-x: auto;
             gap: 3px;
-            padding: 4px 0;
+            padding: 6px 6px;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: #f7971e #2a4a7a;
+            scrollbar-width: none;
             max-width: 100%;
         }
-        .gio-compact::-webkit-scrollbar { height: 5px; }
-        .gio-compact::-webkit-scrollbar-track { background: #1a2a4a; border-radius: 4px; }
-        .gio-compact::-webkit-scrollbar-thumb { background: #f7971e; border-radius: 4px; }
+        .gio-compact::-webkit-scrollbar { display: none; }
 
         .gio-item-mini {
             flex: 0 0 auto;
@@ -106,8 +103,8 @@
             transition: 0.15s;
             white-space: nowrap;
         }
-        .gio-item-mini:hover { transform: scale(1.08); border-color: #f7971e; }
-        .gio-item-mini.now { outline: 2px solid #ffffff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); transform: scale(1.12); z-index: 2; position: relative; }
+        .gio-item-mini:hover { border-color: #f7971e; }
+        .gio-item-mini.now { outline: 2px solid #ffffff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); z-index: 2; position: relative; }
         .gio-item-mini .emoji { font-size: 0.9rem; }
         .gio-item-mini .chi { font-size: 0.7rem; color: #ddd; font-weight: 600; }
         .gio-item-mini .khung-gio { font-size: 0.55rem; color: #aaa; margin-left: 1px; }
@@ -119,6 +116,7 @@
             border-radius: 0;
             padding: 0;
             box-shadow: none;
+            margin-top: 28px;
             margin-bottom: 20px;
             border: none;
         }
@@ -356,8 +354,6 @@
                 <label class="am-label">Nhuận</label>
                 <input type="checkbox" id="amNhuan" onchange="capNhatTuAm()">
             </div>
-        </div>
-        <div class="control-row" style="justify-content: center;">
             <button type="button" id="compassToggle" class="compass-toggle">🧭 Mở la bàn</button>
         </div>
         <div class="control-row" style="justify-content: center; width: 100%; overflow: hidden;">
@@ -386,12 +382,12 @@
                     <span class="dir" id="compassDir">Bắc (N)</span>
                 </div>
                 <div class="compass-palace" id="compassPalace">Cung Khảm — Bắc</div>
+                <div class="compass-controls">
+                    <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
+                    <span class="heading-val" id="headingVal">0°</span>
+                </div>
                 <div class="compass-loc" id="compassLoc">📍</div>
             </div>
-        </div>
-        <div class="compass-controls">
-            <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
-            <span class="heading-val" id="headingVal">0°</span>
         </div>
         <div class="compass-luan-giai" id="compassLuanGiai"></div>
         <div class="compass-status" id="compassStatus"></div>
@@ -597,14 +593,14 @@
 
         // Giờ (Địa Chi) tương ứng với từng cung/hướng theo Hậu Thiên Bát Quái
         const CUNG_GIO = {
-            1: 'Tý',
-            8: 'Sửu · Dần',
-            3: 'Mão',
-            4: 'Thìn · Tỵ',
-            9: 'Ngọ',
-            2: 'Mùi · Thân',
-            7: 'Dậu',
-            6: 'Tuất · Hợi'
+            1: 'Tý (23h-1h)',
+            8: 'Sửu-Dần (1h-5h)',
+            3: 'Mão (5h-7h)',
+            4: 'Thìn-Tỵ (7h-11h)',
+            9: 'Ngọ (11h-13h)',
+            2: 'Mùi-Thân (13h-17h)',
+            7: 'Dậu (17h-19h)',
+            6: 'Tuất-Hợi (19h-23h)'
         };
 
         // Nội dung ngắn gọn theo môn (được / không được / hóa giải - tăng cường)
@@ -1464,6 +1460,20 @@
             'Cửu Thiên': 'Thần của trời, sự cao xa, mở rộng, năng động. Tốt cho việc mở mang, thăng tiến, đi xa.'
         };
 
+        // Ngũ hành của Bát Thần
+        const THAN_HANH = {
+            'Trực Phù': 'Thổ',
+            'Đằng Xà': 'Hỏa',
+            'Thái Âm': 'Kim',
+            'Lục Hợp': 'Mộc',
+            'Câu Trần': 'Thổ',
+            'Bạch Hổ': 'Kim',
+            'Chu Tước': 'Hỏa',
+            'Huyền Vũ': 'Thủy',
+            'Cửu Địa': 'Thổ',
+            'Cửu Thiên': 'Kim'
+        };
+
         // ================================================================
         // 8 CHỦ ĐỀ LỚN — luận giải theo Môn + Tinh + Thần hiện tại
         // ================================================================
@@ -1564,7 +1574,7 @@
             html += '<div class="lg-card"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
             if (monInfo) html += '<div class="lg-card"><span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat + '</div>';
             if (tinhInfo) html += '<div class="lg-card"><span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat + '</div>';
-            if (thanInfo) html += '<div class="lg-card"><span class="lg-tag">👹 Thần ' + than + '</span><br>' + thanInfo + '</div>';
+            if (thanInfo) html += '<div class="lg-card"><span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo + '</div>';
             html += '</div>';
 
             // 8 chủ đề lớn (4 cột × 2 dòng)
@@ -1599,11 +1609,17 @@
             document.getElementById('compassDir').textContent = dir.name + ' (' + dir.short + ')';
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
-            // Thông tin cung + môn/tinh/thần tại hướng đang quay về
+            // Thông tin cung + môn/tinh/thần (kèm ngũ hành) tại hướng đang quay về
             const cell = (window._cungData && window._cungData[dir.palace]) ? window._cungData[dir.palace] : null;
-            let info = 'Cung ' + dir.cung + ' (' + dir.name + ')';
+            const hanhCung = CUNG_HANH[dir.palace] || '';
+            let info = 'Cung ' + dir.cung + ' (' + hanhCung + ')';
             if (cell) {
-                info += ' — Môn: ' + (cell.mon || '—') + ' · Tinh: ' + (cell.tinh || '—') + ' · Thần: ' + (cell.than || '—');
+                const monHanh = (MON_LUAN[cell.mon] && MON_LUAN[cell.mon].hanh) || '';
+                const tinhHanh = (TINH_LUAN[cell.tinh] && TINH_LUAN[cell.tinh].hanh) || '';
+                const thanHanh = THAN_HANH[cell.than] || '';
+                info += ' — Môn: ' + (cell.mon || '—') + ' (' + monHanh + ')'
+                    + ' · Tinh: ' + (cell.tinh || '—') + ' (' + tinhHanh + ')'
+                    + ' · Thần: ' + (cell.than || '—') + ' (' + thanHanh + ')';
             }
             document.getElementById('compassPalace').textContent = info;
             renderLuanGiai(dir, cell);
