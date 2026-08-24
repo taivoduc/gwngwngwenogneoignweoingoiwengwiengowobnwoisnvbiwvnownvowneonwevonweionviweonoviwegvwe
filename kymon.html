@@ -282,16 +282,42 @@
         }
         .compass-luan-giai .lg-cols { display: flex; flex-wrap: wrap; gap: 12px; }
         .compass-luan-giai .lg-col { flex: 1 1 220px; min-width: 0; }
+        .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+        .compass-luan-giai .cd-card {
+            background: rgba(26, 42, 74, 0.4);
+            border: 1px solid #2a4a7a;
+            border-left: 3px solid #f1c40f;
+            border-radius: 8px;
+            padding: 8px 9px;
+        }
+        .compass-luan-giai .cd-card.tot { border-left-color: #2ecc71; }
+        .compass-luan-giai .cd-card.xau { border-left-color: #e74c3c; }
+        .compass-luan-giai .cd-card.trung { border-left-color: #f1c40f; }
+        .compass-luan-giai .cd-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
+        .compass-luan-giai .cd-title { font-weight: bold; color: #fff; font-size: 0.82rem; }
+        .compass-luan-giai .cd-verdict { font-weight: bold; font-size: 0.76rem; white-space: nowrap; }
+        .compass-luan-giai .cd-verdict.tot { color: #7bed9f; }
+        .compass-luan-giai .cd-verdict.xau { color: #ff6b6b; }
+        .compass-luan-giai .cd-verdict.trung { color: #ffd93d; }
+        .compass-luan-giai .cd-detail { font-size: 0.76rem; color: #c8c8d0; line-height: 1.45; }
+        .compass-luan-giai .cd-detail b { color: #e8e8ee; }
+        .compass-luan-giai .cd-item { margin: 2px 0; }
+        .compass-luan-giai .cd-sign { margin-right: 4px; }
+        @media (max-width: 700px) {
+            .compass-luan-giai .lg-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 450px) {
+            .compass-luan-giai .lg-grid { grid-template-columns: 1fr; }
+        }
         .compass-controls {
-            margin-top: 10px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
             align-items: center;
+            gap: 12px;
             font-size: 0.85rem;
             color: #a4b0be;
         }
         .compass-controls input[type="range"] { flex: 1; min-width: 120px; accent-color: #f7971e; }
+        .compass-controls .heading-val { font-weight: bold; color: #fff; min-width: 42px; text-align: right; }
         .compass-panel.hidden { display: none; }
         .compass-toggle {
             display: inline-flex;
@@ -344,6 +370,10 @@
     </div>
 
     <div class="compass-panel hidden" id="compassPanel">
+        <div class="compass-controls">
+            <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
+            <span class="heading-val" id="headingVal">0°</span>
+        </div>
         <div class="compass-top">
             <div class="rose">
                 <div class="rose-ring" id="roseRing">
@@ -368,11 +398,6 @@
             </div>
         </div>
         <div class="compass-luan-giai" id="compassLuanGiai"></div>
-        <div class="compass-controls">
-            <label>Xoay thử:</label>
-            <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
-            <span id="headingVal">0°</span>
-        </div>
         <div class="compass-status" id="compassStatus"></div>
     </div>
 
@@ -1430,6 +1455,76 @@
             'Cửu Thiên': 'Thần của trời, sự cao xa, mở rộng, năng động. Tốt cho việc mở mang, thăng tiến, đi xa.'
         };
 
+        // ================================================================
+        // 8 CHỦ ĐỀ LỚN — luận giải theo Môn + Tinh + Thần hiện tại
+        // ================================================================
+        function taoChuDe(cfg, mon, tinh, than) {
+            const parts = [['Môn', mon], ['Tinh', tinh], ['Thần', than]];
+            let score = 0, good = [], bad = [];
+            for (let i = 0; i < parts.length; i++) {
+                const label = parts[i][0], name = parts[i][1];
+                if (!name) continue;
+                if (cfg.tot.indexOf(name) >= 0) { score++; good.push([label, name]); }
+                else if (cfg.xau.indexOf(name) >= 0) { score--; bad.push([label, name]); }
+            }
+            let cls, icon, verdict;
+            if (score >= 1) { cls = 'tot'; icon = '🟢'; verdict = 'Thuận lợi'; }
+            else if (score <= -1) { cls = 'xau'; icon = '🔴'; verdict = 'Bất lợi'; }
+            else { cls = 'trung'; icon = '🟡'; verdict = 'Trung bình'; }
+            function fmt(list, sign) {
+                let s = '';
+                for (let i = 0; i < list.length; i++) {
+                    const nm = list[i][1];
+                    const m = cfg.nghia && cfg.nghia[nm] ? cfg.nghia[nm] : '';
+                    s += '<div class="cd-item"><span class="cd-sign">' + sign + '</span><b>' + list[i][0] + ' ' + nm + '</b>' + (m ? ': ' + m : '') + '</div>';
+                }
+                return s;
+            }
+            let detail = '';
+            if (good.length) detail += fmt(good, '👍');
+            if (bad.length) detail += fmt(bad, '👎');
+            if (!good.length && !bad.length) detail = '<div class="cd-item">Không có thành phần đặc biệt tác động.</div>';
+            return '<div class="cd-card ' + cls + '">'
+                + '<div class="cd-head"><span class="cd-title">' + cfg.emoji + ' ' + cfg.tieuDe + '</span><span class="cd-verdict ' + cls + '">' + icon + ' ' + verdict + '</span></div>'
+                + '<div class="cd-detail">' + detail + '</div>'
+                + '</div>';
+        }
+
+        const CHU_DE = [
+            { tieuDe: 'Công danh & Sự nghiệp', emoji: '💼',
+                tot: ['Khai', 'Sinh', 'Thiên Tâm', 'Thiên Phụ', 'Thiên Nhậm', 'Trực Phù', 'Cửu Thiên'],
+                xau: ['Đỗ', 'Kinh', 'Thiên Nhuế', 'Thiên Bồng', 'Thiên Trụ', 'Đằng Xà', 'Huyền Vũ', 'Câu Trần'],
+                nghia: { 'Khai': 'công việc, cơ quan, khởi đầu hanh thông', 'Sinh': 'sinh khí, thăng tiến', 'Thiên Tâm': 'vị trí lãnh đạo', 'Thiên Phụ': 'quý nhân, cố vấn nâng đỡ', 'Thiên Nhậm': 'nỗ lực bền bỉ được đền đáp', 'Trực Phù': 'cấp trên, lệnh bài, quý nhân', 'Cửu Thiên': 'thăng tiến, mở rộng', 'Đỗ': 'bế tắc, chưa thể thăng chức', 'Kinh': 'thị phi, biến động chức vụ', 'Thiên Nhuế': 'trở ngại, bệnh tật cản bước', 'Thiên Bồng': 'mưu đồ, rủi ro', 'Thiên Trụ': 'đổ vỡ, mất vị trí', 'Đằng Xà': 'lo lắng, biến động', 'Huyền Vũ': 'mờ ám, khuất tất', 'Câu Trần': 'tranh chấp, trì trệ' } },
+            { tieuDe: 'Tài lộc & Kinh doanh', emoji: '💰',
+                tot: ['Sinh', 'Thiên Phụ', 'Thiên Nhậm', 'Cửu Địa', 'Thái Âm'],
+                xau: ['Thương', 'Tử', 'Thiên Nhuế', 'Thiên Bồng', 'Huyền Vũ', 'Đằng Xà'],
+                nghia: { 'Sinh': 'lợi nhuận, tiền đẻ ra tiền', 'Thiên Phụ': 'vốn liếng, đầu tư khôn ngoan', 'Thiên Nhậm': 'làm ăn bền bỉ', 'Cửu Địa': 'tài sản tích lũy, đất đai', 'Thái Âm': 'tiền ngầm, quỹ kín', 'Thương': 'tổn thất tài chính, đòi nợ', 'Tử': 'thua lỗ, mất vốn', 'Thiên Nhuế': 'thất thoát, hao hụt', 'Thiên Bồng': 'rủi ro, trộm cắp', 'Huyền Vũ': 'trộm cắp, lừa gạt', 'Đằng Xà': 'giao dịch mờ ám' } },
+            { tieuDe: 'Hôn nhân & Tình duyên', emoji: '❤️',
+                tot: ['Hưu', 'Sinh', 'Lục Hợp'],
+                xau: ['Kinh', 'Tử', 'Thương', 'Thiên Nhuế', 'Đằng Xà', 'Bạch Hổ'],
+                nghia: { 'Hưu': 'gia đình ổn định, bến đỗ bình yên', 'Sinh': 'nhân duyên phát triển', 'Lục Hợp': 'hòa hợp, môi giới, kết nối', 'Kinh': 'tranh cãi, cãi vã', 'Tử': 'tình cảm nguội lạnh, đổ vỡ', 'Thương': 'tổn thương tình cảm', 'Thiên Nhuế': 'mâu thuẫn cũ, rắc rối', 'Đằng Xà': 'hiểu lầm, nghi ngờ', 'Bạch Hổ': 'xung đột gay gắt' } },
+            { tieuDe: 'Sức khỏe & Bệnh tật', emoji: '🏥',
+                tot: ['Sinh', 'Hưu', 'Thiên Tâm'],
+                xau: ['Tử', 'Thương', 'Thiên Nhuế', 'Thiên Bồng', 'Bạch Hổ'],
+                nghia: { 'Sinh': 'sức sống, phục hồi tốt', 'Hưu': 'dưỡng bệnh, nghỉ ngơi', 'Thiên Tâm': 'thầy thuốc giỏi, cứu giúp', 'Tử': 'bệnh nặng, nguy hiểm tính mạng', 'Thương': 'thương tích, phẫu thuật', 'Thiên Nhuế': 'nguồn gốc căn bệnh', 'Thiên Bồng': 'bệnh cấp, tai nạn nước', 'Bạch Hổ': 'huyết quang, tai nạn' } },
+            { tieuDe: 'Kiện tụng & Tranh chấp', emoji: '⚖️',
+                tot: [],
+                xau: ['Kinh', 'Thương', 'Thiên Xung', 'Thiên Trụ', 'Đằng Xà', 'Bạch Hổ', 'Câu Trần'],
+                nghia: { 'Kinh': 'thị phi, tòa án, tranh biện', 'Thương': 'tranh chấp gay gắt', 'Thiên Xung': 'xung đột, bên nguyên đơn', 'Thiên Trụ': 'phá hoại, đổ vỡ', 'Đằng Xà': 'vụ án dây dưa', 'Bạch Hổ': 'hung khí, bạo lực', 'Câu Trần': 'kiện tụng, đất đai' } },
+            { tieuDe: 'Đi lại & Di chuyển', emoji: '✈️',
+                tot: ['Khai', 'Sinh', 'Hưu', 'Cửu Thiên'],
+                xau: ['Đỗ', 'Tử', 'Huyền Vũ'],
+                nghia: { 'Khai': 'nơi đến mới, thuận lợi', 'Sinh': 'chuyến đi sinh lợi', 'Hưu': 'đi lại bình yên', 'Cửu Thiên': 'đi xa, xuất ngoại, hàng không', 'Đỗ': 'bế tắc, hoãn chuyến', 'Tử': 'trì trệ, không đi được', 'Huyền Vũ': 'lạc đường, thất lạc' } },
+            { tieuDe: 'Tìm người & Thất lạc', emoji: '🔍',
+                tot: [],
+                xau: ['Thương', 'Đỗ', 'Thiên Bồng', 'Huyền Vũ'],
+                nghia: { 'Thương': 'tổn thất, dấu vết rơi rớt', 'Đỗ': 'nơi ẩn trốn, khó tìm', 'Thiên Bồng': 'kẻ trộm liều lĩnh', 'Huyền Vũ': 'trộm cắp, kẻ gian' } },
+            { tieuDe: 'Bình an & Tai ương', emoji: '🛡️',
+                tot: ['Sinh', 'Hưu', 'Khai', 'Thiên Phụ', 'Thiên Tâm', 'Trực Phù', 'Cửu Địa'],
+                xau: ['Tử', 'Thương', 'Thiên Trụ', 'Thiên Bồng', 'Bạch Hổ', 'Đằng Xà'],
+                nghia: { 'Sinh': 'sinh khí, bình an', 'Hưu': 'an dưỡng, thư thái', 'Khai': 'hanh thông, suôn sẻ', 'Thiên Phụ': 'được bảo hộ, cố vấn', 'Thiên Tâm': 'được cứu giúp, chữa lành', 'Trực Phù': 'được che chở', 'Cửu Địa': 'vững chãi, ổn định', 'Tử': 'bế tắc, nguy cơ', 'Thương': 'thương tích, tai nạn', 'Thiên Trụ': 'phá hủy, sụp đổ, thiên tai', 'Thiên Bồng': 'tai họa bất ngờ', 'Bạch Hổ': 'tai nạn, huyết quang', 'Đằng Xà': 'ác mộng, quấy nhiễu tâm linh' } },
+        ];
+
         function danhGiaCung(mon, tinh, than) {
             let score = 0;
             if (mon === 'Sinh' || mon === 'Khai' || mon === 'Hưu') score += 1;
@@ -1468,28 +1563,12 @@
 
             html += '<div class="lg-verdict ' + verdict.cls + '">' + verdict.icon + ' TỔNG KẾT: ' + verdict.text + '</div>';
 
-            if (monInfo && (monInfo.do || monInfo.dont)) {
-                html += '<div class="lg-cols">';
-                if (monInfo.do) {
-                    html += '<div class="lg-col"><div class="lg-h">✅ VIỆC NÊN LÀM</div><ul>';
-                    monInfo.do.forEach(function (x) { html += '<li class="lg-do">' + x + '</li>'; });
-                    html += '</ul></div>';
-                }
-                if (monInfo.dont) {
-                    html += '<div class="lg-col"><div class="lg-h">❌ VIỆC KHÔNG NÊN LÀM</div><ul>';
-                    monInfo.dont.forEach(function (x) { html += '<li class="lg-dont">' + x + '</li>'; });
-                    html += '</ul></div>';
-                }
-                html += '</div>';
+            // 8 chủ đề lớn (4 cột × 2 dòng)
+            html += '<div class="lg-grid">';
+            for (let i = 0; i < CHU_DE.length; i++) {
+                html += taoChuDe(CHU_DE[i], mon, tinh, than);
             }
-
-            if (monInfo && monInfo.boost) {
-                html += '<div class="lg-block"><div class="lg-h">⚡ TĂNG NĂNG LƯỢNG</div><div class="lg-boost">' + monInfo.boost + '</div></div>';
-            }
-            if (verdict.hung) {
-                const hoaGiaiText = monInfo && monInfo.hoaGiai ? monInfo.hoaGiai : 'Hướng này khí hung, nên tránh làm việc trọng đại; chọn hướng Sinh/Khai/Hưu và giờ cát thay thế.';
-                html += '<div class="lg-block"><div class="lg-h">🧹 HÓA GIẢI</div><div class="lg-hoa">' + hoaGiaiText + '</div></div>';
-            }
+            html += '</div>';
 
             box.innerHTML = html;
         }
@@ -1652,7 +1731,6 @@
         document.getElementById('headingSlider').addEventListener('input', function () {
             window._compass.heading = parseInt(this.value, 10) || 0;
             window._compass.active = true;                  // xoay thủ công
-            setStatus(false, 'Xoay thử (thủ công)');
             updateCompass();
         });
 
