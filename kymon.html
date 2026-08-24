@@ -35,27 +35,28 @@
             gap: 16px 40px;
             width: 100%;
         }
-        .control-row .group {
+        .group {
             display: flex;
             align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
+            gap: 4px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
         }
         .group label {
-            font-size: 1.8rem;
-            margin-right: 4px;
+            font-size: 1.5rem;
+            margin-right: 2px;
             color: #aaa;
             cursor: pointer;
             transition: 0.2s;
         }
         .group label:hover { transform: scale(1.15); color: #f7971e; }
         .group .val-input {
-            width: 52px;
+            width: 44px;
             text-align: center;
             font-weight: bold;
             color: #fff;
-            font-size: 1.2rem;
-            padding: 6px 4px;
+            font-size: 1.1rem;
+            padding: 4px 2px;
             background: #1a2a4a;
             border: 1px solid #2a4a7a;
             border-radius: 8px;
@@ -63,7 +64,7 @@
             transition: 0.2s;
         }
         .group .val-input:focus { border-color: #f7971e; background: #1a2a5a; }
-        .group .val-input.year-input { width: 72px; }
+        .group .val-input.year-input { width: 60px; }
         .group input[type="checkbox"] {
             width: 18px;
             height: 18px;
@@ -100,11 +101,8 @@
             border-radius: 8px;
             border: 2px solid #2a4a7a;
             background: #1a1a3e;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
+            text-align: center;
+            vertical-align: middle;
             font-size: 0.7rem;
             font-weight: bold;
             cursor: pointer;
@@ -113,8 +111,8 @@
         }
         .gio-item-mini:hover { border-color: #f7971e; }
         .gio-item-mini.now { outline: 2px solid #ffffff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); z-index: 2; position: relative; }
-        .gio-item-mini .line1 { font-size: 0.72rem; color: #fff; font-weight: 600; }
-        .gio-item-mini .line2 { font-size: 0.6rem; color: #ddd; }
+        .gio-item-mini .line1 { display: block; font-size: 0.72rem; color: #fff; font-weight: 600; }
+        .gio-item-mini .line2 { display: block; font-size: 0.6rem; color: #ddd; }
 
         #board {
             width: 100%;
@@ -124,6 +122,7 @@
             padding: 0;
             box-shadow: none;
             margin-top: 28px;
+            padding-top: 10px;
             margin-bottom: 20px;
             border: none;
         }
@@ -1700,25 +1699,34 @@
         function updateCompass() {
             const h = window._compass.heading;
             const dir = getDirection(h);
+            const cell = (window._cungData && window._cungData[dir.palace]) ? window._cungData[dir.palace] : null;
+
+            // Điểm trọng số của hướng đang chọn
+            let scoreText = '0', scoreCls = 'diem-trung';
+            if (window._cungData) {
+                const hourStar = getGioStarInfo(window._cungData.info.dayGanIdx, window._cungData.info.gioChi);
+                const score10 = cell ? normalizeScore(palaceScore(cell, hourStar.good)) : 0;
+                scoreText = (score10 > 0 ? '+' : '') + score10;
+                scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
+            }
+
             document.getElementById('compassDeg').textContent = h + '°';
             document.getElementById('compassDir').textContent = dir.name + ' (' + dir.short + ')';
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
-            // Nút mở/đóng la bàn hiển thị hướng hiện tại
+
+            // Nút mở/đóng la bàn hiển thị hướng + điểm
             const btn = document.getElementById('compassToggle');
-            if (btn) btn.textContent = '🧭 ' + h + '° ' + dir.name + ' (' + dir.short + ')';
-            // Thông tin cung + môn/tinh/thần (kèm ngũ hành) tại hướng đang quay về
-            const cell = (window._cungData && window._cungData[dir.palace]) ? window._cungData[dir.palace] : null;
-            // Điểm trọng số của hướng đang chọn
+            if (btn) btn.textContent = '🧭 ' + h + '° ' + dir.name + ' ' + scoreText;
+
+            // Điểm trọng số trên heading
             const diem = document.getElementById('compassDiem');
-            if (diem && window._cungData) {
-                const hourStar = getGioStarInfo(window._cungData.info.dayGanIdx, window._cungData.info.gioChi);
-                const score10 = cell ? normalizeScore(palaceScore(cell, hourStar.good)) : 0;
-                const scoreText = (score10 > 0 ? '+' : '') + score10;
-                const scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
+            if (diem) {
                 diem.textContent = 'Điểm ' + scoreText;
                 diem.className = 'diem-heading ' + scoreCls;
             }
+
+            // Thông tin cung + môn/tinh/thần (kèm ngũ hành) tại hướng đang quay về
             const hanhCung = CUNG_HANH[dir.palace] || '';
             let info = 'Cung ' + dir.cung + ' (' + hanhCung + ')';
             if (cell) {
