@@ -122,7 +122,7 @@
             padding: 0;
             box-shadow: none;
             margin-top: 28px;
-            padding-top: 10px;
+            padding-top: 15px;
             margin-bottom: 20px;
             border: none;
         }
@@ -327,6 +327,26 @@
         .compass-status { font-size: 0.85rem; color: #a4b0be; margin-top: 10px; }
         .compass-status.live { color: #7bed9f; }
         .grid { transition: transform 0.4s ease; transform-origin: center center; }
+
+        /* === Mobile layout (≤500px) === */
+        @media (max-width: 500px) {
+            /* Dòng 1: chuyển 1 hàng 3 cột -> 1 cột 3 dòng */
+            .top-table, .top-table tbody, .top-table tr, .top-table td {
+                display: block;
+                width: 100%;
+            }
+            .top-table td { padding: 3px 0; }
+            /* 12 canh giờ: chỉ icon + giờ bắt đầu */
+            .gio-ten, .gio-end { display: none; }
+            /* La bàn nhỏ lại, dòng 2 wrap, bar vừa màn hình */
+            .rose { width: 72px; height: 72px; }
+            .rose-cell { width: 72px; }
+            .compass-heading .deg { font-size: 1.4rem; }
+            .compass-heading .dir { font-size: 0.9rem; }
+            .compass-heading .diem-heading { font-size: 0.85rem; }
+            .compass-palace { white-space: normal; font-size: 0.8rem; }
+            .compass-controls input[type="range"] { min-width: 0; }
+        }
     </style>
 </head>
 <body>
@@ -1223,11 +1243,12 @@
                 const border = isHoang ? '#2ecc71' : '#e74c3c';
                 const emoji = GiapEmoji[i];
                 const tenChi = chi[i];
-                const gioRange = GioBatDau[i] + ' - ' + GioBatDau[(i + 1) % 12];
+                const gioBD = GioBatDau[i];
+                const gioEnd = GioBatDau[(i + 1) % 12];
                 const isNow = (i === currentChi);
                 html += `<td class="gio-item-mini${isNow ? ' now' : ''}" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} - ${star.name} (${isHoang?'Hoàng Đạo':'Hắc Đạo'})${isNow?' - GIỜ HIỆN TẠI':''}">
-                            <span class="line1">${emoji} ${tenChi}</span>
-                            <span class="line2">${gioRange}</span>
+                            <span class="line1"><span class="gio-emoji">${emoji}</span><span class="gio-ten"> ${tenChi}</span></span>
+                            <span class="line2"><span class="gio-bd">${gioBD}</span><span class="gio-end"> - ${gioEnd}</span></span>
                         </td>`;
             }
             html += '</tr></table>';
