@@ -113,7 +113,7 @@
 
         #board {
             width: 100%;
-            max-width: 920px;
+            max-width: 600px;
             background: transparent;
             border-radius: 0;
             padding: 0;
@@ -124,7 +124,7 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
+            gap: 10px;
         }
         .cell {
             position: relative;
@@ -155,9 +155,6 @@
         .cell .tinh { color: #70a1ff; }
         .cell .thien { color: #e0a0ff; }
         .cell .dia { color: #a4b0be; }
-        .cell .do { color: #7bed9f; font-size: 0.72rem; }
-        .cell .dont { color: #ff6b6b; font-size: 0.72rem; }
-        .cell .hoa-giai { color: #ffd93d; font-size: 0.72rem; }
 
         @media (max-width: 700px) {
             .control-row { gap: 12px 20px; }
@@ -167,7 +164,6 @@
             .gio-item-mini { min-width: 40px; height: 30px; padding: 2px 4px; font-size: 0.6rem; }
             .cell .cung { font-size: 0.8rem; }
             .cell .row { font-size: 0.62rem; }
-            .cell .do, .cell .dont, .cell .hoa-giai { font-size: 0.62rem; }
         }
         @media (max-width: 450px) {
             .control-row { gap: 8px 12px; }
@@ -178,7 +174,6 @@
             .cell-inner { inset: 4px; gap: 1px; }
             .cell .cung { font-size: 0.58rem; }
             .cell .row { font-size: 0.46rem; }
-            .cell .do, .cell .dont, .cell .hoa-giai { font-size: 0.46rem; }
         }
 
         /* ===== La bàn (Compass) ===== */
@@ -1072,7 +1067,6 @@
                 const bg = getMauSac(mon);
                 const hanh = CUNG_HANH[idx];
                 const ring = HANH_COLOR[hanh];
-                const adv = MON_ADVICE[mon] || MON_ADVICE_DEFAULT;
                 const cungName = cell.ten + ' (' + cell.huong + ')';
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
@@ -1080,9 +1074,6 @@
                                 <div class="row"><span class="mon">🚪 ${cell.mon || '—'}</span> · <span class="than">👹 ${cell.than || '—'}</span></div>
                                 <div class="row"><span class="tinh">⭐ ${cell.tinh || '—'}</span></div>
                                 <div class="row"><span class="thien">☁️ ${cell.thien || '—'}</span> · <span class="dia">📌 ${cell.dia || '—'}</span></div>
-                                <div class="do">✅ ${adv.do}</div>
-                                <div class="dont">❌ ${adv.dont}</div>
-                                <div class="hoa-giai">${adv.hg}</div>
                             </div>
                         </div>`;
             }
@@ -1549,7 +1540,6 @@
             const monInfo = MON_LUAN[mon] || null;
             const tinhInfo = TINH_LUAN[tinh] || null;
             const thanInfo = THAN_LUAN[than] || null;
-            const verdict = danhGiaCung(mon, tinh, than);
 
             let html = '';
             html += '<div class="lg-title">🔮 LUẬN GIẢI HƯỚNG ' + dir.name.toUpperCase() + ' (' + dir.short + ') — CUNG ' + dir.cung.toUpperCase() + '</div>';
@@ -1560,8 +1550,6 @@
             if (tinhInfo) html += '<div class="lg-card"><span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat + '</div>';
             if (thanInfo) html += '<div class="lg-card"><span class="lg-tag">👹 Thần ' + than + '</span><br>' + thanInfo + '</div>';
             html += '</div>';
-
-            html += '<div class="lg-verdict ' + verdict.cls + '">' + verdict.icon + ' TỔNG KẾT: ' + verdict.text + '</div>';
 
             // 8 chủ đề lớn (4 cột × 2 dòng)
             html += '<div class="lg-grid">';
@@ -1670,7 +1658,6 @@
             window.addEventListener('deviceorientation', onDeviceOrientation, true);
             window.addEventListener('deviceorientationabsolute', onDeviceOrientationAbsolute, true);
             startAbsoluteSensor();
-            setStatus(false, 'Đang khởi động cảm biến…');
         }
 
         // Tắt la bàn (gọi khi ĐÓNG la bàn)
