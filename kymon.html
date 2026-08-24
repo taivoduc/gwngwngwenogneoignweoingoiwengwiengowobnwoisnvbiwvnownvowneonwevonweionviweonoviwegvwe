@@ -626,7 +626,6 @@
         // 2. HẰNG SỐ KỲ MÔN
         // ================================================================
         const TEN_CUNG = ['', 'Khảm', 'Khôn', 'Chấn', 'Tốn', 'Trung', 'Càn', 'Đoài', 'Cấn', 'Ly'];
-        const HUONG = ['', 'Bắc', 'Tây Nam', 'Đông', 'Đông Nam', 'Trung ương', 'Tây Bắc', 'Tây', 'Đông Bắc', 'Nam'];
 
         const TEN_MON = ['', 'Hưu', 'Sinh', 'Thương', 'Đỗ', 'Cảnh', 'Tử', 'Kinh', 'Khai'];
         // Bát Thần có hai bộ tên tùy theo Dương độn / Âm độn:
@@ -1044,7 +1043,7 @@
             // 10. Đổ vào bàn
             const cung = [];
             for (let i = 0; i <= 9; i++) {
-                cung[i] = { ten: TEN_CUNG[i], huong: HUONG[i], mon: '', than: '', tinh: '', dia: '', thien: '' };
+                cung[i] = { ten: TEN_CUNG[i], mon: '', than: '', tinh: '', dia: '', thien: '' };
             }
             for (let p = 1; p <= 9; p++) {
                 cung[p].mon = TEN_MON[doorAtPalace[p]] || '';
@@ -1150,8 +1149,7 @@
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
                                 <table class="cell-table">
-                                    <tr><td class="ci">${iconCung}</td><td class="ct">${cell.huong} <span class="diem ${scoreCls}">${scoreText}</span></td></tr>
-                                    <tr><td class="ci">${iconCung}</td><td class="ct">${cell.ten || '—'}</td></tr>
+                                    <tr><td class="ci">${iconCung}</td><td class="ct">${cell.ten || '—'} <span class="diem ${scoreCls}">${scoreText}</span></td></tr>
                                     <tr><td class="ci">${iconMon}</td><td class="ct">${cell.mon || '—'}</td></tr>
                                     <tr><td class="ci">${iconTinh}</td><td class="ct">${cell.tinh || '—'}</td></tr>
                                     <tr><td class="ci">${iconThan}</td><td class="ct">${cell.than || '—'}</td></tr>
@@ -1708,12 +1706,12 @@
             return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy };
         }
 
-        // Phân tích ngũ hành thịnh/suy của hướng hiện tại:
-        // đếm ngũ hành của Cung (hướng) + Môn + Tinh + Thần (không dùng yếu tố thời gian).
+        // Phân tích ngũ hành thịnh/suy của cung hiện tại:
+        // đếm ngũ hành của Cung + Môn + Tinh + Thần (không dùng yếu tố thời gian).
         function phanTichNguHanh(palaceIdx, cell) {
             const count = { 'Kim': 0, 'Mộc': 0, 'Thủy': 0, 'Hỏa': 0, 'Thổ': 0 };
             const add = function (h) { if (h && count[h] !== undefined) count[h]++; };
-            // Cung/hướng
+            // Cung (bản cung)
             add(CUNG_HANH[palaceIdx]);
             if (cell) {
                 add(MON_LUAN[cell.mon] ? MON_LUAN[cell.mon].hanh : '');
