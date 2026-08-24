@@ -236,11 +236,12 @@
             padding: 6px 10px;
         }
         .compass-luan-giai {
-            margin-top: 4px;
+            margin: 0;
             text-align: left;
-            background: transparent;
+            background: #000000;
             border: none;
-            padding: 0;
+            padding: 8px 10px;
+            border-radius: 8px;
             font-size: 0.85rem;
             line-height: 1.5;
             color: #d8d8e0;
@@ -263,7 +264,13 @@
         .compass-luan-giai .lg-hoa { color: #ffd93d; }
         .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 12px; margin-top: 0; }
         .compass-luan-giai .lg-item { padding: 0; }
-        .compass-luan-giai .cd-card { padding: 0; }
+        .compass-luan-giai .cd-card {
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+        .compass-luan-giai .cd-card.tot { background: rgba(46, 204, 113, 0.14); }
+        .compass-luan-giai .cd-card.xau { background: rgba(231, 76, 60, 0.14); }
+        .compass-luan-giai .cd-card.trung { background: rgba(241, 196, 15, 0.12); }
         @media (max-width: 700px) {
             .compass-luan-giai .lg-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -1474,7 +1481,7 @@
             if (good.length) detail += fmt(good, '+');
             if (bad.length) detail += fmt(bad, '-');
             if (!good.length && !bad.length) detail = '<div class="cd-item">Không có thành phần đặc biệt tác động.</div>';
-            return '<div class="cd-card">'
+            return '<div class="cd-card ' + cls + '">'
                 + '<div class="cd-head"><span class="cd-title ' + cls + '">' + cfg.emoji + ' ' + cfg.tieuDe + '</span></div>'
                 + '<div class="cd-detail">' + detail + '</div>'
                 + '</div>';
