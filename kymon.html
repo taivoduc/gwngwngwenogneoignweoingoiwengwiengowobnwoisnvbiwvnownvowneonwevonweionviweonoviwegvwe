@@ -87,16 +87,16 @@
 
         .gio-item-mini {
             flex: 0 0 auto;
-            min-width: 48px;
-            padding: 3px 5px;
-            height: 34px;
+            min-width: 58px;
+            padding: 4px 6px;
             border-radius: 8px;
             border: 2px solid #2a4a7a;
             background: #1a1a3e;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 3px;
+            gap: 2px;
             font-size: 0.7rem;
             font-weight: bold;
             cursor: pointer;
@@ -105,9 +105,8 @@
         }
         .gio-item-mini:hover { border-color: #f7971e; }
         .gio-item-mini.now { outline: 2px solid #ffffff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); z-index: 2; position: relative; }
-        .gio-item-mini .emoji { font-size: 0.9rem; }
-        .gio-item-mini .chi { font-size: 0.7rem; color: #ddd; font-weight: 600; }
-        .gio-item-mini .khung-gio { font-size: 0.55rem; color: #aaa; margin-left: 1px; }
+        .gio-item-mini .line1 { font-size: 0.72rem; color: #fff; font-weight: 600; }
+        .gio-item-mini .line2 { font-size: 0.6rem; color: #ddd; }
 
         #board {
             width: 100%;
@@ -160,7 +159,7 @@
             .group .val-input { width: 42px; font-size: 1rem; padding: 4px 2px; }
             .group .val-input.year-input { width: 58px; }
             .group label { font-size: 1.4rem; }
-            .gio-item-mini { min-width: 40px; height: 30px; padding: 2px 4px; font-size: 0.6rem; }
+            .gio-item-mini { min-width: 44px; padding: 3px 4px; font-size: 0.6rem; }
             .cell .cung { font-size: 0.8rem; }
             .cell .row { font-size: 0.62rem; }
         }
@@ -169,7 +168,7 @@
             .group .val-input { width: 34px; font-size: 0.85rem; padding: 2px; }
             .group .val-input.year-input { width: 48px; }
             .group label { font-size: 1.2rem; }
-            .gio-item-mini { min-width: 34px; height: 26px; padding: 1px 3px; font-size: 0.5rem; }
+            .gio-item-mini { min-width: 38px; padding: 2px 3px; font-size: 0.55rem; }
             .cell-inner { inset: 4px; gap: 1px; }
             .cell .cung { font-size: 0.58rem; }
             .cell .row { font-size: 0.46rem; }
@@ -227,7 +226,6 @@
             z-index: 2;
         }
         .compass-info { min-width: 200px; flex: 1; max-width: 560px; }
-        .compass-loc { color: #a4b0be; font-size: 0.8rem; margin-top: 4px; }
         .compass-heading { display: flex; align-items: baseline; gap: 10px; }
         .compass-heading .deg { font-size: 1.9rem; font-weight: bold; color: #fff; }
         .compass-heading .dir { font-size: 1.1rem; font-weight: bold; color: #7bed9f; }
@@ -266,23 +264,16 @@
         .compass-luan-giai .lg-dont { color: #ff6b6b; }
         .compass-luan-giai .lg-boost { color: #7dd3fc; }
         .compass-luan-giai .lg-hoa { color: #ffd93d; }
-        .compass-luan-giai .lg-cards { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+        .compass-luan-giai .lg-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0; }
         .compass-luan-giai .lg-card {
-            flex: 1 1 200px;
-            background: rgba(26, 42, 74, 0.4);
-            border: 1px solid #2a4a7a;
-            border-radius: 8px;
-            padding: 8px 10px;
+            padding: 4px 8px;
         }
         .compass-luan-giai .lg-cols { display: flex; flex-wrap: wrap; gap: 12px; }
         .compass-luan-giai .lg-col { flex: 1 1 220px; min-width: 0; }
         .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
         .compass-luan-giai .cd-card {
-            background: rgba(26, 42, 74, 0.4);
-            border: 1px solid #2a4a7a;
-            border-left: 3px solid #f1c40f;
-            border-radius: 8px;
-            padding: 8px 9px;
+            padding: 4px 8px;
+            border-left: 3px solid transparent;
         }
         .compass-luan-giai .cd-card.tot { border-left-color: #2ecc71; }
         .compass-luan-giai .cd-card.xau { border-left-color: #e74c3c; }
@@ -297,12 +288,6 @@
         .compass-luan-giai .cd-detail b { color: #e8e8ee; }
         .compass-luan-giai .cd-item { margin: 2px 0; }
         .compass-luan-giai .cd-sign { margin-right: 4px; }
-        @media (max-width: 700px) {
-            .compass-luan-giai .lg-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 450px) {
-            .compass-luan-giai .lg-grid { grid-template-columns: 1fr; }
-        }
         .compass-controls {
             display: flex;
             align-items: center;
@@ -386,7 +371,6 @@
                     <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
                     <span class="heading-val" id="headingVal">0°</span>
                 </div>
-                <div class="compass-loc" id="compassLoc">📍</div>
             </div>
         </div>
         <div class="compass-luan-giai" id="compassLuanGiai"></div>
@@ -1200,12 +1184,11 @@
                 const border = isHoang ? '#2ecc71' : '#e74c3c';
                 const emoji = GiapEmoji[i];
                 const tenChi = chi[i];
-                const gioBD = GioBatDau[i];
+                const gioRange = GioBatDau[i] + ' - ' + GioBatDau[(i + 1) % 12];
                 const isNow = (i === currentChi);
                 html += `<div class="gio-item-mini${isNow ? ' now' : ''}" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} - ${star.name} (${isHoang?'Hoàng Đạo':'Hắc Đạo'})${isNow?' - GIỜ HIỆN TẠI':''}">
-                            <span class="emoji">${emoji}</span>
-                            <span class="chi">${tenChi}</span>
-                            <span class="khung-gio">${gioBD}</span>
+                            <span class="line1">${emoji} ${tenChi}</span>
+                            <span class="line2">${gioRange}</span>
                         </div>`;
             }
             container.innerHTML = html;
@@ -1643,7 +1626,6 @@
             h = ((h % 360) + 360) % 360;
             window._compass.heading = Math.round(h);
             window._compass.active = true;
-            setStatus(true, 'Đang xoay theo hướng điện thoại');
             updateCompass();
         }
 
@@ -1752,16 +1734,6 @@
             window._compass.active = true;                  // xoay thủ công
             updateCompass();
         });
-
-        // GPS — tự lấy vị trí; nếu không được thì để trống
-        if (typeof navigator !== 'undefined' && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (pos) {
-                document.getElementById('compassLoc').textContent =
-                    '📍 ' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4);
-            }, function () {
-                document.getElementById('compassLoc').textContent = '📍';
-            }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
-        }
 
         updateCompass();
 
