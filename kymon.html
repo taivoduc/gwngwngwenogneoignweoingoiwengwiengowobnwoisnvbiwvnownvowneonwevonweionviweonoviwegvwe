@@ -238,10 +238,9 @@
         .compass-luan-giai {
             margin-top: 4px;
             text-align: left;
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid #2a4a7a;
-            border-radius: 10px;
-            padding: 12px 14px;
+            background: transparent;
+            border: none;
+            padding: 0;
             font-size: 0.85rem;
             line-height: 1.5;
             color: #d8d8e0;
@@ -262,24 +261,21 @@
         .compass-luan-giai .lg-dont { color: #ff6b6b; }
         .compass-luan-giai .lg-boost { color: #7dd3fc; }
         .compass-luan-giai .lg-hoa { color: #ffd93d; }
-        .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 16px; margin-top: 6px; }
-        .compass-luan-giai .lg-item { padding: 4px 0; }
-        .compass-luan-giai .cd-card {
-            padding: 4px 0;
-        }
+        .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 12px; margin-top: 0; }
+        .compass-luan-giai .lg-item { padding: 0; }
+        .compass-luan-giai .cd-card { padding: 0; }
         @media (max-width: 700px) {
             .compass-luan-giai .lg-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        .compass-luan-giai .cd-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
-        .compass-luan-giai .cd-title { font-weight: bold; color: #fff; font-size: 0.82rem; }
-        .compass-luan-giai .cd-verdict { font-weight: bold; font-size: 0.76rem; white-space: nowrap; }
-        .compass-luan-giai .cd-verdict.tot { color: #7bed9f; }
-        .compass-luan-giai .cd-verdict.xau { color: #ff6b6b; }
-        .compass-luan-giai .cd-verdict.trung { color: #ffd93d; }
+        .compass-luan-giai .cd-head { margin-bottom: 0; }
+        .compass-luan-giai .cd-title { font-weight: bold; color: #fff; font-size: 0.82rem; text-transform: uppercase; }
+        .compass-luan-giai .cd-title.tot { color: #7bed9f; }
+        .compass-luan-giai .cd-title.xau { color: #ff6b6b; }
+        .compass-luan-giai .cd-title.trung { color: #ffd93d; }
         .compass-luan-giai .cd-detail { font-size: 0.76rem; color: #c8c8d0; line-height: 1.45; }
         .compass-luan-giai .cd-detail b { color: #e8e8ee; }
-        .compass-luan-giai .cd-item { margin: 2px 0; }
-        .compass-luan-giai .cd-sign { margin-right: 4px; }
+        .compass-luan-giai .cd-item { margin: 0; }
+        .compass-luan-giai .cd-sign { margin-right: 3px; font-weight: bold; }
         .compass-controls {
             display: flex;
             align-items: center;
@@ -1461,10 +1457,10 @@
                 if (cfg.tot.indexOf(name) >= 0) { score++; good.push([label, name]); }
                 else if (cfg.xau.indexOf(name) >= 0) { score--; bad.push([label, name]); }
             }
-            let cls, icon, verdict;
-            if (score >= 1) { cls = 'tot'; icon = '🟢'; verdict = 'Thuận lợi'; }
-            else if (score <= -1) { cls = 'xau'; icon = '🔴'; verdict = 'Bất lợi'; }
-            else { cls = 'trung'; icon = '🟡'; verdict = 'Trung bình'; }
+            let cls;
+            if (score >= 1) cls = 'tot';
+            else if (score <= -1) cls = 'xau';
+            else cls = 'trung';
             function fmt(list, sign) {
                 let s = '';
                 for (let i = 0; i < list.length; i++) {
@@ -1475,45 +1471,45 @@
                 return s;
             }
             let detail = '';
-            if (good.length) detail += fmt(good, '👍');
-            if (bad.length) detail += fmt(bad, '👎');
+            if (good.length) detail += fmt(good, '+');
+            if (bad.length) detail += fmt(bad, '-');
             if (!good.length && !bad.length) detail = '<div class="cd-item">Không có thành phần đặc biệt tác động.</div>';
-            return '<div class="cd-card ' + cls + '">'
-                + '<div class="cd-head"><span class="cd-title">' + cfg.emoji + ' ' + cfg.tieuDe + '</span><span class="cd-verdict ' + cls + '">' + icon + ' ' + verdict + '</span></div>'
+            return '<div class="cd-card">'
+                + '<div class="cd-head"><span class="cd-title ' + cls + '">' + cfg.emoji + ' ' + cfg.tieuDe + '</span></div>'
                 + '<div class="cd-detail">' + detail + '</div>'
                 + '</div>';
         }
 
         const CHU_DE = [
-            { tieuDe: 'Công danh & Sự nghiệp', emoji: '💼',
+            { tieuDe: 'Công danh', emoji: '💼',
                 tot: ['Khai', 'Sinh', 'Thiên Tâm', 'Thiên Phụ', 'Thiên Nhậm', 'Trực Phù', 'Cửu Thiên'],
                 xau: ['Đỗ', 'Kinh', 'Thiên Nhuế', 'Thiên Bồng', 'Thiên Trụ', 'Đằng Xà', 'Huyền Vũ', 'Câu Trần'],
                 nghia: { 'Khai': 'công việc, cơ quan, khởi đầu hanh thông', 'Sinh': 'sinh khí, thăng tiến', 'Thiên Tâm': 'vị trí lãnh đạo', 'Thiên Phụ': 'quý nhân, cố vấn nâng đỡ', 'Thiên Nhậm': 'nỗ lực bền bỉ được đền đáp', 'Trực Phù': 'cấp trên, lệnh bài, quý nhân', 'Cửu Thiên': 'thăng tiến, mở rộng', 'Đỗ': 'bế tắc, chưa thể thăng chức', 'Kinh': 'thị phi, biến động chức vụ', 'Thiên Nhuế': 'trở ngại, bệnh tật cản bước', 'Thiên Bồng': 'mưu đồ, rủi ro', 'Thiên Trụ': 'đổ vỡ, mất vị trí', 'Đằng Xà': 'lo lắng, biến động', 'Huyền Vũ': 'mờ ám, khuất tất', 'Câu Trần': 'tranh chấp, trì trệ' } },
-            { tieuDe: 'Tài lộc & Kinh doanh', emoji: '💰',
+            { tieuDe: 'Tài lộc', emoji: '💰',
                 tot: ['Sinh', 'Thiên Phụ', 'Thiên Nhậm', 'Cửu Địa', 'Thái Âm'],
                 xau: ['Thương', 'Tử', 'Thiên Nhuế', 'Thiên Bồng', 'Huyền Vũ', 'Đằng Xà'],
                 nghia: { 'Sinh': 'lợi nhuận, tiền đẻ ra tiền', 'Thiên Phụ': 'vốn liếng, đầu tư khôn ngoan', 'Thiên Nhậm': 'làm ăn bền bỉ', 'Cửu Địa': 'tài sản tích lũy, đất đai', 'Thái Âm': 'tiền ngầm, quỹ kín', 'Thương': 'tổn thất tài chính, đòi nợ', 'Tử': 'thua lỗ, mất vốn', 'Thiên Nhuế': 'thất thoát, hao hụt', 'Thiên Bồng': 'rủi ro, trộm cắp', 'Huyền Vũ': 'trộm cắp, lừa gạt', 'Đằng Xà': 'giao dịch mờ ám' } },
-            { tieuDe: 'Hôn nhân & Tình duyên', emoji: '❤️',
+            { tieuDe: 'Hôn nhân', emoji: '❤️',
                 tot: ['Hưu', 'Sinh', 'Lục Hợp'],
                 xau: ['Kinh', 'Tử', 'Thương', 'Thiên Nhuế', 'Đằng Xà', 'Bạch Hổ'],
                 nghia: { 'Hưu': 'gia đình ổn định, bến đỗ bình yên', 'Sinh': 'nhân duyên phát triển', 'Lục Hợp': 'hòa hợp, môi giới, kết nối', 'Kinh': 'tranh cãi, cãi vã', 'Tử': 'tình cảm nguội lạnh, đổ vỡ', 'Thương': 'tổn thương tình cảm', 'Thiên Nhuế': 'mâu thuẫn cũ, rắc rối', 'Đằng Xà': 'hiểu lầm, nghi ngờ', 'Bạch Hổ': 'xung đột gay gắt' } },
-            { tieuDe: 'Sức khỏe & Bệnh tật', emoji: '🏥',
+            { tieuDe: 'Sức khỏe', emoji: '🏥',
                 tot: ['Sinh', 'Hưu', 'Thiên Tâm'],
                 xau: ['Tử', 'Thương', 'Thiên Nhuế', 'Thiên Bồng', 'Bạch Hổ'],
                 nghia: { 'Sinh': 'sức sống, phục hồi tốt', 'Hưu': 'dưỡng bệnh, nghỉ ngơi', 'Thiên Tâm': 'thầy thuốc giỏi, cứu giúp', 'Tử': 'bệnh nặng, nguy hiểm tính mạng', 'Thương': 'thương tích, phẫu thuật', 'Thiên Nhuế': 'nguồn gốc căn bệnh', 'Thiên Bồng': 'bệnh cấp, tai nạn nước', 'Bạch Hổ': 'huyết quang, tai nạn' } },
-            { tieuDe: 'Kiện tụng & Tranh chấp', emoji: '⚖️',
+            { tieuDe: 'Kiện tụng', emoji: '⚖️',
                 tot: [],
                 xau: ['Kinh', 'Thương', 'Thiên Xung', 'Thiên Trụ', 'Đằng Xà', 'Bạch Hổ', 'Câu Trần'],
                 nghia: { 'Kinh': 'thị phi, tòa án, tranh biện', 'Thương': 'tranh chấp gay gắt', 'Thiên Xung': 'xung đột, bên nguyên đơn', 'Thiên Trụ': 'phá hoại, đổ vỡ', 'Đằng Xà': 'vụ án dây dưa', 'Bạch Hổ': 'hung khí, bạo lực', 'Câu Trần': 'kiện tụng, đất đai' } },
-            { tieuDe: 'Đi lại & Di chuyển', emoji: '✈️',
+            { tieuDe: 'Đi lại', emoji: '✈️',
                 tot: ['Khai', 'Sinh', 'Hưu', 'Cửu Thiên'],
                 xau: ['Đỗ', 'Tử', 'Huyền Vũ'],
                 nghia: { 'Khai': 'nơi đến mới, thuận lợi', 'Sinh': 'chuyến đi sinh lợi', 'Hưu': 'đi lại bình yên', 'Cửu Thiên': 'đi xa, xuất ngoại, hàng không', 'Đỗ': 'bế tắc, hoãn chuyến', 'Tử': 'trì trệ, không đi được', 'Huyền Vũ': 'lạc đường, thất lạc' } },
-            { tieuDe: 'Tìm người & Thất lạc', emoji: '🔍',
+            { tieuDe: 'Thất lạc', emoji: '🔍',
                 tot: [],
                 xau: ['Thương', 'Đỗ', 'Thiên Bồng', 'Huyền Vũ'],
                 nghia: { 'Thương': 'tổn thất, dấu vết rơi rớt', 'Đỗ': 'nơi ẩn trốn, khó tìm', 'Thiên Bồng': 'kẻ trộm liều lĩnh', 'Huyền Vũ': 'trộm cắp, kẻ gian' } },
-            { tieuDe: 'Bình an & Tai ương', emoji: '🛡️',
+            { tieuDe: 'Bình an', emoji: '🛡️',
                 tot: ['Sinh', 'Hưu', 'Khai', 'Thiên Phụ', 'Thiên Tâm', 'Trực Phù', 'Cửu Địa'],
                 xau: ['Tử', 'Thương', 'Thiên Trụ', 'Thiên Bồng', 'Bạch Hổ', 'Đằng Xà'],
                 nghia: { 'Sinh': 'sinh khí, bình an', 'Hưu': 'an dưỡng, thư thái', 'Khai': 'hanh thông, suôn sẻ', 'Thiên Phụ': 'được bảo hộ, cố vấn', 'Thiên Tâm': 'được cứu giúp, chữa lành', 'Trực Phù': 'được che chở', 'Cửu Địa': 'vững chãi, ổn định', 'Tử': 'bế tắc, nguy cơ', 'Thương': 'thương tích, tai nạn', 'Thiên Trụ': 'phá hủy, sụp đổ, thiên tai', 'Thiên Bồng': 'tai họa bất ngờ', 'Bạch Hổ': 'tai nạn, huyết quang', 'Đằng Xà': 'ác mộng, quấy nhiễu tâm linh' } },
@@ -1549,8 +1545,8 @@
 
             // 4 ô bản chất
             html += '<div class="lg-item"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
-            html += '<div class="lg-item">' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</div>';
-            html += '<div class="lg-item">' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item">' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item">' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</div>';
             html += '<div class="lg-item">' + (thanInfo ? ('<span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo) : '') + '</div>';
 
             // 8 chủ đề lớn
