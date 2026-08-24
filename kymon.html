@@ -628,6 +628,15 @@
         const CUNG_HANH = ['', 'Thủy', 'Thổ', 'Mộc', 'Mộc', 'Thổ', 'Kim', 'Kim', 'Thổ', 'Hỏa'];
         const HANH_COLOR = { 'Kim': '#ffffff', 'Mộc': '#2ecc71', 'Thủy': '#000000', 'Hỏa': '#ef4444', 'Thổ': '#f1c40f' };
 
+        // Icon ngũ hành
+        const HANH_ICON = {
+            'Mộc': '🌳',
+            'Kim': '⚔️',
+            'Thủy': '🌊',
+            'Hỏa': '🔥',
+            'Thổ': '⛰️'
+        };
+
         // Giờ (Địa Chi) tương ứng với từng cung/hướng theo Hậu Thiên Bát Quái
         const CUNG_GIO = {
             1: 'Tý (23h-1h)',
@@ -1118,16 +1127,19 @@
                 const scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
                 const hanh = CUNG_HANH[idx];
                 const ring = HANH_COLOR[hanh];
-                const cungName = cell.ten + ' (' + cell.huong + ')';
+                const iconCung = HANH_ICON[hanh] || '';
+                const iconMon = (cell.mon && MON_LUAN[cell.mon]) ? (HANH_ICON[MON_LUAN[cell.mon].hanh] || '') : '';
+                const iconTinh = (cell.tinh && TINH_LUAN[cell.tinh]) ? (HANH_ICON[TINH_LUAN[cell.tinh].hanh] || '') : '';
+                const iconThan = HANH_ICON[THAN_HANH[cell.than]] || '';
                 const gio = CUNG_GIO[idx] || '';
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
-                                <div class="cung" style="color:${ring};">${cungName}</div>
-                                <div class="row"><span class="diem ${scoreCls}">Điểm: ${scoreText}</span></div>
-                                <div class="row"><span class="mon">🚪 ${cell.mon || '—'}</span></div>
-                                <div class="row"><span class="tinh">⭐ ${cell.tinh || '—'}</span></div>
-                                <div class="row"><span class="than">👹 ${cell.than || '—'}</span></div>
-                                <div class="row"><span class="gio">🕐 ${gio}</span></div>
+                                <div class="cung">${cell.huong} <span class="diem ${scoreCls}">${scoreText}</span></div>
+                                <div class="row"><span class="mon">${iconCung} ${cell.ten || '—'}</span></div>
+                                <div class="row"><span class="mon">${iconMon} ${cell.mon || '—'}</span></div>
+                                <div class="row"><span class="tinh">${iconTinh} ${cell.tinh || '—'}</span></div>
+                                <div class="row"><span class="than">${iconThan} ${cell.than || '—'}</span></div>
+                                <div class="row"><span class="gio">${gio}</span></div>
                             </div>
                         </div>`;
             }
@@ -1401,7 +1413,7 @@
         // ================================================================
         // 9. LA BÀN (Compass) + XOAY BÀN THEO HƯỚNG THỰC TẾ
         // ================================================================
-        window._compass = { heading: 0, active: false, rotation: 0, listening: false, sensor: null };
+        window._compass = { heading: 0, active: false, rotation: 0, listening: false, sensor: null, manual: false };
 
         // heading (0–359) -> 8 hướng + cung Kỳ Môn tương ứng
         function getDirection(h) {
@@ -1687,10 +1699,14 @@
             const stMon = componentStatus('mon', mon);
             const stTinh = componentStatus('tinh', tinh);
             const stThan = componentStatus('than', than);
-            html += '<div class="lg-item ' + stCung + '"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
-            html += '<div class="lg-item ' + stMon + '">' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</div>';
-            html += '<div class="lg-item ' + stTinh + '">' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</div>';
-            html += '<div class="lg-item ' + stThan + '">' + (thanInfo ? ('<span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo) : '') + '</div>';
+            const iconCung = HANH_ICON[hanhCung] || '';
+            const iconMon = monInfo ? (HANH_ICON[monInfo.hanh] || '') : '';
+            const iconTinh = tinhInfo ? (HANH_ICON[tinhInfo.hanh] || '') : '';
+            const iconThan = HANH_ICON[THAN_HANH[than]] || '';
+            html += '<div class="lg-item ' + stCung + '"><span class="lg-tag">' + iconCung + ' Cung ' + dir.cung + '</span><br>' + cungChat + '</div>';
+            html += '<div class="lg-item ' + stMon + '">' + (monInfo ? ('<span class="lg-tag">' + iconMon + ' Môn ' + mon + '</span><br>' + monInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item ' + stTinh + '">' + (tinhInfo ? ('<span class="lg-tag">' + iconTinh + ' Tinh ' + tinh + '</span><br>' + tinhInfo.chat) : '') + '</div>';
+            html += '<div class="lg-item ' + stThan + '">' + (thanInfo ? ('<span class="lg-tag">' + iconThan + ' Thần ' + than + '</span><br>' + thanInfo) : '') + '</div>';
 
             // 8 chủ đề lớn
             for (let i = 0; i < CHU_DE.length; i++) {
@@ -1732,7 +1748,7 @@
             }
 
             document.getElementById('compassDeg').textContent = h + '°';
-            document.getElementById('compassDir').textContent = dir.name + ' (' + dir.short + ')';
+            document.getElementById('compassDir').textContent = dir.name;
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
 
@@ -1743,7 +1759,7 @@
             // Điểm trọng số trên heading
             const diem = document.getElementById('compassDiem');
             if (diem) {
-                diem.textContent = 'Điểm ' + scoreText;
+                diem.textContent = scoreText;
                 diem.className = 'diem-heading ' + scoreCls;
             }
 
@@ -1786,6 +1802,7 @@
 
         // iOS Safari: webkitCompassHeading (0 = Bắc, tăng theo chiều kim đồng hồ)
         function onDeviceOrientation(e) {
+            if (window._compass.manual) return;
             if (typeof e.webkitCompassHeading === 'number') {
                 setHeading(e.webkitCompassHeading);
             } else if (e.absolute === true && typeof e.alpha === 'number') {
@@ -1795,6 +1812,7 @@
 
         // Android Chrome/Firefox: deviceorientationabsolute (alpha: 0 = Bắc, ngược chiều kim)
         function onDeviceOrientationAbsolute(e) {
+            if (window._compass.manual) return;
             if (typeof e.alpha === 'number') {
                 setHeading(360 - e.alpha);
             }
@@ -1806,6 +1824,7 @@
             try {
                 const sensor = new AbsoluteOrientationSensor({ frequency: 30 });
                 sensor.addEventListener('reading', function () {
+                    if (window._compass.manual) return;
                     const q = sensor.quaternion;
                     if (!q) return;
                     const yaw = Math.atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2]));
@@ -1883,10 +1902,14 @@
 
         // Xoay thử (khi mở trên máy tính không có la bàn)
         document.getElementById('headingSlider').addEventListener('input', function () {
+            window._compass.manual = true;
             window._compass.heading = parseInt(this.value, 10) || 0;
             window._compass.rotation = -window._compass.heading - 180;
             window._compass.active = true;                  // xoay thủ công
             updateCompass();
+        });
+        document.getElementById('headingSlider').addEventListener('change', function () {
+            window._compass.manual = false;
         });
 
         // Kéo thả chuột (hoặc chạm) để xoay bàn theo hướng mong muốn
@@ -1903,6 +1926,7 @@
             }
             function onStart(clientX, clientY) {
                 dragging = true;
+                window._compass.manual = true;
                 startAngle = pointerAngle(clientX, clientY);
                 startHeading = window._compass.heading;
             }
@@ -1913,7 +1937,7 @@
                 delta = ((delta + 180) % 360 + 360) % 360 - 180;
                 setHeading(startHeading - delta);
             }
-            function onEnd() { dragging = false; }
+            function onEnd() { dragging = false; window._compass.manual = false; }
 
             board.addEventListener('mousedown', function (e) { onStart(e.clientX, e.clientY); if (e.preventDefault) e.preventDefault(); });
             board.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX, e.touches[0].clientY); if (e.preventDefault) e.preventDefault(); }, { passive: false });
