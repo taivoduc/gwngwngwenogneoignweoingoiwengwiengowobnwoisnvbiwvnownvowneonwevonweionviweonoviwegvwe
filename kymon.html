@@ -171,7 +171,6 @@
         /* Ô trung tâm (Trung cung): cho chữ xuống dòng, căn giữa */
         .cell.center-cell .cell-table .ct { white-space: normal; text-align: center; line-height: 1.3; }
         /* 8 hướng thuần Việt quanh ô trung tâm (như la bàn), luôn thẳng đứng */
-        .cell.center-cell { overflow: visible; }
         .center-dirs { position: absolute; inset: 0; pointer-events: none; }
         .center-dirs .cdir { position: absolute; transform: translate(-50%, -50%); font-size: 0.5rem; color: #a4b0be; font-weight: bold; }
         .compass-controls .gio-icon { font-size: 1.2rem; min-width: 42px; text-align: right; }
@@ -1152,14 +1151,14 @@
                     const st = scoreStyle(hi.scoreCls);
                     html += `<div class="cell center-cell" style="background:${st.bg}; border-color:${st.bd};">
                                 <div class="center-dirs">
-                                    <span class="cdir" style="top:-16%;left:50%">B</span>
-                                    <span class="cdir" style="top:3%;left:113%">ĐB</span>
-                                    <span class="cdir" style="top:50%;left:115%">Đ</span>
-                                    <span class="cdir" style="top:97%;left:113%">ĐN</span>
-                                    <span class="cdir" style="top:115%;left:50%">N</span>
-                                    <span class="cdir" style="top:97%;left:-13%">TN</span>
-                                    <span class="cdir" style="top:50%;left:-15%">T</span>
-                                    <span class="cdir" style="top:3%;left:-13%">TB</span>
+                                    <span class="cdir" style="top:8%;left:50%">B</span>
+                                    <span class="cdir" style="top:16%;left:82%">ĐB</span>
+                                    <span class="cdir" style="top:50%;left:92%">Đ</span>
+                                    <span class="cdir" style="top:84%;left:82%">ĐN</span>
+                                    <span class="cdir" style="top:92%;left:50%">N</span>
+                                    <span class="cdir" style="top:84%;left:18%">TN</span>
+                                    <span class="cdir" style="top:50%;left:8%">T</span>
+                                    <span class="cdir" style="top:16%;left:18%">TB</span>
                                 </div>
                                 <div class="cell-inner" style="color:${st.txt}">
                                     <table class="cell-table">
@@ -1456,6 +1455,10 @@
             let startHour = (chiIndex * 2 - 1) % 24;
             if (startHour < 0) startHour = 23;
             document.getElementById('duongHour').value = String(startHour).padStart(2, '0');
+            const gioSlider = document.getElementById('gioSlider');
+            if (gioSlider) gioSlider.value = chiIndex;
+            const gioIcon = document.getElementById('gioIcon');
+            if (gioIcon) gioIcon.textContent = GiapEmoji[chiIndex];
             capNhatTuDuong();
         }
 
@@ -1728,9 +1731,11 @@
             const h = window._compass.heading;
             const dir = getDirection(h);
             const cell = (cung && cung[dir.palace]) ? cung[dir.palace] : null;
-            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '', gioHTML = '';
+            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '', gioHTML = '', gioBtn = '';
             if (cung && cell) {
                 const chiIndex = cung.info.gioChi;
+                const emoji = GiapEmoji[chiIndex];
+                const tenChi = CHI[chiIndex];
                 score10 = normalizeScore(palaceScore(cell));
                 scoreText = (score10 > 0 ? '+' : '') + score10;
                 scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
@@ -1738,9 +1743,10 @@
                 summary = renderNguHanhSummary(p);
                 thinh = renderThinh(p);
                 suy = renderSuy(p);
-                gioHTML = '<span class="gio-ico">' + GiapEmoji[chiIndex] + '</span><span class="gio-txt">' + CHI[chiIndex] + '</span>';
+                gioHTML = '<span class="gio-ico">' + emoji + '</span><span class="gio-txt">' + tenChi + '</span>';
+                gioBtn = '<span>' + emoji + '</span><span class="gio-txt">' + tenChi + '</span>';
             }
-            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy, gioHTML: gioHTML };
+            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy, gioHTML: gioHTML, gioBtn: gioBtn };
         }
 
         // Phân tích ngũ hành thịnh/suy của cung hiện tại:
@@ -1894,7 +1900,7 @@
             // Nút mở/đóng la bàn: cùng text + màu theo trọng số
             const btn = document.getElementById('compassToggle');
             if (btn) {
-                btn.innerHTML = '🧭 ' + hi.gioHTML + ' ' + h + '° ' + dir.name + ' ' + scoreText;
+                btn.innerHTML = hi.gioBtn + ' ' + h + '° ' + dir.name + ' ' + scoreText;
                 if (btn.style) { btn.style.background = st.bg; btn.style.borderColor = st.bd; btn.style.color = st.txt; }
             }
 
