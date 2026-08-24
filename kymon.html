@@ -116,7 +116,7 @@
 
         #board {
             width: 100%;
-            max-width: 400px;
+            max-width: 480px;
             background: transparent;
             border-radius: 0;
             padding: 0;
@@ -127,7 +127,7 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
+            gap: 10px;
         }
         .cell {
             position: relative;
@@ -217,7 +217,9 @@
             background: radial-gradient(circle, #1a1a40 0%, #0b0e1a 100%);
             border: 3px solid #2a4a7a;
             box-shadow: 0 0 14px rgba(42, 74, 122, 0.6);
+            cursor: pointer;
         }
+        .rose.active { border-color: #ffffff; box-shadow: 0 0 16px rgba(255, 255, 255, 0.6); }
         .rose-ring { position: absolute; inset: 0; transition: transform 0.25s ease; }
         .rose-label {
             position: absolute;
@@ -407,9 +409,6 @@
                         <label class="am-label">Nhuận</label>
                         <input type="checkbox" id="amNhuan" onchange="capNhatTuAm()">
                     </div>
-                </td>
-                <td class="top-cell top-btn-cell">
-                    <button type="button" id="compassToggle" class="compass-toggle">🧭 0° Bắc (N)</button>
                 </td>
             </tr>
         </table>
@@ -1167,8 +1166,7 @@
                                 </div>
                                 <div class="cell-inner" style="color:${st.txt}">
                                     <table class="cell-table">
-                                        <tr><td class="ct" colspan="2">${hi.gioHTML} ${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
-                                        <tr><td class="ct" colspan="2">${hi.summary}</td></tr>
+                                        ${hi.topicsHTML}
                                     </table>
                                 </div>
                             </div>`;
@@ -1707,6 +1705,21 @@
             return s >= 1 ? 1 : (s <= -1 ? -1 : 0);
         }
 
+        // Các chủ đề tốt của cung hiện tại (chỉ liệt kê chủ đề thuận)
+        function renderGoodTopics(cell) {
+            if (!cell || !cell.mon) return '<tr><td class="ct" colspan="2">—</td></tr>';
+            const mon = cell.mon, tinh = cell.tinh, than = cell.than;
+            let html = '';
+            for (let i = 0; i < CHU_DE.length; i++) {
+                const cfg = CHU_DE[i];
+                if (topicWeight(cfg, mon, tinh, than) >= 1) {
+                    html += '<tr><td class="ct" colspan="2">' + cfg.emoji + ' ' + cfg.tieuDe + '</td></tr>';
+                }
+            }
+            if (html === '') html = '<tr><td class="ct" colspan="2">—</td></tr>';
+            return html;
+        }
+
         // Điểm tổng hợp của 1 cung: Môn + Tinh + Thần (môn/tinh/thần đã theo thời gian nên không cộng thêm giờ)
         function palaceScore(cell) {
             if (!cell.mon) return 0; // Trung cung (không có môn) -> trung tính
@@ -1735,7 +1748,7 @@
             const h = window._compass.heading;
             const dir = getDirection(h);
             const cell = (cung && cung[dir.palace]) ? cung[dir.palace] : null;
-            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', gioHTML = '', gioBtn = '';
+            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', gioHTML = '', topicsHTML = '';
             if (cung && cell) {
                 const chiIndex = cung.info.gioChi;
                 const emoji = GiapEmoji[chiIndex];
@@ -1745,10 +1758,10 @@
                 scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
                 const p = phanTichNguHanh(dir.palace, cell);
                 summary = renderNguHanhSummary(p);
+                topicsHTML = renderGoodTopics(cell);
                 gioHTML = '<span class="gio-ico">' + emoji + '</span><span class="gio-txt">' + tenChi + '</span>';
-                gioBtn = '<span>' + emoji + '</span><span class="gio-txt">' + tenChi + '</span>';
             }
-            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, gioHTML: gioHTML, gioBtn: gioBtn };
+            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, gioHTML: gioHTML, topicsHTML: topicsHTML };
         }
 
         // Phân tích ngũ hành thịnh/suy của cung hiện tại:
@@ -1785,8 +1798,7 @@
             const inner = center.querySelector('.cell-inner');
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
-                    + '<tr><td class="ct" colspan="2">' + hi.gioHTML + ' ' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
-                    + '<tr><td class="ct" colspan="2">' + hi.summary + '</td></tr>'
+                    + hi.topicsHTML
                     + '</table>';
                 inner.style.color = st.txt;
             }
@@ -1884,13 +1896,6 @@
             if (diem) {
                 diem.textContent = scoreText;
                 diem.className = 'diem-heading ' + scoreCls;
-            }
-
-            // Nút mở/đóng la bàn: cùng text + màu theo trọng số
-            const btn = document.getElementById('compassToggle');
-            if (btn) {
-                btn.innerHTML = hi.gioBtn + ' ' + h + '° ' + dir.name + ' ' + scoreText;
-                if (btn.style) { btn.style.background = st.bg; btn.style.borderColor = st.bd; btn.style.color = st.txt; }
             }
 
             // Vòng la bàn tô màu theo trọng số
@@ -2013,16 +2018,15 @@
         }
 
         // ---- Mở / đóng la bàn + xin quyền iOS ----
-        const compassPanel = document.getElementById('compassPanel');
+        const roseEl = document.getElementById('rose');
         const compassLuanGiai = document.getElementById('compassLuanGiai');
-        const compassToggle = document.getElementById('compassToggle');
         let compassOpen = false;
 
         function openCompass() {
             compassOpen = true;
             if (compassLuanGiai) compassLuanGiai.classList.remove('hidden');
-            if (compassToggle) {
-                compassToggle.classList.add('active');
+            if (roseEl) {
+                roseEl.classList.add('active');
             }
             // iOS cần xin quyền cảm biến trong một cử chỉ người dùng
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -2038,14 +2042,14 @@
         function closeCompass() {
             compassOpen = false;
             if (compassLuanGiai) compassLuanGiai.classList.add('hidden');
-            if (compassToggle) {
-                compassToggle.classList.remove('active');
+            if (roseEl) {
+                roseEl.classList.remove('active');
             }
             // KHÔNG stopCompass(): giữ cảm biến chạy để 9 vòng tròn vẫn xoay theo khi điện thoại di chuyển
         }
 
-        if (compassToggle) {
-            compassToggle.addEventListener('click', function () {
+        if (roseEl) {
+            roseEl.addEventListener('click', function () {
                 if (compassOpen) closeCompass();
                 else openCompass();
             });
