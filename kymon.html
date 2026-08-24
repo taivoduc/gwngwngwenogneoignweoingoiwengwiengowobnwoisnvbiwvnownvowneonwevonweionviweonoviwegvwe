@@ -244,6 +244,7 @@
         .compass-heading .diem-heading.diem-tot { color: #7bed9f; }
         .compass-heading .diem-heading.diem-xau { color: #ff6b6b; }
         .compass-heading .diem-heading.diem-trung { color: #c8c8d0; }
+        .compass-heading .gio-heading { font-size: 0.85rem; font-weight: normal; color: #ffd93d; white-space: nowrap; }
         .compass-palace {
             margin-top: 2px;
             font-size: 0.95rem;
@@ -357,6 +358,7 @@
             .compass-heading .deg { font-size: 1.4rem; }
             .compass-heading .dir { font-size: 0.9rem; }
             .compass-heading .diem-heading { font-size: 0.85rem; }
+            .compass-heading .gio-heading { font-size: 0.75rem; }
             .compass-palace { white-space: normal; font-size: 0.8rem; }
             .compass-controls input[type="range"] { min-width: 0; }
             .cell-table td { padding: 0 1px; }
@@ -407,14 +409,14 @@
                     <td class="rose-cell" rowspan="3">
                         <div class="rose" id="rose">
                             <div class="rose-ring" id="roseRing">
-                                <span class="rose-label main" style="top:4%;left:50%">N</span>
-                                <span class="rose-label" style="top:13%;left:85%">NE</span>
-                                <span class="rose-label" style="top:50%;left:94%">E</span>
-                                <span class="rose-label" style="top:87%;left:85%">SE</span>
-                                <span class="rose-label" style="top:96%;left:50%">S</span>
-                                <span class="rose-label" style="top:87%;left:15%">SW</span>
-                                <span class="rose-label" style="top:50%;left:6%">W</span>
-                                <span class="rose-label" style="top:13%;left:15%">NW</span>
+                                <span class="rose-label main" style="top:4%;left:50%">B</span>
+                                <span class="rose-label" style="top:13%;left:85%">ĐB</span>
+                                <span class="rose-label" style="top:50%;left:94%">Đ</span>
+                                <span class="rose-label" style="top:87%;left:85%">ĐN</span>
+                                <span class="rose-label" style="top:96%;left:50%">N</span>
+                                <span class="rose-label" style="top:87%;left:15%">TN</span>
+                                <span class="rose-label" style="top:50%;left:6%">T</span>
+                                <span class="rose-label" style="top:13%;left:15%">TB</span>
                             </div>
                             <div class="rose-marker"></div>
                         </div>
@@ -422,8 +424,9 @@
                     <td class="info-cell">
                         <div class="compass-heading">
                             <span class="deg" id="compassDeg">0°</span>
-                            <span class="dir" id="compassDir">Bắc (N)</span>
+                            <span class="dir" id="compassDir">Bắc</span>
                             <span class="diem-heading" id="compassDiem"></span>
+                            <span class="gio-heading" id="compassGio"></span>
                         </div>
                     </td>
                 </tr>
@@ -1136,7 +1139,7 @@
                     html += `<div class="cell center-cell" style="background:${st.bg}; border-color:${st.bd};">
                                 <div class="cell-inner">
                                     <table class="cell-table">
-                                        <tr><td class="ct" colspan="2">${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span></td></tr>
+                                        <tr><td class="ct" colspan="2">${hi.h}° ${hi.dir.name} <span class="diem ${hi.scoreCls}">${hi.scoreText}</span>${hi.gio}</td></tr>
                                         <tr><td class="ct" colspan="2">${hi.thinh}</td></tr>
                                         <tr><td class="ct" colspan="2">${hi.suy}</td></tr>
                                     </table>
@@ -1440,14 +1443,14 @@
         // heading (0–359) -> 8 hướng + cung Kỳ Môn tương ứng
         function getDirection(h) {
             h = ((h % 360) + 360) % 360;
-            if (h >= 337.5 || h < 22.5) return { name: 'Bắc', short: 'N', palace: 1, cung: 'Khảm' };
-            if (h < 67.5) return { name: 'Đông Bắc', short: 'NE', palace: 8, cung: 'Cấn' };
-            if (h < 112.5) return { name: 'Đông', short: 'E', palace: 3, cung: 'Chấn' };
-            if (h < 157.5) return { name: 'Đông Nam', short: 'SE', palace: 4, cung: 'Tốn' };
-            if (h < 202.5) return { name: 'Nam', short: 'S', palace: 9, cung: 'Ly' };
-            if (h < 247.5) return { name: 'Tây Nam', short: 'SW', palace: 2, cung: 'Khôn' };
-            if (h < 292.5) return { name: 'Tây', short: 'W', palace: 7, cung: 'Đoài' };
-            return { name: 'Tây Bắc', short: 'NW', palace: 6, cung: 'Càn' };
+            if (h >= 337.5 || h < 22.5) return { name: 'Bắc', short: 'B', palace: 1, cung: 'Khảm' };
+            if (h < 67.5) return { name: 'Đông Bắc', short: 'ĐB', palace: 8, cung: 'Cấn' };
+            if (h < 112.5) return { name: 'Đông', short: 'Đ', palace: 3, cung: 'Chấn' };
+            if (h < 157.5) return { name: 'Đông Nam', short: 'ĐN', palace: 4, cung: 'Tốn' };
+            if (h < 202.5) return { name: 'Nam', short: 'N', palace: 9, cung: 'Ly' };
+            if (h < 247.5) return { name: 'Tây Nam', short: 'TN', palace: 2, cung: 'Khôn' };
+            if (h < 292.5) return { name: 'Tây', short: 'T', palace: 7, cung: 'Đoài' };
+            return { name: 'Tây Bắc', short: 'TB', palace: 6, cung: 'Càn' };
         }
 
         // ================================================================
@@ -1702,12 +1705,24 @@
             return { bg: '#1a1a4a', bd: '#f1c40f', glow: 'rgba(241, 196, 15, 0.40)' };
         }
 
+        // HTML hiển thị canh giờ (icon + tên chi + khoảng giờ); mobile tự ẩn tên chi và giờ kết thúc
+        function gioHTML(cung) {
+            if (!cung || !cung.info) return '';
+            const i = cung.info.gioChi;
+            if (i === undefined || i === null) return '';
+            const emoji = GiapEmoji[i];
+            const tenChi = CHI[i];
+            const gioBD = GioBatDau[i];
+            const gioEnd = GioBatDau[(i + 1) % 12];
+            return '<span class="gio-emoji">' + emoji + '</span><span class="gio-ten"> ' + tenChi + '</span> <span class="gio-bd">' + gioBD + '</span><span class="gio-end"> - ' + gioEnd + '</span>';
+        }
+
         // Tổng hợp thông tin cung hiện tại: điểm trọng số + ngũ hành thịnh/suy
         function headingInfo(cung) {
             const h = window._compass.heading;
             const dir = getDirection(h);
             const cell = (cung && cung[dir.palace]) ? cung[dir.palace] : null;
-            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '';
+            let scoreText = '0', scoreCls = 'diem-trung', score10 = 0, summary = '', thinh = '', suy = '', gio = '';
             if (cung && cell) {
                 const gioHanh = GIO_HANH[CHI[cung.info.gioChi]] || '';
                 score10 = normalizeScore(palaceScore(cell, dir.palace, gioHanh));
@@ -1717,8 +1732,9 @@
                 summary = renderNguHanhSummary(p);
                 thinh = renderThinh(p);
                 suy = renderSuy(p);
+                gio = ', ' + gioHTML(cung);
             }
-            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy };
+            return { h: h, dir: dir, cell: cell, scoreText: scoreText, scoreCls: scoreCls, score10: score10, summary: summary, thinh: thinh, suy: suy, gio: gio };
         }
 
         // Phân tích ngũ hành thịnh/suy của cung hiện tại:
@@ -1768,7 +1784,7 @@
             const inner = center.querySelector('.cell-inner');
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
-                    + '<tr><td class="ct" colspan="2">' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span></td></tr>'
+                    + '<tr><td class="ct" colspan="2">' + hi.h + '° ' + hi.dir.name + ' <span class="diem ' + hi.scoreCls + '">' + hi.scoreText + '</span>' + hi.gio + '</td></tr>'
                     + '<tr><td class="ct" colspan="2">' + hi.thinh + '</td></tr>'
                     + '<tr><td class="ct" colspan="2">' + hi.suy + '</td></tr>'
                     + '</table>';
@@ -1869,6 +1885,10 @@
                 diem.textContent = scoreText;
                 diem.className = 'diem-heading ' + scoreCls;
             }
+
+            // Canh giờ hiện tại/chọn
+            const gioEl = document.getElementById('compassGio');
+            if (gioEl) gioEl.innerHTML = hi.gio;
 
             // Tổng hợp ngũ hành thịnh/khuyết
             document.getElementById('compassPalace').textContent = hi.summary;
