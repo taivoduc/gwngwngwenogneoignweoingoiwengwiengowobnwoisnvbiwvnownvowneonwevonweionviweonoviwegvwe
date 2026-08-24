@@ -264,15 +264,12 @@
         .compass-luan-giai .lg-dont { color: #ff6b6b; }
         .compass-luan-giai .lg-boost { color: #7dd3fc; }
         .compass-luan-giai .lg-hoa { color: #ffd93d; }
-        .compass-luan-giai .lg-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0; }
-        .compass-luan-giai .lg-card {
-            padding: 4px 8px;
-        }
-        .compass-luan-giai .lg-cols { display: flex; flex-wrap: wrap; gap: 12px; }
-        .compass-luan-giai .lg-col { flex: 1 1 220px; min-width: 0; }
-        .compass-luan-giai .lg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+        .compass-luan-giai .lg-table-wrap { overflow-x: auto; scrollbar-width: none; }
+        .compass-luan-giai .lg-table-wrap::-webkit-scrollbar { display: none; }
+        .compass-luan-giai .lg-table { width: 100%; min-width: 560px; border-collapse: collapse; table-layout: fixed; }
+        .compass-luan-giai .lg-table td { border: 1px solid transparent; padding: 6px 8px; vertical-align: top; }
         .compass-luan-giai .cd-card {
-            padding: 4px 8px;
+            padding: 4px 0;
             border-left: 3px solid transparent;
         }
         .compass-luan-giai .cd-card.tot { border-left-color: #2ecc71; }
@@ -1553,19 +1550,27 @@
             const thanInfo = THAN_LUAN[than] || null;
 
             let html = '';
-            html += '<div class="lg-cards">';
-            html += '<div class="lg-card"><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</div>';
-            if (monInfo) html += '<div class="lg-card"><span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat + '</div>';
-            if (tinhInfo) html += '<div class="lg-card"><span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat + '</div>';
-            if (thanInfo) html += '<div class="lg-card"><span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo + '</div>';
-            html += '</div>';
+            html += '<div class="lg-table-wrap"><table class="lg-table"><tbody>';
 
-            // 8 chủ đề lớn (4 cột × 2 dòng)
-            html += '<div class="lg-grid">';
-            for (let i = 0; i < CHU_DE.length; i++) {
-                html += taoChuDe(CHU_DE[i], mon, tinh, than);
+            // Dòng 1: Cung + Môn + Tinh + Thần (bản chất)
+            html += '<tr>';
+            html += '<td><span class="lg-tag">🧭 Cung ' + dir.cung + '</span> <span class="lg-hanh">(' + hanhCung + ')</span><br>' + cungChat + '</td>';
+            html += '<td>' + (monInfo ? ('<span class="lg-tag">🚪 Môn ' + mon + '</span> <span class="lg-hanh">(hành ' + monInfo.hanh + ')</span><br>' + monInfo.chat) : '') + '</td>';
+            html += '<td>' + (tinhInfo ? ('<span class="lg-tag">⭐ Tinh ' + tinh + '</span> <span class="lg-hanh">(hành ' + tinhInfo.hanh + ')</span><br>' + tinhInfo.chat) : '') + '</td>';
+            html += '<td>' + (thanInfo ? ('<span class="lg-tag">👹 Thần ' + than + '</span> <span class="lg-hanh">(' + (THAN_HANH[than] || '') + ')</span><br>' + thanInfo) : '') + '</td>';
+            html += '</tr>';
+
+            // Dòng 2-3: 8 chủ đề lớn (4 mỗi dòng)
+            for (let r = 0; r < 2; r++) {
+                html += '<tr>';
+                for (let c = 0; c < 4; c++) {
+                    const idx = r * 4 + c;
+                    html += '<td>' + (idx < CHU_DE.length ? taoChuDe(CHU_DE[idx], mon, tinh, than) : '') + '</td>';
+                }
+                html += '</tr>';
             }
-            html += '</div>';
+
+            html += '</tbody></table></div>';
 
             box.innerHTML = html;
         }
