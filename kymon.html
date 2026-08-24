@@ -122,7 +122,7 @@
             padding: 0;
             box-shadow: none;
             margin-top: 28px;
-            padding-top: 20px;
+            padding-top: 25px;
             margin-bottom: 20px;
             border: none;
         }
@@ -164,7 +164,7 @@
         .cell .diem.diem-tot { color: #7bed9f; }
         .cell .diem.diem-xau { color: #ff6b6b; }
         .cell .diem.diem-trung { color: #c8c8d0; }
-        .cell-table { width: 100%; border-collapse: collapse; }
+        .cell-table { width: auto; margin: 0 auto; border-collapse: collapse; }
         .cell-table td { padding: 0 2px; vertical-align: middle; }
         .cell-table .ci { text-align: right; width: 20px; font-size: 0.7rem; white-space: nowrap; }
         .cell-table .ct { text-align: left; font-size: 0.7rem; white-space: nowrap; }
@@ -353,6 +353,9 @@
             .compass-heading .diem-heading { font-size: 0.85rem; }
             .compass-palace { white-space: normal; font-size: 0.8rem; }
             .compass-controls input[type="range"] { min-width: 0; }
+            .cell-table td { padding: 0 1px; }
+            .cell-table .ci, .cell-table .ct { font-size: 0.55rem; }
+            .cell-inner { gap: 0; }
         }
     </style>
 </head>
@@ -1660,24 +1663,21 @@
             return s >= 1 ? 1 : (s <= -1 ? -1 : 0);
         }
 
-        // Điểm tổng hợp của 1 cung: 4 thành phần (Cung=0, Môn/Tinh/Thần) + 8 chủ đề + giờ
+        // Điểm tổng hợp của 1 cung: Môn + Tinh + Thần + Giờ (không dùng 8 chủ đề)
         function palaceScore(cell, hourGood) {
             if (!cell.mon) return 0; // Trung cung (không có môn) -> trung tính
             let score = 0;
             score += componentWeight('mon', cell.mon);
             score += componentWeight('tinh', cell.tinh);
             score += componentWeight('than', cell.than);
-            for (let t = 0; t < CHU_DE.length; t++) {
-                score += topicWeight(CHU_DE[t], cell.mon, cell.tinh, cell.than);
-            }
             score += hourGood ? 1 : -1;
             return score;
         }
 
         // Bảng màu: xanh đậm (tốt nhất) -> vàng (0) -> đỏ đậm (xấu nhất)
-        // Chuẩn hoá điểm về thang -10..+10
+        // Chuẩn hoá điểm về thang -10..+10 (điểm thô từ -4..+4)
         function normalizeScore(score) {
-            return Math.round(score * 10 / 12);
+            return Math.round(score * 2.5);
         }
 
         // Màu nhạt: xanh (tốt) -> trung tính -> đỏ (xấu), không dùng màu vàng
@@ -1793,7 +1793,16 @@
             renderLuanGiai(dir, cell);
             // Xoay mặt la bàn: nhãn N luôn chỉ về Bắc thực
             const ring = document.getElementById('roseRing');
-            if (ring) ring.style.transform = 'rotate(' + (-h) + 'deg)';
+            if (ring) {
+                ring.style.transform = 'rotate(' + (-h) + 'deg)';
+                // Chống xoay chữ: giữ nhãn hướng (N, NE, E...) luôn thẳng đứng
+                if (ring.querySelectorAll) {
+                    const labels = ring.querySelectorAll('.rose-label');
+                    for (let i = 0; i < labels.length; i++) {
+                        labels[i].style.transform = 'translate(-50%, -50%) rotate(' + h + 'deg)';
+                    }
+                }
+            }
             applyCompassRotation();
         }
 
