@@ -207,7 +207,7 @@
         .compass-top-table { width: 100%; border-collapse: collapse; }
         .compass-top-table td { vertical-align: middle; padding: 2px 4px; }
         .rose-cell { width: 96px; text-align: center; }
-        .info-cell { text-align: left; }
+        .info-cell { text-align: left; padding-left: 50px; }
         .rose {
             position: relative;
             width: 96px;
@@ -224,17 +224,31 @@
         .rose-label {
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 29px;
-            height: 29px;
+            width: 33px;
+            height: 33px;
             border-radius: 50%;
             border: 2px solid #2a4a7a;
             background: #1a1a40;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            color: #ffffff;
+        }
+        .rose-label .rl-dir { font-weight: bold; font-size: 0.6rem; }
+        .rose-label .rl-score { font-size: 0.5rem; }
+        .rose-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 0.6rem;
+            font-size: 1.3rem;
             color: #ffffff;
+            z-index: 3;
+            pointer-events: none;
         }
         .compass-heading { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
         .compass-heading .deg { font-size: 1.1rem; font-weight: bold; color: #fff; }
@@ -417,18 +431,19 @@
         <div class="compass-top">
             <table class="compass-top-table">
                 <tr>
-                    <td class="rose-cell" rowspan="3">
+                    <td class="rose-cell" rowspan="4">
                         <div class="rose" id="rose">
                             <div class="rose-ring" id="roseRing">
-                                <span class="rose-label" data-palace="1" style="top:4%;left:50%">B</span>
-                                <span class="rose-label" data-palace="8" style="top:13%;left:85%">ĐB</span>
-                                <span class="rose-label" data-palace="3" style="top:50%;left:94%">Đ</span>
-                                <span class="rose-label" data-palace="4" style="top:87%;left:85%">ĐN</span>
-                                <span class="rose-label" data-palace="9" style="top:96%;left:50%">N</span>
-                                <span class="rose-label" data-palace="2" style="top:87%;left:15%">TN</span>
-                                <span class="rose-label" data-palace="7" style="top:50%;left:6%">T</span>
-                                <span class="rose-label" data-palace="6" style="top:13%;left:15%">TB</span>
+                                <span class="rose-label" data-palace="9" style="top:4%;left:50%"><span class="rl-dir">N</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="2" style="top:13%;left:85%"><span class="rl-dir">TN</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="7" style="top:50%;left:94%"><span class="rl-dir">T</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="6" style="top:87%;left:85%"><span class="rl-dir">TB</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="1" style="top:96%;left:50%"><span class="rl-dir">B</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="8" style="top:87%;left:15%"><span class="rl-dir">ĐB</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="3" style="top:50%;left:6%"><span class="rl-dir">Đ</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="4" style="top:13%;left:15%"><span class="rl-dir">ĐN</span><span class="rl-score"></span></span>
                             </div>
+                            <div class="rose-center" id="roseCenter">0</div>
                         </div>
                     </td>
                     <td class="info-cell">
@@ -451,6 +466,10 @@
                             <input type="range" id="headingSlider" min="0" max="359" value="0" step="1">
                             <span class="heading-val" id="headingVal">0°</span>
                         </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="info-cell">
                         <div class="compass-controls gio-controls">
                             <input type="range" id="gioSlider" min="0" max="11" value="0" step="1">
                             <span class="gio-icon" id="gioIcon">🐭</span>
@@ -1820,6 +1839,8 @@
                     const score10 = normalizeScore(palaceScore(cung[p]));
                     labels[i].style.background = scoreToColor(score10);
                     labels[i].style.color = '#ffffff';
+                    const scoreSpan = labels[i].querySelector('.rl-score');
+                    if (scoreSpan) scoreSpan.textContent = (score10 > 0 ? '+' : '') + score10;
                 }
             }
         }
@@ -1922,6 +1943,10 @@
 
             // Tô màu nền 8 nhãn hướng theo màu của 8 cung lớn
             updateRoseLabels(window._cungData);
+
+            // Điểm ở tâm la bàn (size lớn)
+            const roseCenter = document.getElementById('roseCenter');
+            if (roseCenter) roseCenter.textContent = scoreText;
 
             // Đồng bộ slider giờ + icon con giáp
             if (window._cungData && window._cungData.info) {
