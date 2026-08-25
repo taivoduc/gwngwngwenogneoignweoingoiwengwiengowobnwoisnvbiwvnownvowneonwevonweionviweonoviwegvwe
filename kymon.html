@@ -224,22 +224,17 @@
         .rose-label {
             position: absolute;
             transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #2a4a7a;
+            background: #1a1a40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: bold;
-            font-size: 0.62rem;
-            color: #a4b0be;
-        }
-        .rose-label.main { color: #ff6b6b; font-size: 0.85rem; }
-        .rose-marker {
-            position: absolute;
-            left: 50%;
-            top: -3px;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 7px solid transparent;
-            border-right: 7px solid transparent;
-            border-top: 14px solid #ffd93d;
-            z-index: 2;
+            font-size: 0.6rem;
+            color: #ffffff;
         }
         .compass-heading { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
         .compass-heading .deg { font-size: 1.1rem; font-weight: bold; color: #fff; }
@@ -434,7 +429,6 @@
                                 <span class="rose-label" style="top:50%;left:6%">T</span>
                                 <span class="rose-label" style="top:13%;left:15%">TB</span>
                             </div>
-                            <div class="rose-marker"></div>
                         </div>
                     </td>
                     <td class="info-cell">
@@ -649,6 +643,8 @@
         // 2. HẰNG SỐ KỲ MÔN
         // ================================================================
         const TEN_CUNG = ['', 'Khảm', 'Khôn', 'Chấn', 'Tốn', 'Trung', 'Càn', 'Đoài', 'Cấn', 'Ly'];
+        // Hướng viết tắt của từng cung (để hiển thị "Cấn ĐB", "Chấn Đ"...)
+        const CUNG_HUONG = ['', 'B', 'TN', 'Đ', 'ĐN', '', 'TB', 'T', 'ĐB', 'N'];
 
         const TEN_MON = ['', 'Hưu', 'Sinh', 'Thương', 'Đỗ', 'Cảnh', 'Tử', 'Kinh', 'Khai'];
         // Bát Thần có hai bộ tên tùy theo Dương độn / Âm độn:
@@ -1186,7 +1182,7 @@
                 html += `<div class="cell" style="background:${bg}; border-color:${ring};">
                             <div class="cell-inner">
                                 <table class="cell-table">
-                                    <tr><td class="ci">${iconCung}</td><td class="ct">${cell.ten || '—'} <span class="diem ${scoreCls}">${scoreText}</span></td></tr>
+                                    <tr><td class="ci">${iconCung}</td><td class="ct">${cell.ten || '—'}${CUNG_HUONG[idx] ? ' ' + CUNG_HUONG[idx] : ''} <span class="diem ${scoreCls}">${scoreText}</span></td></tr>
                                     <tr><td class="ci">${iconMon}</td><td class="ct">${cell.mon || '—'}</td></tr>
                                     <tr><td class="ci">${iconTinh}</td><td class="ct">${cell.tinh || '—'}</td></tr>
                                     <tr><td class="ci">${iconThan}</td><td class="ct">${cell.than || '—'}</td></tr>
