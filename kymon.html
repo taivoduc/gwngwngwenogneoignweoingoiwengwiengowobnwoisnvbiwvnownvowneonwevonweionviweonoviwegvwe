@@ -116,25 +116,25 @@
 
         #board {
             width: 100%;
-            max-width: 460px;
+            max-width: 500px;
             background: transparent;
             border-radius: 0;
             padding: 0;
             box-shadow: none;
-            margin: 70px auto 30px auto;
+            margin: 40px auto auto auto;
             border: none;
         }
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 2px;
         }
         .cell {
             position: relative;
             width: 100%;
             aspect-ratio: 1 / 1;
             border-radius: 50%;
-            border: 5px solid #2a4a7a;
+            border: 3px solid #2a4a7a;
             background: #1a1a40;
             overflow: hidden;
             box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 4px 14px rgba(0, 0, 0, 0.5);
@@ -142,7 +142,7 @@
         .cell:hover { border-color: #f7971e; z-index: 2; }
         .cell-inner {
             position: absolute;
-            inset: 8px;
+            inset: 0px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -198,8 +198,8 @@
             display: flex;
             flex-direction: column;
             align-items: stretch;
-            gap: 10px;
-            margin: 0 0 16px;
+            gap: 5px;
+            margin: 0 0 20px;
             width: 100%;
             max-width: 920px;
         }
@@ -379,7 +379,7 @@
             .gio-ico { display: inline; }
             .gio-txt { display: none; }
             /* La bàn nhỏ lại, dòng 2 wrap, bar vừa màn hình */
-            .rose { width: 72px; height: 72px; }
+            .rose { width: 100px; height: 100px; }
             .rose-cell { width: 72px; }
             .compass-toggle { width: 100%; justify-content: center; }
             .compass-heading .deg { font-size: 0.9rem; }
