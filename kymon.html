@@ -207,7 +207,7 @@
         .compass-top-table { width: 100%; border-collapse: collapse; }
         .compass-top-table td { vertical-align: middle; padding: 2px 4px; }
         .rose-cell { width: 96px; text-align: center; }
-        .info-cell { text-align: left; padding-left: 50px; }
+        .info-cell { text-align: left; padding-left: 100px; }
         .rose {
             position: relative;
             width: 96px;
@@ -1483,7 +1483,7 @@
         // ================================================================
         // 9. LA BÀN (Compass) + XOAY BÀN THEO HƯỚNG THỰC TẾ
         // ================================================================
-        window._compass = { heading: 0, active: false, rotation: 0, listening: false, sensor: null, manual: false };
+        window._compass = { heading: 180, active: false, rotation: 0, listening: false, sensor: null, manual: false };
 
         // heading (0–359) -> 8 hướng + cung Kỳ Môn tương ứng
         function getDirection(h) {
@@ -1839,6 +1839,7 @@
                     const score10 = normalizeScore(palaceScore(cung[p]));
                     labels[i].style.background = scoreToColor(score10);
                     labels[i].style.color = '#ffffff';
+                    labels[i].style.borderColor = HANH_COLOR[CUNG_HANH[p]] || '#2a4a7a';
                     const scoreSpan = labels[i].querySelector('.rl-score');
                     if (scoreSpan) scoreSpan.textContent = (score10 > 0 ? '+' : '') + score10;
                 }
@@ -1967,12 +1968,12 @@
             // Xoay mặt la bàn: nhãn N luôn chỉ về Bắc thực
             const ring = document.getElementById('roseRing');
             if (ring) {
-                ring.style.transform = 'rotate(' + (-h) + 'deg)';
+                ring.style.transform = 'rotate(' + (-h - 180) + 'deg)';
                 // Chống xoay chữ: giữ nhãn hướng (N, NE, E...) luôn thẳng đứng
                 if (ring.querySelectorAll) {
                     const labels = ring.querySelectorAll('.rose-label');
                     for (let i = 0; i < labels.length; i++) {
-                        labels[i].style.transform = 'translate(-50%, -50%) rotate(' + h + 'deg)';
+                        labels[i].style.transform = 'translate(-50%, -50%) rotate(' + (h + 180) + 'deg)';
                     }
                 }
             }
