@@ -420,14 +420,14 @@
                     <td class="rose-cell" rowspan="3">
                         <div class="rose" id="rose">
                             <div class="rose-ring" id="roseRing">
-                                <span class="rose-label" style="top:4%;left:50%;background:#000000;color:#ffffff">B</span>
-                                <span class="rose-label" style="top:13%;left:85%;background:#f1c40f;color:#1a1a40">ĐB</span>
-                                <span class="rose-label" style="top:50%;left:94%;background:#2ecc71;color:#ffffff">Đ</span>
-                                <span class="rose-label" style="top:87%;left:85%;background:#2ecc71;color:#ffffff">ĐN</span>
-                                <span class="rose-label" style="top:96%;left:50%;background:#ef4444;color:#ffffff">N</span>
-                                <span class="rose-label" style="top:87%;left:15%;background:#f1c40f;color:#1a1a40">TN</span>
-                                <span class="rose-label" style="top:50%;left:6%;background:#ffffff;color:#1a1a40">T</span>
-                                <span class="rose-label" style="top:13%;left:15%;background:#ffffff;color:#1a1a40">TB</span>
+                                <span class="rose-label" data-palace="1" style="top:4%;left:50%">B</span>
+                                <span class="rose-label" data-palace="8" style="top:13%;left:85%">ĐB</span>
+                                <span class="rose-label" data-palace="3" style="top:50%;left:94%">Đ</span>
+                                <span class="rose-label" data-palace="4" style="top:87%;left:85%">ĐN</span>
+                                <span class="rose-label" data-palace="9" style="top:96%;left:50%">N</span>
+                                <span class="rose-label" data-palace="2" style="top:87%;left:15%">TN</span>
+                                <span class="rose-label" data-palace="7" style="top:50%;left:6%">T</span>
+                                <span class="rose-label" data-palace="6" style="top:13%;left:15%">TB</span>
                             </div>
                         </div>
                     </td>
@@ -1809,6 +1809,21 @@
             return 'hsl(0, 45%, ' + (40 + s * 2) + '%)';
         }
 
+        // Tô màu nền 8 nhãn hướng trên la bàn theo đúng màu nền (điểm) của 8 cung lớn tương ứng
+        function updateRoseLabels(cung) {
+            const ring = document.getElementById('roseRing');
+            if (!ring || !ring.querySelectorAll) return;
+            const labels = ring.querySelectorAll('.rose-label');
+            for (let i = 0; i < labels.length; i++) {
+                const p = parseInt(labels[i].dataset.palace, 10);
+                if (p >= 1 && p <= 9 && cung && cung[p]) {
+                    const score10 = normalizeScore(palaceScore(cung[p]));
+                    labels[i].style.background = scoreToColor(score10);
+                    labels[i].style.color = '#ffffff';
+                }
+            }
+        }
+
         function renderLuanGiai(dir, cell) {
             const box = document.getElementById('compassLuanGiai');
             if (!box) return;
@@ -1833,7 +1848,9 @@
             const iconMon = monInfo ? (HANH_ICON[monInfo.hanh] || '') : '';
             const iconTinh = tinhInfo ? (HANH_ICON[tinhInfo.hanh] || '') : '';
             const iconThan = HANH_ICON[THAN_HANH[than]] || '';
-            html += '<div class="lg-item ' + stCung + '"><span class="lg-tag">' + iconCung + ' Cung ' + dir.cung + '</span><br>' + cungChat + '</div>';
+            const score10 = cell ? normalizeScore(palaceScore(cell)) : 0;
+            const scoreText = (score10 > 0 ? '+' : '') + score10;
+            html += '<div class="lg-item ' + stCung + '"><span class="lg-tag">' + iconCung + ' Cung ' + dir.cung + ' ' + dir.short + ' ' + scoreText + '</span><br>' + cungChat + '</div>';
             html += '<div class="lg-item ' + stMon + '">' + (monInfo ? ('<span class="lg-tag">' + iconMon + ' Môn ' + mon + '</span><br>' + monInfo.chat) : '') + '</div>';
             html += '<div class="lg-item ' + stTinh + '">' + (tinhInfo ? ('<span class="lg-tag">' + iconTinh + ' Tinh ' + tinh + '</span><br>' + tinhInfo.chat) : '') + '</div>';
             html += '<div class="lg-item ' + stThan + '">' + (thanInfo ? ('<span class="lg-tag">' + iconThan + ' Thần ' + than + '</span><br>' + thanInfo) : '') + '</div>';
@@ -1902,6 +1919,9 @@
                 rose.style.borderColor = st.bd;
                 rose.style.boxShadow = '0 0 24px ' + st.glow;
             }
+
+            // Tô màu nền 8 nhãn hướng theo màu của 8 cung lớn
+            updateRoseLabels(window._cungData);
 
             // Đồng bộ slider giờ + icon con giáp
             if (window._cungData && window._cungData.info) {
