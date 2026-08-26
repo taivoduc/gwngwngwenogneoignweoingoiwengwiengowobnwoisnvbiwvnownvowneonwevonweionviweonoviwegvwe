@@ -128,5 +128,19 @@ test('Tiết khí: 17/3/2021 thuộc Kinh Trập (không phải Xuân Phân)', (
     assert.strictEqual(t.name, 'Kinh Trập', '17/3 là Kinh Trập');
 });
 
+// Năm Can Chi theo Lập Xuân (Li Chun)
+test('Năm Can Chi: theo Lập Xuân (Li Chun)', () => {
+    const y = (yy, m, d) => {
+        const c = ctx.anBan(new ctx.Date(yy, m - 1, d, 12, 0, 0));
+        return c.info.yearCanChi.gan + ' ' + c.info.yearCanChi.chi;
+    };
+    // Sau Lập Xuân (3/2/2021): Tân Sửu (2021)
+    assert.strictEqual(y(2021, 3, 17), 'Tân Sửu', '17/3/2021 = Tân Sửu');
+    // Giữa Lập Xuân (3/2) và Tết (12/2): vẫn Tân Sửu (KHÔNG phải Canh Tý)
+    assert.strictEqual(y(2021, 2, 5), 'Tân Sửu', '5/2/2021 = Tân Sửu (sau Li Chun)');
+    // Trước Lập Xuân: Canh Tý (2020)
+    assert.strictEqual(y(2021, 2, 1), 'Canh Tý', '1/2/2021 = Canh Tý (trước Li Chun)');
+});
+
 console.log('\nKết quả: ' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed === 0 ? 0 : 1);
