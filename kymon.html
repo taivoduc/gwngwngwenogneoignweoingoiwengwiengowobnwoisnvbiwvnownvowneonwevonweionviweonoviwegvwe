@@ -392,6 +392,31 @@
             .cell-table .ci, .cell-table .ct { font-size: 0.55rem; }
             .cell-inner { gap: 0; }
         }
+        /* ===== Map View (Google Maps + Qimen Overlay) ===== */
+        .map-view { position: fixed; inset: 0; z-index: 1000; background: #0b0e1a; display: flex; flex-direction: column; }
+        .map-view.hidden { display: none; }
+        #qimenMap { flex: 1 1 auto; width: 100%; }
+        .map-compass { position: absolute; top: 50%; left: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; pointer-events: none; }
+        .mc-rose { position: absolute; inset: 0; border: 2px solid rgba(255,255,255,0.7); border-radius: 50%; transition: transform 0.2s ease; }
+        .mc-rose .mc-n { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); color: #fff; font-weight: bold; font-size: 0.9rem; }
+        .mc-needle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.6rem; color: #f7971e; transform-origin: 50% 50%; transition: transform 0.15s ease; }
+        .map-hud { position: absolute; top: 8px; left: 8px; right: 8px; background: rgba(11,14,26,0.78); border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; }
+        .map-title { font-weight: bold; color: #f7971e; font-size: 1rem; }
+        .map-score { font-weight: bold; font-size: 1.1rem; }
+        .map-score.good { color: #7bed9f; }
+        .map-score.bad { color: #ff6b6b; }
+        .map-score.neutral { color: #f1c40f; }
+        .map-warn { color: #ff6b6b; font-size: 0.8rem; }
+        .map-controls { position: absolute; bottom: 64px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+        .mbtn { background: rgba(26,42,74,0.9); color: #e0e0e0; border: 1px solid #2a4a7a; border-radius: 8px; padding: 7px 10px; font-size: 0.82rem; cursor: pointer; }
+        .mbtn.active { background: rgba(247,151,30,0.35); border-color: #f7971e; }
+        .map-subcontrols { position: absolute; bottom: 32px; left: 8px; right: 8px; display: flex; gap: 12px; justify-content: center; font-size: 0.78rem; background: rgba(11,14,26,0.7); border-radius: 8px; padding: 4px 10px; }
+        .map-gps-info { position: absolute; bottom: 8px; left: 8px; font-size: 0.72rem; color: #a4b0be; background: rgba(11,14,26,0.7); padding: 2px 6px; border-radius: 6px; }
+        .map-status { position: absolute; top: 112px; left: 8px; right: 8px; text-align: center; font-size: 0.85rem; color: #f7971e; }
+        .map-dest { position: absolute; top: 140px; left: 8px; max-width: 260px; background: rgba(11,14,26,0.85); border: 1px solid #f7971e; border-radius: 10px; padding: 8px 12px; font-size: 0.82rem; line-height: 1.5; }
+        .map-debug { position: absolute; top: 140px; right: 8px; max-width: 300px; background: rgba(11,14,26,0.9); border: 1px solid #2a4a7a; border-radius: 10px; padding: 8px 12px; font-size: 0.72rem; line-height: 1.4; }
+        .map-debug.hidden { display: none; }
+        .map-open-btn { background: #1a2a4a; color: #fff; border: 1px solid #f7971e; border-radius: 8px; padding: 8px 14px; font-size: 0.9rem; cursor: pointer; margin: 10px auto; display: block; }
     </style>
 </head>
 <body>
@@ -481,6 +506,8 @@
         <div class="compass-luan-giai hidden" id="compassLuanGiai"></div>
         <div class="compass-status" id="compassStatus"></div>
     </div>
+
+    <button class="map-open-btn" id="mapShowMap">🗺️ Mở Bản đồ (Map + La bàn + Kỳ Môn)</button>
 
     <div id="board"></div>
 
@@ -2199,6 +2226,68 @@
             updateCompass();
         };
     </script>
+
+    <!-- ================================================================
+         MAP VIEW: Google Maps + La bàn + Qimen Overlay
+         (ba lớp độc lập: Map / Orientation / Qimen Overlay)
+         ================================================================ -->
+    <div id="mapView" class="map-view hidden">
+        <div id="qimenMap"></div>
+
+        <!-- La bàn trung tâm (tâm = vị trí hiện tại, mũi tên theo heading) -->
+        <div id="mapCompass" class="map-compass">
+            <div class="mc-rose" id="mapRose"><span class="mc-n">N</span></div>
+            <div class="mc-needle" id="mapNeedle">▲</div>
+        </div>
+
+        <!-- HUD: heading + cung + môn/tinh/thần + điểm -->
+        <div class="map-hud">
+            <div class="map-title">🗺️ KỲ MÔN ĐỘN GIÁP — BẢN ĐỒ</div>
+            <div id="mapHeading">Heading: 0°</div>
+            <div id="mapPalace">Cung —</div>
+            <div id="mapScore" class="map-score neutral">TRUNG 0</div>
+            <div id="mapAccuracyWarn" class="map-warn" style="display:none">⚠️ Định vị có độ chính xác thấp (&gt;50m)</div>
+            <div>Môn: <span id="mapMen">—</span> · Tinh: <span id="mapStar">—</span> · Thần: <span id="mapSpirit">—</span></div>
+        </div>
+
+        <!-- Điều khiển -->
+        <div class="map-controls">
+            <button class="mbtn active" id="modeNorthUp">⬆️ Bắc lên trên</button>
+            <button class="mbtn" id="modeHeadingUp">🧭 Hướng nhìn lên</button>
+            <button class="mbtn" id="mapFindBest">✦ Hướng tốt</button>
+            <button class="mbtn" id="mapRecenter">⌖ Vị trí</button>
+            <button class="mbtn" id="mapToggleFollow">◎ Theo GPS</button>
+            <button class="mbtn" id="mapToggleDebug">🐞 Debug</button>
+            <button class="mbtn" id="mapClose">✕ Đóng</button>
+        </div>
+
+        <div class="map-subcontrols">
+            <label>Độ trong suốt
+                <input type="range" id="mapOpacity" min="20" max="60" value="35" step="5">
+            </label>
+            <label>Bán kính
+                <select id="mapRadius">
+                    <option value="100">100m</option>
+                    <option value="500" selected>500m</option>
+                    <option value="1000">1km</option>
+                    <option value="5000">5km</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="map-gps-info">
+            <span id="gpsLat">—</span>, <span id="gpsLng">—</span> (<span id="gpsAcc">±— m</span>)
+        </div>
+
+        <div id="mapStatus" class="map-status"></div>
+        <div id="mapDest" class="map-dest"></div>
+        <div id="mapDebug" class="map-debug hidden"></div>
+    </div>
+
+    <!-- Cấu hình API key: KHÔNG hardcode. Nạp qua ?key=... hoặc localStorage 'qimen_gmap_key'. -->
+    <script>window.QIMEN_MAP_CONFIG = window.QIMEN_MAP_CONFIG || {};</script>
+    <script src="js/qimen-map-core.js"></script>
+    <script src="js/qimen-map.js"></script>
 
 </body>
 </html>
