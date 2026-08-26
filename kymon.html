@@ -920,15 +920,16 @@
             return approxJd;
         }
 
-        // Tiết khí sắp tới (sau hoặc bằng ngày đang xét) — bản chuẩn dùng tiết khí KẾ TIẾP
+        // Tiết khí HIỆN TẠI chứa ngày đang xét (term có start <= target < term kế tiếp start).
+        // SOURCE: ngày phải nằm TRONG khoảng tiết khí, không phải "tiết khí kế tiếp".
         function getTietKhi(month, day, year) {
             const targetJd = jdFromDate(day, month, year);
             let best = null;
-            for (let y of [year, year + 1]) {
+            for (let y of [year - 1, year, year + 1]) {
                 for (let t of TIET_KHI) {
                     const termJd = findTietKhiJd(t.name, y);
-                    if (termJd >= targetJd) {
-                        if (!best || termJd < best.jd) best = { name: t.name, jd: termJd };
+                    if (termJd <= targetJd) {
+                        if (!best || termJd > best.jd) best = { name: t.name, jd: termJd };
                     }
                 }
             }
@@ -1051,22 +1052,18 @@
                 trucPhuCung = kyTaiCung[CAN_TO_KY[gioGan]];
             }
 
-            // 6. Xoay Thiên bàn theo vòng Lạc Thư: Lục Nghi của Tuần Thủ di chuyển tới cung Thì Can.
-            const chiefCung = (giapKyCung === 5) ? 2 : giapKyCung;
-            const thiCanCung = (trucPhuCung === 5) ? 2 : trucPhuCung;
-            const chiefRing = LUO_SHU.indexOf(chiefCung);
-            const thiCanRing = LUO_SHU.indexOf(thiCanCung);
-            const ringSteps = cuc.duong
-                ? ((thiCanRing - chiefRing + 8) % 8)   // Dương độn: bay thuận
-                : ((chiefRing - thiCanRing + 8) % 8);  // Âm độn: bay nghịch
+            // 6. Xoay Thiên bàn (三奇六仪) — BÁT QUÁI XOAY TUYẾN TÍNH (1→2→…→9).
+            // Lục Nghi của Tuần Thủ di chuyển tới cung Thì Can. Dương thuận / Âm nghịch.
+            const chiefCung = giapKyCung;    // cung chứa Lục Nghi Tuần Thủ
+            const thiCanCung = trucPhuCung;  // cung Thì Can (时干)
+            const rotLinear = (c, k) => ((c - 1 + k) % 9 + 9) % 9 + 1; // xoay tuyến tính 1..9
+            const steps = cuc.duong
+                ? ((thiCanCung - chiefCung + 9) % 9)   // thuận
+                : ((chiefCung - thiCanCung + 9) % 9);  // nghịch
             const thienBan = {};
-            thienBan[5] = diaBan[5]; // Trung cung giữ nguyên Kỳ Nghi
-            for (let i = 0; i < 8; i++) {
-                const palace = LUO_SHU[i];
-                const src = cuc.duong
-                    ? LUO_SHU[(i - ringSteps + 8) % 8]
-                    : LUO_SHU[(i + ringSteps) % 8];
-                thienBan[palace] = diaBan[src];
+            for (let p = 1; p <= 9; p++) {
+                const src = cuc.duong ? rotLinear(p, -steps) : rotLinear(p, steps);
+                thienBan[p] = diaBan[src];
             }
 
             // 7. An Cửu tinh (转盘: 8 sao ngoài xoay theo vòng Lạc Thư, Thiên Cầm giữ Trung cung)
@@ -1085,11 +1082,13 @@
             }
             starAtPalace[5] = 5; // Thiên Cầm luôn giữ Trung cung
 
-            // 8. An Bát môn - Trực Sử tùy Thì Cung (值使随时宫).
-            // Cửa Trực Sử bay tới cung của Thì Chi (giờ). SHI_TARGET: vị trí vòng Lạc Thư theo Địa chi giờ (Tý..Hợi).
-            const SHI_TARGET = [6, 7, 5, 3, 2, 5, 0, 4, 1, 6, 7, 5]; // index trong LUO_SHU
-            const gatePos = SHI_TARGET[gioChi];
-            const trucSuCung = LUO_SHU[gatePos];
+            // 8. An Bát môn — Trực Sử tùy Thì Cung (值使随时宫).
+            // Địa chi giờ → Bát quái (地支配八宫): Tý→Khảm1, Sửu/Dần→Cấn8, Mão→Chấn3,
+            // Thìn/Tỵ→Tốn4, Ngọ→Ly9, Mùi/Thân→Khôn2, Dậu→Đoài7, Tuất/Hợi→Càn6.
+            // SOURCE: 地支配八宫 (chuẩn). Thay hardcode SHI_TARGET cũ.
+            const SHI_BRANCH_PALACE = [1, 8, 8, 3, 4, 4, 9, 2, 2, 7, 6, 6];
+            const trucSuCung = SHI_BRANCH_PALACE[gioChi]; // cung của Thì Chi (giờ)
+            const gatePos = LUO_SHU.indexOf(trucSuCung);
 
             const doorAtPalace = {};
             const doorOrder = [1, 2, 3, 4, 5, 6, 7, 8]; // Hưu Sinh Thương Đỗ Cảnh Tử Kinh Khai
