@@ -1,9 +1,8 @@
 /*
  * qimen-map.js — LỚP TRỰC QUAN HOÁ (Google Maps + Compass + Qimen Overlay).
  *
- * Chỉ ĐỌC dữ liệu Qimen từ window._cungData (bàn đã lập bởi kymon.html),
- * và hướng từ window._compass.heading. KHÔNG sửa bàn Qimen, KHÔNG copy thuật toán.
- * Ba lớp độc lập: MAP / ORIENTATION / QIMEN_OVERLAY.
+ * Chỉ ĐỌC dữ liệu Qimen từ window._cungData và hướng từ window._compass.heading.
+ * KHÔNG sửa bàn Qimen, KHÔNG copy thuật toán. Ba lớp độc lập: MAP / ORIENTATION / OVERLAY.
  */
 (function () {
     'use strict';
@@ -12,29 +11,26 @@
     var C = (typeof QimenMapCore !== 'undefined') ? QimenMapCore : null;
     if (!C) { console.warn('[qimen-map] thiếu QimenMapCore'); return; }
 
-    // --- CONFIG (API key KHÔNG hardcode; nạp từ URL ?key= hoặc localStorage) ---
+    // --- CONFIG (API key KHÔNG hardcode) ---
     var CFG = window.QIMEN_MAP_CONFIG || {};
     function resolveApiKey() {
         if (CFG.apiKey) return CFG.apiKey;
-        try {
-            var params = new URLSearchParams(window.location.search);
-            if (params.get('key')) return params.get('key');
-        } catch (e) {}
+        try { var p = new URLSearchParams(window.location.search); if (p.get('key')) return p.get('key'); } catch (e) {}
         try { return localStorage.getItem('qimen_gmap_key') || ''; } catch (e) { return ''; }
         return '';
     }
 
-    // --- Data model (section 23) ---
+    // --- Data model ---
     var state = {
         location: { latitude: null, longitude: null, accuracy: null },
         orientation: { magneticHeading: null, trueHeading: null, accuracy: null, timestamp: null },
-        map: { heading: 0, zoom: 16, mode: 'north-up' },   // 'north-up' | 'heading-up'
+        map: { heading: 0, zoom: 16, mode: 'north-up' },
         qimen: { palace: null, direction: null, men: null, star: null, spirit: null, score: 0 }
     };
 
-    var map = null, userMarker = null, destMarker = null, destPolyline = null;
+    var map = null, mapReady = false, mapLoading = false;
+    var userMarker = null, destMarker = null, destPolyline = null;
     var sectorPolys = [], sectorLabels = [];
-    var headingFilter = C.createLowPassFilter(0.3);
     var radiusMeters = 500, overlayOpacity = 0.35;
     var followMode = false, geolocationWatchId = null;
     var center = { lat: CFG.lat || 10.8231, lng: CFG.lng || 106.6297 }; // HCM mặc định
@@ -43,22 +39,18 @@
     function getHeading() { return (typeof window._compass !== 'undefined') ? (window._compass.heading || 0) : 0; }
     function getBoard() { return window._cungData || null; }
 
-    // --- Điểm Qimen cho 1 hướng (CHỈ ĐỌC board, không sửa) ---
+    // --- Điểm Qimen cho 1 cung (CHỈ ĐỌC board) ---
     function palaceInfo(palace) {
         var board = getBoard();
         var cell = (board && board[palace]) ? board[palace] : null;
         return {
-            palace: palace,
-            cell: cell,
-            men: cell ? cell.mon : '',
-            star: cell ? cell.tinh : '',
-            spirit: cell ? cell.than : '',
+            palace: palace, cell: cell,
+            men: cell ? cell.mon : '', star: cell ? cell.tinh : '', spirit: cell ? cell.than : '',
             score: scoreForCell(cell)
         };
     }
     function scoreForCell(cell) {
         if (!cell || !cell.mon) return 0;
-        // Tái sử dụng hàm điểm của kymon.html (global), không copy thuật toán.
         try {
             if (typeof normalizeScore === 'function' && typeof palaceScore === 'function') {
                 return normalizeScore(palaceScore(cell));
@@ -87,18 +79,17 @@
         if (typeof map.setHeading === 'function') {
             try { map.setHeading(h); return; } catch (e) {}
         }
-        // Raster map không hỗ trợ setHeading: overlay vẫn hiển thị đúng (sector là địa lý).
+        // Raster map không hỗ trợ setHeading: sector là toạ độ địa lý nên vẫn đúng hướng thực.
+    }
 
-    // --- Vẽ 8 sector (quạt 45°) + nhãn hướng ---
     function clearOverlay() {
         sectorPolys.forEach(function (p) { if (p) p.setMap(null); });
         sectorLabels.forEach(function (l) { if (l) l.setMap(null); });
         sectorPolys = []; sectorLabels = [];
     }
     function drawOverlay() {
-        if (!map || !window.google) return;
+        if (!map || !window.google || !window.google.maps) return;
         clearOverlay();
-        var board = getBoard();
         var origin = { lat: center.lat, lng: center.lng };
         for (var i = 0; i < C.DIRECTIONS.length; i++) {
             var dir = C.DIRECTIONS[i];
@@ -114,31 +105,18 @@
                 strokeColor: 'rgba(255,255,255,0.5)', strokeWeight: 1
             });
             sectorPolys.push(poly);
-            // Nhãn hướng ở giữa sector
             var labelPos = destinationPoint(origin.lat, origin.lng, dir.mid, radiusMeters * 0.6);
             var labelText = dir.short + (info.men ? ' ' + info.men : '') + (info.score > 0 ? ' ✓' : (info.score < 0 ? ' ✗' : ''));
             var label = new google.maps.Marker({
-                position: labelPos, map: map, label: {
-                    text: labelText, color: '#ffffff', fontWeight: 'bold',
-                    fontSize: '12px'
-                }, icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
+                position: labelPos, map: map,
+                label: { text: labelText, color: '#ffffff', fontWeight: 'bold', fontSize: '12px' },
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
                 clickable: false
             });
             sectorLabels.push(label);
         }
-        drawCenterCompass();
     }
 
-    function drawCenterCompass() {
-        var comp = el('mapCompass');
-        if (!comp) return;
-        comp.style.display = 'block';
-    }
-
-    }
-
-
-    // --- La bàn trung tâm + HUD ---
     function updateCompassOverlay() {
         var needle = el('mapNeedle'), rose = el('mapRose');
         var h = state.map.heading;
@@ -150,13 +128,11 @@
             if (rose) rose.style.transform = 'rotate(0deg)';
         }
     }
-
     function updateHUD() {
         var h = state.map.heading;
         var dir = C.headingToDirection(h);
         var info = palaceInfo(dir.palace);
-        state.qimen.palace = dir.palace;
-        state.qimen.direction = dir.name;
+        state.qimen.palace = dir.palace; state.qimen.direction = dir.name;
         state.qimen.men = info.men; state.qimen.star = info.star; state.qimen.spirit = info.spirit;
         state.qimen.score = info.score;
 
@@ -177,10 +153,25 @@
         updateDebug();
     }
 
-    // --- Geolocation ---
+    // --- Geolocation (có xử lý lỗi rõ ràng + fallback vị trí mặc định) ---
+    function gpsErrorText(err) {
+        if (err && err.code === 1) return 'Bị từ chối quyền định vị. Hãy bật GPS/Location cho trình duyệt rồi bấm "⌖ Vị trí" để thử lại.';
+        if (err && err.code === 2) return 'Không lấy được vị trí (tín hiệu GPS yếu?).';
+        if (err && err.code === 3) return 'Hết thời gian định vị.';
+        return 'Lỗi định vị: ' + (err && err.message ? err.message : 'không rõ');
+    }
+    function setStatus(t) { var s = el('mapStatus'); if (s) s.textContent = t; }
+
     function startGeolocation() {
-        if (!navigator.geolocation) { setStatus('Trình duyệt không hỗ trợ GPS'); return; }
-        setStatus('Đang định vị...');
+        if (!navigator.geolocation) {
+            setStatus('Trình duyệt không hỗ trợ GPS — dùng vị trí mặc định (TP.HCM).');
+            return false;
+        }
+        if (window.isSecureContext === false) {
+            setStatus('GPS cần HTTPS. Đang mở qua http:// hoặc file:// nên bị chặn — dùng vị trí mặc định.');
+            return false;
+        }
+        setStatus('Đang xin quyền định vị...');
         geolocationWatchId = navigator.geolocation.watchPosition(function (pos) {
             state.location.latitude = pos.coords.latitude;
             state.location.longitude = pos.coords.longitude;
@@ -192,13 +183,14 @@
             if (el('gpsLat')) el('gpsLat').textContent = center.lat.toFixed(6);
             if (el('gpsLng')) el('gpsLng').textContent = center.lng.toFixed(6);
             if (el('gpsAcc')) el('gpsAcc').textContent = '±' + Math.round(state.location.accuracy) + ' m';
+            setStatus('Đã định vị (±' + Math.round(state.location.accuracy) + 'm)');
             if (followMode && map) map.setCenter(center);
             drawOverlay();
             updateHUD();
-        }, function (err) { setStatus('Lỗi GPS: ' + err.message); },
+        }, function (err) { setStatus(gpsErrorText(err)); },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
+        return true;
     }
-    function setStatus(t) { var s = el('mapStatus'); if (s) s.textContent = t; }
 
     // --- Destination bearing ---
     function onMapClick(e) {
@@ -233,7 +225,6 @@
         if (box) box.innerHTML = html;
     }
 
-
     // --- Debug ---
     function updateDebug() {
         var dbg = el('mapDebug');
@@ -244,15 +235,14 @@
             '<br>lng: ' + (state.location.longitude != null ? state.location.longitude.toFixed(6) : '—') +
             '<br>accuracy: ' + (state.location.accuracy != null ? '±' + Math.round(state.location.accuracy) + 'm' : '—') +
             '<br><b>Compass</b><br>heading: ' + Math.round(state.map.heading) + '°' +
-            '<br><b>Map</b><br>mode: ' + state.map.mode +
-            '<br>camera heading: ' + (map && typeof map.getHeading === 'function' ? map.getHeading() : '—') +
+            '<br><b>Map</b><br>mode: ' + state.map.mode + '<br>ready: ' + (mapReady ? 'yes' : 'no') +
             '<br><b>Qimen</b><br>cục: ' + (b && b.info ? b.info.cuc.so + ' (' + (b.info.cuc.duong ? 'Dương' : 'Âm') + ')' : '—') +
             '<br>cung: ' + state.qimen.palace + ' (' + state.qimen.direction + ')' +
             '<br>môn: ' + state.qimen.men + ' | tinh: ' + state.qimen.star + ' | thần: ' + state.qimen.spirit +
             '<br><b>Mapping</b><br>Khảm=Bắc(1), Cấn=ĐB(8), Chấn=Đ(3), Tốn=ĐN(4), Ly=N(9), Khôn=TN(2), Đoài=T(7), Càn=TB(6)';
     }
 
-    // --- Poll heading + phát hiện bàn Qimen đổi (đọc window._compass / _cungData, không reload map) ---
+    // --- Poll heading + phát hiện bàn Qimen đổi ---
     var lastBoard = null;
     function pollHeading() {
         var h = getHeading();
@@ -278,17 +268,64 @@
         }
     }
 
+    // --- Khởi tạo map (LAZY — chỉ khi view hiện, tránh 0x0) ---
     function initMap() {
-        if (!window.google || !window.google.maps) return;
-        map = new google.maps.Map(el('qimenMap'), {
+        if (map || !window.google || !window.google.maps) return;
+        var container = el('qimenMap');
+        if (!container) return;
+        map = new google.maps.Map(container, {
             center: center, zoom: state.map.zoom, mapTypeControl: true,
             fullscreenControl: true, streetViewControl: false, zoomControl: true
         });
         if (typeof map.setHeading === 'function') { try { map.setHeading(0); } catch (e) {} }
         map.addListener('click', onMapClick);
-        startGeolocation();
+        mapReady = true;
         drawOverlay();
         updateHUD();
+        startGeolocation();
+    }
+
+    function ensureMapLoaded() {
+        if (mapReady) {
+            if (map && window.google && window.google.maps) {
+                try { google.maps.event.trigger(map, 'resize'); } catch (e) {}
+                map.setCenter(center);
+                drawOverlay();
+            }
+            return;
+        }
+        if (mapLoading) return;
+        var key = resolveApiKey();
+        if (window.google && window.google.maps) { initMap(); return; }
+        if (!key) {
+            setStatus('Chưa có Google Maps API key. Thêm ?key=... vào URL hoặc localStorage.setItem("qimen_gmap_key", "KEY").');
+            return;
+        }
+        mapLoading = true;
+        setStatus('Đang tải Google Maps...');
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&callback=__qimenMapReady';
+        s.onerror = function () { mapLoading = false; setStatus('Không tải được Google Maps (kiểm tra mạng).'); };
+        window.__qimenMapReady = function () { mapLoading = false; initMap(); };
+        setTimeout(function () {
+            if (!mapReady) { mapLoading = false; setStatus('Google Maps không phản hồi — API key có thể sai hoặc bị giới hạn domain.'); }
+        }, 15000);
+        document.head.appendChild(s);
+    }
+
+    function showMap() {
+        var v = el('mapView');
+        if (v) v.classList.remove('hidden');
+        ensureMapLoaded();
+        setTimeout(function () {
+            if (map && window.google && window.google.maps) {
+                try { google.maps.event.trigger(map, 'resize'); } catch (e) {}
+                map.setCenter(center);
+                drawOverlay();
+                updateHUD();
+            }
+        }, 60);
     }
 
     function init() {
@@ -298,29 +335,25 @@
         bind('modeNorthUp', 'click', function () { setMode('north-up'); });
         bind('modeHeadingUp', 'click', function () { setMode('heading-up'); });
         bind('mapFindBest', 'click', findBestDirection);
-        bind('mapRecenter', 'click', function () { if (map) map.setCenter(center); });
-        bind('mapToggleFollow', 'click', function () { followMode = !followMode; this.classList.toggle('active', followMode); });
+        bind('mapRecenter', 'click', function () {
+            if (map) map.setCenter(center);
+            if (state.location.latitude == null) startGeolocation();
+        });
+        bind('mapToggleFollow', 'click', function () { followMode = !followMode; this.classList.toggle('active', followMode); if (followMode && map) map.setCenter(center); });
         bind('mapToggleDebug', 'click', function () { var d = el('mapDebug'); if (d) d.classList.toggle('hidden'); updateDebug(); });
         bind('mapOpacity', 'input', function () { overlayOpacity = parseInt(this.value, 10) / 100; drawOverlay(); });
         bind('mapRadius', 'change', function () { radiusMeters = parseInt(this.value, 10) || 500; drawOverlay(); });
-        bind('mapShowMap', 'click', function () { var v = el('mapView'); if (v) v.classList.remove('hidden'); drawOverlay(); updateHUD(); });
+        bind('mapShowMap', 'click', showMap);
         bind('mapClose', 'click', function () { var v = el('mapView'); if (v) v.classList.add('hidden'); });
 
-        var key = resolveApiKey();
-        if (window.google && window.google.maps) { initMap(); }
-        else if (key) {
-            var s = document.createElement('script');
-            s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&callback=__qimenMapReady';
-            window.__qimenMapReady = initMap;
-            document.head.appendChild(s);
-        } else {
-            setStatus('Chưa có Google Maps API key — thêm ?key=... vào URL hoặc localStorage "qimen_gmap_key".');
-        }
         setInterval(pollHeading, 250);
     }
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
     else { init(); }
 
-    window.QimenMap = { state: state, refresh: function () { drawOverlay(); updateHUD(); } };
+    window.QimenMap = { state: state, refresh: function () { drawOverlay(); updateHUD(); }, show: showMap };
 })();
+
+
+
