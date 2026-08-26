@@ -780,6 +780,30 @@
         }
 
         // ================================================================
+        // CẤU HÌNH RULE SET (QIMEN_CONFIG) — khai báo rõ, không âm thầm chọn
+        // ================================================================
+        // method: 'CHAIBU' (拆补) | 'CHAOSHEN' (超神接气/置闰) — hiện code dùng CHAOSHEN
+        // dayBoundary: '2300' (truyền thống, 子时 bắt đầu 23:00) | '0000' (hiện đại)
+        // yearStart: 'LAP_XUAN' (Lập Xuân) — CHƯA áp dụng (hiện dùng lunar year, cần sửa sau)
+        // spiritRuleset: 'YIN_YANG_SWAP' (Dương: Câu Trần/Chu Tước; Âm: Bạch Hổ/Huyền Vũ)
+        // tianQinRule: 'JI_KUN2' (Thiên Cầm ký Khôn 2) | 'JI_GEN8_KUN2'
+        const QIMEN_CONFIG = {
+            method: 'CHAOSHEN',
+            dayBoundary: '2300',
+            yearStart: 'LAP_XUAN',
+            spiritRuleset: 'YIN_YANG_SWAP',
+            tianQinRule: 'JI_KUN2'
+        };
+
+        // Nguyên (元) theo Địa chi Phù Đầu — mapping rõ ràng (thay phép chi % 3 khó audit):
+        // 子午卯酉 = Thượng nguyên; 辰戌丑未 = Hạ nguyên; 寅申巳亥 = Trung nguyên.
+        const YUAN_BY_CHI = {
+            0: 'Thượng', 3: 'Thượng', 6: 'Thượng', 9: 'Thượng',
+            4: 'Hạ', 10: 'Hạ', 1: 'Hạ', 7: 'Hạ',
+            2: 'Trung', 8: 'Trung', 5: 'Trung', 11: 'Trung'
+        };
+
+        // ================================================================
         // 4. HÀM XÁC ĐỊNH TIẾT KHÍ & CỤC
         // ================================================================
         const TIET_KHI = [
@@ -924,8 +948,7 @@
             const n = getCanChiIndex(dayInfo.ganIdx, dayInfo.chiIdx);
             const fu = n - (n % 5);   // chỉ số Phù Đầu (bội của 5)
             const chi = fu % 12;      // Địa chi của Phù Đầu
-            const yuanIdx = chi % 3;  // 0=Thượng, 1=Hạ, 2=Trung
-            const nguyen = ['Thượng', 'Hạ', 'Trung'][yuanIdx];
+            const nguyen = YUAN_BY_CHI[chi] || 'Thượng';
 
             // Tiết khí xét theo ngày Phù Đầu (超神接气): lấy tiết khí kế tiếp tính từ Phù Đầu.
             const fuDate = jdToDate(jd - (n % 5));
@@ -975,7 +998,13 @@
             const jd = jdFromDate(day, month, year);
             const lunar = convertSolar2Lunar(day, month, year, 7.0);
             const yearCanChi = getCanChi(lunar.year);
-            const dayInfo = getDayCanChi(jd);
+
+            // DAY_BOUNDARY_MODE: '2300' đổi ngày từ 23:00 (truyền thống), '0000' đổi ngày từ 0:00.
+            let ganzhiJd = jd;
+            if (QIMEN_CONFIG.dayBoundary === '2300' && hours >= 23) {
+                ganzhiJd = jd + 1; // 23:00–23:59 thuộc ngày kế tiếp (子时)
+            }
+            const dayInfo = getDayCanChi(ganzhiJd);
 
             // 1. Can chi giờ
             const gioChi = Math.floor((hours + 1) / 2) % 12; // 0=Tý, 1=Sửu, ...

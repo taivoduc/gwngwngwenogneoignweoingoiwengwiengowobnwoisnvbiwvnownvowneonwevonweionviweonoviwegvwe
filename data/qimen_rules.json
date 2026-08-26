@@ -1,0 +1,40 @@
+{
+  "ruleSetName": "Qimen Thời Gia Chuyển Bàn",
+  "ruleSetVersion": "v0.1",
+  "note": "File cấu hình mục tiêu cho bản modular. Bản hiện tại dùng hằng QIMEN_CONFIG trong kymon.html.",
+  "dun": {
+    "method": "CHAOSHEN",
+    "methodNote": "CHAIBU (拆补) | CHAOSHEN (超神接气/置闰) | MAOSHAN (茅山) — CHỈ chọn 1, không trộn",
+    "yearStart": "LAP_XUAN",
+    "yearStartNote": "Mốc đổi năm Can Chi: LAP_XUAN (Lập Xuân) | DONG_CHI (Đông Chí) | LUNAR_NEW_YEAR",
+    "dayBoundary": "2300",
+    "dayBoundaryNote": "2300 = đổi ngày từ 23:00 (子时 truyền thống) | 0000 = đổi ngày từ 0:00",
+    "defaultTimeMode": "CIVIL",
+    "defaultTimeModeNote": "CIVIL | LOCAL_MEAN_SOLAR | TRUE_SOLAR"
+  },
+  "spiritRuleset": "YIN_YANG_SWAP",
+  "spiritRulesetNote": "YIN_YANG_SWAP = Dương(勾陈+朱雀)/Âm(白虎+玄武) | FIXED = Bạch Hổ/Huyền Vũ cố định",
+  "tianQinRule": "JI_KUN2",
+  "tianQinRuleNote": "JI_KUN2 = Thiên Cầm luôn ký Khôn 2 | JI_GEN8_KUN2 = Dương ký Cấn 8, Âm ký Khôn 2",
+  "centerPalace": { "star": "KEEP_CENTER", "gate": "NONE", "spirit": "NONE" },
+  "yuanByChi": {
+    "_note": "子午卯酉=Thượng; 辰戌丑未=Hạ; 寅申巳亥=Trung",
+    "0": "Thượng", "3": "Thượng", "6": "Thượng", "9": "Thượng",
+    "4": "Hạ", "10": "Hạ", "1": "Hạ", "7": "Hạ",
+    "2": "Trung", "8": "Trung", "5": "Trung", "11": "Trung"
+  },
+  "scoring": {
+    "_note": "Heuristic — KHÔNG phải xác suất, KHÔNG phải Kỳ Môn chuẩn. Tách khỏi calculation engine.",
+    "weights": { "gate": 1, "star": 1, "spirit": 1 },
+    "gateGood": ["Sinh", "Khai", "Hưu"],
+    "gateBad": ["Thương", "Đỗ", "Cảnh", "Tử", "Kinh"],
+    "starGood": ["Thiên Phụ", "Thiên Cầm", "Thiên Tâm", "Thiên Nhậm"],
+    "starBad": ["Thiên Bồng", "Thiên Nhuế", "Thiên Trụ"],
+    "spiritGood": ["Trực Phù", "Lục Hợp", "Thái Âm", "Cửu Địa", "Cửu Thiên"],
+    "spiritBad": ["Đằng Xà", "Bạch Hổ", "Huyền Vũ", "Câu Trần", "Chu Tước"]
+  },
+  "hoangDaoHacDao": {
+    "enabled": false,
+    "note": "Module phụ (Thập Nhị Kiến Tinh), KHÔNG được cộng vào điểm Qimen."
+  }
+}
