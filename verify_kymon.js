@@ -27,12 +27,14 @@ function dump(label, day, month, year, hour) {
 // At giờ Dần (03:00) = Bính Dần hour.
 const c = dump('17/3/2021 03h (giờ Dần / Bính Dần)', 17, 3, 2021, 3);
 
-// Reference (hand-computed, Dương độn 1, Giáp Tý day, Bính Dần hour, 时旬首 + 值使随时宫 theo địa chi):
+// Reference (đã cross-validate với engine độc lập atopx/qimen plate.RotateStems/BuildDoor/BuildGod).
+// Dương độn 1, Giáp Tý day, Bính Dần hour:
+//   值符天蓬 → 时干丙(8宫); 值使休门随时支 → 落3宫; 天盘 = 地盘 xoay vòng Lạc Thư (Trung cung giữ nguyên).
 const expect = {
-    star: { 1:'Thiên Tâm', 2:'Thiên Anh', 3:'Thiên Nhậm', 4:'Thiên Xung', 5:'Thiên Cầm', 6:'Thiên Trụ', 7:'Thiên Nhuế', 8:'Thiên Bồng', 9:'Thiên Phụ' },
-    door: { 1:'Khai', 2:'Cảnh', 3:'Sinh', 4:'Thương', 5:'', 6:'Kinh', 7:'Tử', 8:'Hưu', 9:'Đỗ' },
-    than: { 1:'Cửu Thiên', 2:'Câu Trần', 3:'Đằng Xà', 4:'Thái Âm', 5:'', 6:'Cửu Địa', 7:'Chu Tước', 8:'Trực Phù', 9:'Lục Hợp' },
-    thien: { 1:'Canh', 2:'Tân', 3:'Nhâm', 4:'Quý', 5:'Đinh', 6:'Bính', 7:'Át', 8:'Mậu', 9:'Kỷ' },
+    star: { 1:'Thiên Tâm', 2:'Thiên Anh', 3:'Thiên Nhậm', 4:'Thiên Xung', 5:'', 6:'Thiên Trụ', 7:'Thiên Nhuế', 8:'Thiên Bồng', 9:'Thiên Phụ' },
+    door: { 1:'Kinh', 2:'Đỗ', 3:'Hưu', 4:'Sinh', 5:'', 6:'Tử', 7:'Cảnh', 8:'Khai', 9:'Thương' },
+    than: { 1:'Cửu Thiên', 2:'Bạch Hổ', 3:'Đằng Xà', 4:'Thái Âm', 5:'', 6:'Cửu Địa', 7:'Huyền Vũ', 8:'Trực Phù', 9:'Lục Hợp' },
+    thien: { 1:'Quý', 2:'Át', 3:'Bính', 4:'Canh', 5:'Nhâm', 6:'Đinh', 7:'Kỷ', 8:'Mậu', 9:'Tân' },
     dia: { 1:'Mậu', 2:'Kỷ', 3:'Canh', 4:'Tân', 5:'Nhâm', 6:'Quý', 7:'Đinh', 8:'Bính', 9:'Át' }
 };
 let fails = 0;

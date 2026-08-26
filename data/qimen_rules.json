@@ -12,8 +12,8 @@
     "defaultTimeMode": "CIVIL",
     "defaultTimeModeNote": "CIVIL | LOCAL_MEAN_SOLAR | TRUE_SOLAR"
   },
-  "spiritRuleset": "YIN_YANG_SWAP",
-  "spiritRulesetNote": "YIN_YANG_SWAP = Dương(勾陈+朱雀)/Âm(白虎+玄武) | FIXED = Bạch Hổ/Huyền Vũ cố định",
+  "spiritRuleset": "FIXED",
+  "spiritRulesetNote": "FIXED = Bạch Hổ/Huyền Vũ cho cả Dương+Âm (chuẩn 转盘; engine atopx/qimen, qfdk/qimen) | YIN_YANG_SWAP = Dương(勾陈+朱雀)/Âm(白虎+玄武)",
   "tianQinRule": "JI_KUN2",
   "tianQinRuleNote": "JI_KUN2 = Thiên Cầm luôn ký Khôn 2 | JI_GEN8_KUN2 = Dương ký Cấn 8, Âm ký Khôn 2",
   "centerPalace": { "star": "KEEP_CENTER", "gate": "NONE", "spirit": "NONE" },

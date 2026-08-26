@@ -666,11 +666,11 @@
         const CUNG_HUONG = ['', 'B', 'TN', 'Đ', 'ĐN', '', 'TB', 'T', 'ĐB', 'N'];
 
         const TEN_MON = ['', 'Hưu', 'Sinh', 'Thương', 'Đỗ', 'Cảnh', 'Tử', 'Kinh', 'Khai'];
-        // Bát Thần có hai bộ tên tùy theo Dương độn / Âm độn:
-        //   Dương độn: Câu Trần, Chu Tước
-        //   Âm độn:    Bạch Hổ, Huyền Vũ
-        const TEN_THAN_DUONG = ['', 'Trực Phù', 'Đằng Xà', 'Thái Âm', 'Lục Hợp', 'Câu Trần', 'Chu Tước', 'Cửu Địa', 'Cửu Thiên'];
-        const TEN_THAN_AM = ['', 'Trực Phù', 'Đằng Xà', 'Thái Âm', 'Lục Hợp', 'Bạch Hổ', 'Huyền Vũ', 'Cửu Địa', 'Cửu Thiên'];
+        // Bát Thần (八神) — hai trường phái:
+        //   FIXED (chuẩn 转盘; engine atopx/qimen & qfdk/qimen): Bạch Hổ + Huyền Vũ cho cả Dương/Âm.
+        //   YIN_YANG_SWAP: Dương dùng Câu Trần + Chu Tước, Âm dùng Bạch Hổ + Huyền Vũ.
+        const TEN_THAN = ['', 'Trực Phù', 'Đằng Xà', 'Thái Âm', 'Lục Hợp', 'Bạch Hổ', 'Huyền Vũ', 'Cửu Địa', 'Cửu Thiên'];
+        const TEN_THAN_YANG_SWAP = ['', 'Trực Phù', 'Đằng Xà', 'Thái Âm', 'Lục Hợp', 'Câu Trần', 'Chu Tước', 'Cửu Địa', 'Cửu Thiên'];
         const TEN_TINH = ['', 'Thiên Bồng', 'Thiên Nhuế', 'Thiên Xung', 'Thiên Phụ', 'Thiên Cầm', 'Thiên Tâm', 'Thiên Trụ',
             'Thiên Nhậm', 'Thiên Anh'
         ];
@@ -786,13 +786,13 @@
         //   Lưu ý: 置闰 (zhì rùn) CHƯA được implement — cần chuyên gia chốt nếu dùng CHAOSHEN.
         // dayBoundary: '2300' (truyền thống, 子时 bắt đầu 23:00) | '0000' (hiện đại)
         // yearStart: 'LAP_XUAN' (Lập Xuân) — đã áp dụng trong anBan (dùng solarYear theo Li Chun)
-        // spiritRuleset: 'YIN_YANG_SWAP' (Dương: Câu Trần/Chu Tước; Âm: Bạch Hổ/Huyền Vũ)
+        // spiritRuleset: 'FIXED' (Bạch Hổ/Huyền Vũ cho cả Dương+Âm — chuẩn 转盘) | 'YIN_YANG_SWAP' (Dương: Câu Trần/Chu Tước)
         // tianQinRule: 'JI_KUN2' (Thiên Cầm ký Khôn 2) | 'JI_GEN8_KUN2'
         const QIMEN_CONFIG = {
             method: 'CHAIBU',
             dayBoundary: '2300',
             yearStart: 'LAP_XUAN',
-            spiritRuleset: 'YIN_YANG_SWAP',
+            spiritRuleset: 'FIXED',
             tianQinRule: 'JI_KUN2'
         };
 
@@ -1056,18 +1056,21 @@
                 trucPhuCung = kyTaiCung[CAN_TO_KY[gioGan]];
             }
 
-            // 6. Xoay Thiên bàn (三奇六仪) — BÁT QUÁI XOAY TUYẾN TÍNH (1→2→…→9).
-            // Lục Nghi của Tuần Thủ di chuyển tới cung Thì Can. Dương thuận / Âm nghịch.
-            const chiefCung = giapKyCung;    // cung chứa Lục Nghi Tuần Thủ
-            const thiCanCung = trucPhuCung;  // cung Thì Can (时干)
-            const rotLinear = (c, k) => ((c - 1 + k) % 9 + 9) % 9 + 1; // xoay tuyến tính 1..9
-            const steps = cuc.duong
-                ? ((thiCanCung - chiefCung + 9) % 9)   // thuận
-                : ((chiefCung - thiCanCung + 9) % 9);  // nghịch
+            // 6. Xoay Thiên bàn (三奇六仪) — vòng LẠC THƯ xoay cứng, Trung cung giữ nguyên.
+            // Lục Nghi Tuần Thủ di chuyển từ 值符原宫 tới 时干落宫. (Vòng xoay không phân thuận/nghịch:
+            // Dương/Âm chỉ quyết định nơi Trực Phù đáp, không đổi chiều vòng Lạc Thư.)
+            // SOURCE: atopx/qimen plate.RotateStems (đã đối chiếu độc lập với engine Go).
+            const chiefCung = (giapKyCung === 5) ? 2 : giapKyCung;    // 值符原宫 (Trung→Khôn)
+            const thiCanCung = (trucPhuCung === 5) ? 2 : trucPhuCung;  // 时干落宫 (Trung→Khôn)
+            const chiefRing = LUO_SHU.indexOf(chiefCung);
+            const thiCanRing = LUO_SHU.indexOf(thiCanCung);
+            const ringSteps = (thiCanRing - chiefRing + 8) % 8;
             const thienBan = {};
-            for (let p = 1; p <= 9; p++) {
-                const src = cuc.duong ? rotLinear(p, -steps) : rotLinear(p, steps);
-                thienBan[p] = diaBan[src];
+            thienBan[5] = diaBan[5]; // Trung cung giữ nguyên Kỳ Nghi (không xoay)
+            for (let i = 0; i < 8; i++) {
+                const srcPalace = LUO_SHU[i];
+                const dstPalace = LUO_SHU[(i + ringSteps) % 8];
+                thienBan[dstPalace] = diaBan[srcPalace];
             }
 
             // 7. An Cửu tinh (转盘: 8 sao ngoài xoay theo vòng Lạc Thư, Thiên Cầm giữ Trung cung)
@@ -1084,25 +1087,28 @@
                 ringPos = (ringPos + (cuc.duong ? 1 : -1) + 8) % 8;
                 starIdx = (starIdx + (cuc.duong ? 1 : -1) + 8) % 8;
             }
-            starAtPalace[5] = 5; // Thiên Cầm luôn giữ Trung cung
+            // 天禽 (Thiên Cầm) 寄坤二: đi cùng Thiên Nhuế (芮) — Trung cung KHÔNG có sao.
 
-            // 8. An Bát môn — Trực Sử tùy Thì Cung (值使随时宫).
-            // Địa chi giờ → Bát quái (地支配八宫): Tý→Khảm1, Sửu/Dần→Cấn8, Mão→Chấn3,
-            // Thìn/Tỵ→Tốn4, Ngọ→Ly9, Mùi/Thân→Khôn2, Dậu→Đoài7, Tuất/Hợi→Càn6.
-            // SOURCE: 地支配八宫 (chuẩn). Thay hardcode SHI_TARGET cũ.
-            const SHI_BRANCH_PALACE = [1, 8, 8, 3, 4, 4, 9, 2, 2, 7, 6, 6];
-            const trucSuCung = SHI_BRANCH_PALACE[gioChi]; // cung của Thì Chi (giờ)
-            const gatePos = LUO_SHU.indexOf(trucSuCung);
-
+            // 8. An Bát môn — 值使随时支: 值使 từ 值符原宫 đi theo số bước (时支 − 旬首支),
+            //    thuận (Dương) / nghịch (Âm) qua vòng 1..9; rồi 8 môn xoay cứng theo vòng Lạc Thư.
+            // SOURCE: atopx/qimen plate.BuildDoor + MoveBy (đã đối chiếu độc lập).
+            const marchFrom = giapKyCung;                    // 值符原宫 (có thể là Trung cung 5)
+            const marchSteps = (gioChi - tuan.chi + 12) % 12; // số bước từ 旬首支 tới 时支
+            const moveBy = (palace, steps, duong) => {
+                const idx = duong
+                    ? ((palace - 1 + steps) % 9)
+                    : (((palace - 1 - steps) % 9) + 9) % 9;
+                return idx + 1;
+            };
+            const trucSuCung = moveBy(marchFrom, marchSteps, cuc.duong); // 值使落宫 (có thể là 5)
+            const landEff = (trucSuCung === 5) ? 2 : trucSuCung;
+            const zhiShiHome = chiefHome; // bản cung 值使 (đã ký Khôn nếu Trung)
+            const doorShift = (LUO_SHU.indexOf(landEff) - LUO_SHU.indexOf(zhiShiHome) + 8) % 8;
             const doorAtPalace = {};
-            const doorOrder = [1, 2, 3, 4, 5, 6, 7, 8]; // Hưu Sinh Thương Đỗ Cảnh Tử Kinh Khai
-            let doorIdx = doorOrder.indexOf(trucSuMon);
-            let pos = gatePos;
             for (let i = 0; i < 8; i++) {
-                const palace = LUO_SHU[pos];
-                doorAtPalace[palace] = doorOrder[doorIdx];
-                pos = (pos + (cuc.duong ? 1 : -1) + 8) % 8;
-                doorIdx = (doorIdx + (cuc.duong ? 1 : -1) + 8) % 8;
+                const home = LUO_SHU[i];
+                const dst = LUO_SHU[(i + doorShift) % 8];
+                doorAtPalace[dst] = MON_HOME_INV[home];
             }
 
             // 9. An Bát thần
@@ -1121,9 +1127,11 @@
             for (let i = 0; i <= 9; i++) {
                 cung[i] = { ten: TEN_CUNG[i], mon: '', than: '', tinh: '', dia: '', thien: '' };
             }
+            const thanArr = (QIMEN_CONFIG.spiritRuleset === 'YIN_YANG_SWAP' && cuc.duong)
+                ? TEN_THAN_YANG_SWAP : TEN_THAN;
             for (let p = 1; p <= 9; p++) {
                 cung[p].mon = TEN_MON[doorAtPalace[p]] || '';
-                cung[p].than = (cuc.duong ? TEN_THAN_DUONG : TEN_THAN_AM)[spiritAtPalace[p]] || '';
+                cung[p].than = thanArr[spiritAtPalace[p]] || '';
                 cung[p].tinh = TEN_TINH[starAtPalace[p]] || '';
                 cung[p].dia = TEN_KI[diaBan[p]] || '';
                 cung[p].thien = TEN_KI[thienBan[p]] || '';

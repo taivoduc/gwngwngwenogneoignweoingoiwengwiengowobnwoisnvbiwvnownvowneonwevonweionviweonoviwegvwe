@@ -54,10 +54,10 @@ test('Golden 1: Dương độn 1 - 17/3/2021 03:00', () => {
     assert.strictEqual(b.day, 'Giáp Tý', 'ngày can chi');
 
     const exp = {
-        tinh: { 1: 'Thiên Tâm', 2: 'Thiên Anh', 3: 'Thiên Nhậm', 4: 'Thiên Xung', 5: 'Thiên Cầm', 6: 'Thiên Trụ', 7: 'Thiên Nhuế', 8: 'Thiên Bồng', 9: 'Thiên Phụ' },
-        mon:  { 1: 'Khai', 2: 'Cảnh', 3: 'Sinh', 4: 'Thương', 5: '', 6: 'Kinh', 7: 'Tử', 8: 'Hưu', 9: 'Đỗ' },
-        than: { 1: 'Cửu Thiên', 2: 'Câu Trần', 3: 'Đằng Xà', 4: 'Thái Âm', 5: '', 6: 'Cửu Địa', 7: 'Chu Tước', 8: 'Trực Phù', 9: 'Lục Hợp' },
-        thien:{ 1: 'Canh', 2: 'Tân', 3: 'Nhâm', 4: 'Quý', 5: 'Đinh', 6: 'Bính', 7: 'Át', 8: 'Mậu', 9: 'Kỷ' },
+        tinh: { 1: 'Thiên Tâm', 2: 'Thiên Anh', 3: 'Thiên Nhậm', 4: 'Thiên Xung', 5: '', 6: 'Thiên Trụ', 7: 'Thiên Nhuế', 8: 'Thiên Bồng', 9: 'Thiên Phụ' },
+        mon:  { 1: 'Kinh', 2: 'Đỗ', 3: 'Hưu', 4: 'Sinh', 5: '', 6: 'Tử', 7: 'Cảnh', 8: 'Khai', 9: 'Thương' },
+        than: { 1: 'Cửu Thiên', 2: 'Bạch Hổ', 3: 'Đằng Xà', 4: 'Thái Âm', 5: '', 6: 'Cửu Địa', 7: 'Huyền Vũ', 8: 'Trực Phù', 9: 'Lục Hợp' },
+        thien:{ 1: 'Quý', 2: 'Át', 3: 'Bính', 4: 'Canh', 5: 'Nhâm', 6: 'Đinh', 7: 'Kỷ', 8: 'Mậu', 9: 'Tân' },
         dia:  { 1: 'Mậu', 2: 'Kỷ', 3: 'Canh', 4: 'Tân', 5: 'Nhâm', 6: 'Quý', 7: 'Đinh', 8: 'Bính', 9: 'Át' }
     };
     for (let p = 1; p <= 9; p++) {
@@ -69,18 +69,21 @@ test('Golden 1: Dương độn 1 - 17/3/2021 03:00', () => {
     }
 });
 
-// GOLDEN 2: giờ Giáp — Trực Phù về bản cung, Thiên bàn không xoay
+// GOLDEN 2: giờ Giáp — 值符 về bản cung → toàn bàn PHỤC NGÂM (Thiên bàn = Địa bàn, sao/môn tại bản vị)
 test('Golden 2: giờ Giáp - 17/3/2021 19:00', () => {
     const b = board(ctx, 2021, 3, 17, 19);
     assert.strictEqual(b.cuc.so, 1, 'cục số');
     for (let p = 1; p <= 9; p++) {
         assert.strictEqual(b[p].thien, b[p].dia, `cung ${p} thiên == địa`);
     }
-    assert.strictEqual(b[1].tinh, 'Thiên Bồng', 'trực phù về bản cung');
+    // Phục ngâm: mọi sao về bản cung (Thiên Bồng tại Khảm 1)
+    assert.strictEqual(b[1].tinh, 'Thiên Bồng', 'Thiên Bồng tại bản cung Khảm 1');
+    assert.strictEqual(b[1].mon, 'Hưu', 'Hưu môn tại bản cung Khảm 1');
 });
 
 
 // GOLDEN 3: Âm độn — 22/8/2026 10:16 (Lập Thu Thượng nguyên, Âm độn 2)
+// Bát Thần FIXED: Bạch Hổ/Huyền Vũ (cả Dương + Âm), không dùng Câu Trần/Chu Tước.
 test('Golden 3: Âm độn 2 - 22/8/2026 10:16', () => {
     const b = board(ctx, 2026, 8, 22, 10, 16);
     assert.strictEqual(b.cuc.so, 2, 'cục số');

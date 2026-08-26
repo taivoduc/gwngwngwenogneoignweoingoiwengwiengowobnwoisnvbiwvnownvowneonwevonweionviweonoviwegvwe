@@ -22,8 +22,8 @@
 |---|---|---|---|
 | 1 | Phép lập Cục | **拆补 (CHAIBU)** | ✅ đang dùng; 置闰 CHƯA implement `[NEEDS VALIDATION]` |
 | 2 | Day boundary | **23:00** (`DAY_BOUNDARY_MODE='2300'`) | ✅ có config; `[NEEDS VALIDATION]` |
-| 3 | Thiên Cầm (禽) | **寄坤2** (`tianQinRule='JI_KUN2'`) | ⚠️ áp dụng cho Trực Phù/Trực Sử; sao Thiên Cầm vẫn giữ Trung cung `[NEEDS VALIDATION]` |
-| 4 | Bát Thần âm | **Âm dùng Bạch Hổ + Huyền Vũ** (`YIN_YANG_SWAP`) | ✅ có config; `[NEEDS VALIDATION]` |
+| 3 | Thiên Cầm (天禽) | **寄坤二** (`tianQinRule='JI_KUN2'` — 禽芮) | ✅ đã sửa (Trung cung không có sao) |
+| 4 | Bát Thần | **FIXED** (Bạch Hổ + Huyền Vũ cho cả Dương/Âm) | ✅ chuẩn 转盘; `YIN_YANG_SWAP` giữ làm option |
 | 5 | Mốc năm Can Chi | **Lập Xuân (Li Chun)** | ✅ đã sửa; `[NEEDS VALIDATION]` |
 | 6 | Hoàng Đạo/Hắc Đạo | **Tách module phụ**, KHÔNG cộng vào điểm | ⚠️ còn nằm trong score (chưa tách) |
 
@@ -61,23 +61,29 @@
 - Trực Phù = sao có bản cung chứa Lục Nghi Tuần Thủ (Trung cung 5 → ký Khôn 2).
 - Trực Sử = môn có bản cung đó. ✅
 
-### 3.6 Thiên bàn (三奇六仪 xoay) — **ĐÃ SỬA**
-- Lục Nghi Tuần Thủ di chuyển tới cung Thì Can.
-- **Xoay TUYẾN TÍNH** (1→2→…→9), Dương thuận / Âm nghịch. (Trước đây xoay theo vòng Lạc Thư → sai.) ✅
+### 3.6 Thiên bàn (三奇六仪 xoay) — **ĐÃ SỬA LẠI**
+- Lục Nghi Tuần Thủ di chuyển từ **值符原宫** tới **时干落宫**.
+- **Xoay cứng theo vòng LẠC THƯ** `[1,8,3,4,9,2,7,6]`; **Trung cung (5) giữ nguyên**.
+- Không phân thuận/nghịch ở vòng xoay (Dương/Âm chỉ quyết định nơi Trực Phù đáp).
+- SOURCE: `atopx/qimen plate.RotateStems`. ✅
+- ⚠️ (Phiên trước đã từng sửa thành "xoay tuyến tính 1→9" — SAI, đã revert.)
 
 ### 3.7 Cửu Tinh (九星)
 - Sao Trực Phù bay tới cung Thì Can; 8 sao ngoài theo **vòng Lạc Thư** `[1,8,3,4,9,2,7,6]`, thuận/nghịch.
-- Thiên Cầm (5) giữ Trung cung. ✅
+- **天禽 (Thiên Cầm) 寄坤二**: đi cùng Thiên Nhuế (禽芮). Trung cung KHÔNG có sao. ✅
+- SOURCE: `atopx/qimen plate.BuildStar`.
 
-### 3.8 Bát Môn (八门) — **ĐÃ SỬA**
-- Trực Sử tùy Thì Cung: Địa chi giờ → Bát quái (地支配八宫):
-  `Tý→Khảm1, Sửu/Dần→Cấn8, Mão→Chấn3, Thìn/Tỵ→Tốn4, Ngọ→Ly9, Mùi/Thân→Khôn2, Dậu→Đoài7, Tuất/Hợi→Càn6`.
-- (Trước đây dùng `SHI_TARGET` hardcode sai → đã thay bằng `SHI_BRANCH_PALACE`.) ✅
+### 3.8 Bát Môn (八门) — **ĐÃ SỬA LẠI**
+- **值使随时支**: 值使 từ 值符原宫 đi theo số bước `(时支 − 旬首支) mod 12`,
+  thuận (Dương)/nghịch (Âm) qua vòng 1..9; rồi 8 môn xoay cứng theo vòng Lạc Thư.
+- SOURCE: `atopx/qimen plate.BuildDoor + MoveBy`. ✅
+- ⚠️ (Phiên trước đã dùng "地支配八宫" — là trường phái KHÁC, đã thay bằng 值使随时支.)
 
 ### 3.9 Bát Thần (八神)
 - Bắt đầu từ cung Trực Phù, vòng Lạc Thư thuận (Dương) / nghịch (Âm).
-- Dương: Trực Phù→Đằng Xà→Thái Âm→Lục Hợp→Câu Trần→Chu Tước→Cửu Địa→Cửu Thiên.
-- Âm: Trực Phù→Đằng Xà→Thái Âm→Lục Hợp→**Bạch Hổ→Huyền Vũ**→Cửu Địa→Cửu Thiên. ✅
+- **FIXED (mặc định)**: Trực Phù→Đằng Xà→Thái Âm→Lục Hợp→**Bạch Hổ→Huyền Vũ**→Cửu Địa→Cửu Thiên.
+- Option `YIN_YANG_SWAP`: Dương dùng Câu Trần/Chu Tước thay Bạch Hổ/Huyền Vũ. ✅
+- SOURCE: `atopx/qimen plate.BuildGod`, `qfdk/qimen lib/bashen.js`.
 
 ---
 
