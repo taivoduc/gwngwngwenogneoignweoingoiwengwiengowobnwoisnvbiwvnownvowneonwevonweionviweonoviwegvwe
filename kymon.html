@@ -782,13 +782,14 @@
         // ================================================================
         // CẤU HÌNH RULE SET (QIMEN_CONFIG) — khai báo rõ, không âm thầm chọn
         // ================================================================
-        // method: 'CHAIBU' (拆补) | 'CHAOSHEN' (超神接气/置闰) — hiện code dùng CHAOSHEN
+        // method: 'CHAIBU' (拆补, đang dùng) | 'CHAOSHEN' (超神接气/置闰) | 'MAOSHAN' (茅山)
+        //   Lưu ý: 置闰 (zhì rùn) CHƯA được implement — cần chuyên gia chốt nếu dùng CHAOSHEN.
         // dayBoundary: '2300' (truyền thống, 子时 bắt đầu 23:00) | '0000' (hiện đại)
         // yearStart: 'LAP_XUAN' (Lập Xuân) — đã áp dụng trong anBan (dùng solarYear theo Li Chun)
         // spiritRuleset: 'YIN_YANG_SWAP' (Dương: Câu Trần/Chu Tước; Âm: Bạch Hổ/Huyền Vũ)
         // tianQinRule: 'JI_KUN2' (Thiên Cầm ký Khôn 2) | 'JI_GEN8_KUN2'
         const QIMEN_CONFIG = {
-            method: 'CHAOSHEN',
+            method: 'CHAIBU',
             dayBoundary: '2300',
             yearStart: 'LAP_XUAN',
             spiritRuleset: 'YIN_YANG_SWAP',
