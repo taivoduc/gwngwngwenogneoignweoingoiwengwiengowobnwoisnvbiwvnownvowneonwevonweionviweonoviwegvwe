@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kỳ Môn Độn Giáp – Bản chuẩn</title>
+    <title>Kỳ Môn Độn Giáp</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -1170,16 +1170,6 @@
                     const hi = headingInfo(cung);
                     const st = scoreStyle(hi.scoreCls);
                     html += `<div class="cell center-cell" style="background:${st.bg}; border-color:${st.bd};">
-                                <div class="center-dirs">
-                                    <span class="cdir" style="top:8%;left:50%">B</span>
-                                    <span class="cdir" style="top:16%;left:82%">ĐB</span>
-                                    <span class="cdir" style="top:50%;left:92%">Đ</span>
-                                    <span class="cdir" style="top:84%;left:82%">ĐN</span>
-                                    <span class="cdir" style="top:92%;left:50%">N</span>
-                                    <span class="cdir" style="top:84%;left:18%">TN</span>
-                                    <span class="cdir" style="top:50%;left:8%">T</span>
-                                    <span class="cdir" style="top:16%;left:18%">TB</span>
-                                </div>
                                 <div class="cell-inner" style="color:${st.txt}">
                                     <table class="cell-table">
                                         ${hi.topicsHTML}
