@@ -39,6 +39,25 @@
     function getHeading() { return (typeof window._compass !== 'undefined') ? (window._compass.heading || 0) : 0; }
     function getBoard() { return window._cungData || null; }
 
+    // --- Marker helper (dùng AdvancedMarkerElement nếu có, fallback Marker) ---
+    function hasAdvancedMarker() {
+        return !!(window.google && google.maps.marker && google.maps.marker.AdvancedMarkerElement);
+    }
+    function createMarker(opts) {
+        if (hasAdvancedMarker()) return new google.maps.marker.AdvancedMarkerElement(opts);
+        return new google.maps.Marker(opts);
+    }
+    function setMarkerPos(m, pos) {
+        if (!m) return;
+        if (typeof m.setPosition === 'function') m.setPosition(pos);
+        else m.position = pos;
+    }
+    function removeMarker(m) {
+        if (!m) return;
+        if (typeof m.setMap === 'function') m.setMap(null);
+        else m.map = null;
+    }
+
     // --- Điểm Qimen cho 1 cung (CHỈ ĐỌC board) ---
     function palaceInfo(palace) {
         var board = getBoard();
@@ -84,7 +103,7 @@
 
     function clearOverlay() {
         sectorPolys.forEach(function (p) { if (p) p.setMap(null); });
-        sectorLabels.forEach(function (l) { if (l) l.setMap(null); });
+        sectorLabels.forEach(function (l) { removeMarker(l); });
         sectorPolys = []; sectorLabels = [];
     }
     function drawOverlay() {
@@ -107,12 +126,20 @@
             sectorPolys.push(poly);
             var labelPos = destinationPoint(origin.lat, origin.lng, dir.mid, radiusMeters * 0.6);
             var labelText = dir.short + (info.men ? ' ' + info.men : '') + (info.score > 0 ? ' ✓' : (info.score < 0 ? ' ✗' : ''));
-            var label = new google.maps.Marker({
-                position: labelPos, map: map,
-                label: { text: labelText, color: '#ffffff', fontWeight: 'bold', fontSize: '12px' },
-                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
-                clickable: false
-            });
+            var label;
+            if (hasAdvancedMarker()) {
+                var div = document.createElement('div');
+                div.textContent = labelText;
+                div.style.cssText = 'color:#fff;font-weight:bold;font-size:12px;text-shadow:0 0 3px #000,0 0 2px #000;white-space:nowrap;';
+                label = new google.maps.marker.AdvancedMarkerElement({ position: labelPos, map: map, content: div, zIndex: 1 });
+            } else {
+                label = new google.maps.Marker({
+                    position: labelPos, map: map,
+                    label: { text: labelText, color: '#ffffff', fontWeight: 'bold', fontSize: '12px' },
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
+                    clickable: false
+                });
+            }
             sectorLabels.push(label);
         }
     }
@@ -178,8 +205,8 @@
             state.location.accuracy = pos.coords.accuracy;
             center.lat = pos.coords.latitude; center.lng = pos.coords.longitude;
             if (!userMarker && map) {
-                userMarker = new google.maps.Marker({ position: center, map: map, title: 'Vị trí của bạn' });
-            } else if (userMarker) { userMarker.setPosition(center); }
+                userMarker = createMarker({ position: center, map: map, title: 'Vị trí của bạn' });
+            } else if (userMarker) { setMarkerPos(userMarker, center); }
             if (el('gpsLat')) el('gpsLat').textContent = center.lat.toFixed(6);
             if (el('gpsLng')) el('gpsLng').textContent = center.lng.toFixed(6);
             if (el('gpsAcc')) el('gpsAcc').textContent = '±' + Math.round(state.location.accuracy) + ' m';
@@ -196,8 +223,8 @@
     function onMapClick(e) {
         if (!e.latLng || !map) return;
         var dest = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-        if (!destMarker) { destMarker = new google.maps.Marker({ position: dest, map: map, title: 'Điểm đến' }); }
-        else { destMarker.setPosition(dest); }
+        if (!destMarker) { destMarker = createMarker({ position: dest, map: map, title: 'Điểm đến' }); }
+        else { setMarkerPos(destMarker, dest); }
         var b = C.bearing(center.lat, center.lng, dest.lat, dest.lng);
         var dir = C.bearingToDirection(b);
         var info = palaceInfo(dir.palace);
@@ -313,7 +340,7 @@
         setStatus('Đang tải Google Maps...');
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&callback=__qimenMapReady';
+        s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&libraries=marker&callback=__qimenMapReady';
         s.onerror = function () { mapLoading = false; setStatus('Không tải được Google Maps (kiểm tra mạng).'); };
         window.__qimenMapReady = function () { mapLoading = false; initMap(); };
         setTimeout(function () {
