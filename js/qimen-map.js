@@ -280,6 +280,14 @@
         if (typeof map.setHeading === 'function') { try { map.setHeading(0); } catch (e) {} }
         map.addListener('click', onMapClick);
         mapReady = true;
+        // Phát hiện tile không tải (thường do API key bị giới hạn HTTP referrer)
+        var tilesOk = false;
+        google.maps.event.addListenerOnce(map, 'tilesloaded', function () { tilesOk = true; });
+        setTimeout(function () {
+            if (mapReady && !tilesOk) {
+                setStatus('⚠️ Map không tải tile. Thường do API key bị giới hạn "HTTP referrer". Mở Google Cloud Console → Credentials → key → Application restrictions, thêm đúng tên miền (vd: https://TEN.github.io/* hoặc http://localhost/*).');
+            }
+        }, 8000);
         drawOverlay();
         updateHUD();
         startGeolocation();
