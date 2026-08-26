@@ -3,8 +3,8 @@
   "ruleSetVersion": "v0.1",
   "note": "File cấu hình mục tiêu cho bản modular. Bản hiện tại dùng hằng QIMEN_CONFIG trong kymon.html.",
   "dun": {
-    "method": "CHAOSHEN",
-    "methodNote": "CHAIBU (拆补) | CHAOSHEN (超神接气/置闰) | MAOSHAN (茅山) — CHỈ chọn 1, không trộn",
+    "method": "CHAIBU",
+    "methodNote": "CHAIBU (拆补, đang dùng) | CHAOSHEN (超神接气/置闰) | MAOSHAN (茅山) — CHỈ chọn 1, không trộn. 置闰 CHƯA implement",
     "yearStart": "LAP_XUAN",
     "yearStartNote": "Mốc đổi năm Can Chi: LAP_XUAN (Lập Xuân) | DONG_CHI (Đông Chí) | LUNAR_NEW_YEAR",
     "dayBoundary": "2300",
