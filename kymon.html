@@ -942,8 +942,7 @@
                 const start = ((longitude - lng1) % 360 + 360) % 360;
                 if (diff > 0 && start <= diff) {
                     const frac = start / diff;
-                    const crossJd = jd1 + frac;
-                    return Math.floor(crossJd + 0.5);
+                    return jd1 + frac; // EXACT INSTANT (fractional JD)
                 }
                 jd1 = jd2;
                 lng1 = lng2;
@@ -951,12 +950,11 @@
             throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không tìm thấy giao điểm tiết khí', { name: name, year: year }, 'findTietKhiJd');
         }
 
-        // Tiết khí HIỆN TẠI chứa ngày đang xét (term có start <= target < term kế tiếp start).
-        // SOURCE: ngày phải nằm TRONG khoảng tiết khí, không phải "tiết khí kế tiếp".
-        function getTietKhi(month, day, year) {
-            const targetJd = jdFromDate(day, month, year);
+        // Tiết khí tại một JD bất kỳ (fractional) — term có instant <= target < instant kế tiếp.
+        function solarTermAtInstant(targetJd) {
+            const approxYear = jdToDate(Math.floor(targetJd)).year;
             let best = null;
-            for (let y of [year - 1, year, year + 1]) {
+            for (let y of [approxYear - 1, approxYear, approxYear + 1]) {
                 for (let t of TIET_KHI) {
                     const termJd = findTietKhiJd(t.name, y);
                     if (termJd <= targetJd) {
@@ -964,8 +962,13 @@
                     }
                 }
             }
-            if (!best) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không xác định được tiết khí hiện tại', { month: month, day: day, year: year }, 'getTietKhi');
+            if (!best) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không xác định được tiết khí tại JD', { targetJd: targetJd }, 'solarTermAtInstant');
             return best;
+        }
+
+        // Tiết khí tại đầu ngày (midnight) — dùng cho Cục theo Phù Đầu.
+        function getTietKhi(month, day, year) {
+            return solarTermAtInstant(jdFromDate(day, month, year));
         }
 
         function tinhCuc(month, day, year) {
