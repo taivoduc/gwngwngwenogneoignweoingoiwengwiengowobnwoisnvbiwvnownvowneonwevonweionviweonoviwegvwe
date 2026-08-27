@@ -776,7 +776,7 @@
                 let n = ganIdx + 10 * k;
                 if (n % 12 === chiIdx) return n;
             }
-            return 0;
+            throw new QimenCalculationError('INVALID_CANZHI', 'Không tìm được số thứ tự 60 Giáp Tý', { ganIdx: ganIdx, chiIdx: chiIdx }, 'getCanChiIndex');
         }
 
         // ================================================================
@@ -793,8 +793,38 @@
             dayBoundary: '2300',
             yearStart: 'LAP_XUAN',
             spiritRuleset: 'FIXED',
-            tianQinRule: 'JI_KUN2'
+            tianQinRule: 'JI_KUN2',
+            ruleSetVersion: '1.0.0'
         };
+
+        // Lỗi tính toán rõ ràng — thay mọi silent fallback trong calculation path.
+        class QimenCalculationError extends Error {
+            constructor(code, message, input, stage) {
+                super(message);
+                this.name = 'QimenCalculationError';
+                this.code = code;
+                this.input = input;
+                this.stage = stage;
+                this.ruleSetVersion = QIMEN_CONFIG.ruleSetVersion;
+            }
+        }
+
+        // Hash config để ghi vào board (audit + reproducibility).
+        function ruleSetHash() {
+            const s = JSON.stringify(QIMEN_CONFIG);
+            let h = 0;
+            for (let i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+            return (h >>> 0).toString(16);
+        }
+
+        // Deep freeze — QimenBoard immutable sau khi tạo.
+        function deepFreeze(obj) {
+            if (obj && typeof obj === 'object' && !Object.isFrozen(obj)) {
+                Object.freeze(obj);
+                for (const k of Object.keys(obj)) deepFreeze(obj[k]);
+            }
+            return obj;
+        }
 
         // Nguyên (元) theo Địa chi Phù Đầu — mapping rõ ràng (thay phép chi % 3 khó audit):
         // 子午卯酉 = Thượng nguyên; 辰戌丑未 = Hạ nguyên; 寅申巳亥 = Trung nguyên.
@@ -896,7 +926,7 @@
         // Tìm ngày Julian khi Mặt Trời đạt kinh độ hoàng đạo nhất định (ngày giao tiết)
         function findTietKhiJd(name, year) {
             const t = TIET_KHI.find(x => x.name === name);
-            if (!t) return jdFromDate(1, 1, year);
+            if (!t) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Tiết khí không tồn tại', { name: name }, 'findTietKhiJd');
             const idx = TIET_KHI.indexOf(t);
             const longitude = TIET_KHI_LONG[idx];
             const approxJd = jdFromDate(t.d, t.m, year);
@@ -918,7 +948,7 @@
                 jd1 = jd2;
                 lng1 = lng2;
             }
-            return approxJd;
+            throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không tìm thấy giao điểm tiết khí', { name: name, year: year }, 'findTietKhiJd');
         }
 
         // Tiết khí HIỆN TẠI chứa ngày đang xét (term có start <= target < term kế tiếp start).
@@ -934,7 +964,8 @@
                     }
                 }
             }
-            return best || { name: 'Đông Chí', jd: targetJd - 15 };
+            if (!best) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không xác định được tiết khí hiện tại', { month: month, day: day, year: year }, 'getTietKhi');
+            return best;
         }
 
         function tinhCuc(month, day, year) {
@@ -950,7 +981,8 @@
             const n = getCanChiIndex(dayInfo.ganIdx, dayInfo.chiIdx);
             const fu = n - (n % 5);   // chỉ số Phù Đầu (bội của 5)
             const chi = fu % 12;      // Địa chi của Phù Đầu
-            const nguyen = YUAN_BY_CHI[chi] || 'Thượng';
+            const nguyen = YUAN_BY_CHI[chi];
+            if (!nguyen) throw new QimenCalculationError('INVALID_YUAN', 'Địa chi Phù Đầu không hợp lệ', { chi: chi }, 'tinhCuc');
 
             // Tiết khí xét theo ngày Phù Đầu (超神接气): lấy tiết khí kế tiếp tính từ Phù Đầu.
             const fuDate = jdToDate(jd - (n % 5));
@@ -965,7 +997,7 @@
                     nguyen: nguyen
                 };
             }
-            return { so: 5, duong: true, tiet: tiet.name, nguyen: nguyen };
+            throw new QimenCalculationError('JU_NOT_FOUND', 'Không tìm thấy cục cho tiết khí/nguyên', { tiet: tiet.name, nguyen: nguyen }, 'tinhCuc');
         }
 
         // ================================================================
@@ -1041,7 +1073,8 @@
             // Trực Sử = Bát Môn có bản cung đó. Trung cung (5) ký gửi Khôn (2).
             const chiIndex = getCanChiIndex(gioGan, gioChi);
             const tuanIdx = Math.floor(chiIndex / 10);
-            const tuan = TUAN_INFO[tuanIdx] || TUAN_INFO[0];
+            const tuan = TUAN_INFO[tuanIdx];
+            if (!tuan) throw new QimenCalculationError('INVALID_XUN_INDEX', 'Chỉ số tuần (旬) không hợp lệ', { chiIndex: chiIndex, tuanIdx: tuanIdx }, 'anBan.xunshou');
             const giapKyCung = kyTaiCung[tuan.ky];      // cung chứa Lục Nghi của Tuần Thủ
             const chiefHome = (giapKyCung === 5) ? 2 : giapKyCung; // Trung cung ký Khôn
             const trucPhuTinh = chiefHome;              // sao có bản cung = cung chứa Tuần Thủ
@@ -1078,9 +1111,9 @@
             const starRing = [1, 8, 3, 4, 9, 2, 7, 6]; // Bồng Nhậm Xung Phụ Anh Nhuế Trụ Tâm (theo vòng Lạc Thư)
             let anchor = (trucPhuCung === 5) ? 2 : trucPhuCung; // Trung cung ký Khôn
             let ringPos = LUO_SHU.indexOf(anchor);
-            if (ringPos === -1) ringPos = 0;
+            if (ringPos === -1) throw new QimenCalculationError('INVALID_PALACE', 'Cung không thuộc vòng Lạc Thư', { anchor: anchor }, 'anBan.stars');
             let starIdx = starRing.indexOf(trucPhuTinh);
-            if (starIdx === -1) starIdx = 0; // Trực Phù là Thiên Cầm (số 5): ký Khôn
+            if (starIdx === -1) throw new QimenCalculationError('INVALID_STAR', 'Sao không thuộc vòng Lạc Thư', { trucPhuTinh: trucPhuTinh }, 'anBan.stars');
             for (let i = 0; i < 8; i++) {
                 const palace = LUO_SHU[ringPos];
                 starAtPalace[palace] = starRing[starIdx];
@@ -1148,10 +1181,13 @@
                 gioChi: gioChi,
                 trucPhu: { cung: trucPhuCung, tinh: trucPhuTinh },
                 trucSu: { mon: trucSuMon, cung: trucSuCung },
-                date: date
+                date: date,
+                ruleSetVersion: QIMEN_CONFIG.ruleSetVersion,
+                ruleSetHash: ruleSetHash()
             };
 
-            return cung;
+            // QimenBoard immutable — không được sửa sau khi lập.
+            return deepFreeze(cung);
         }
 
         // ================================================================
