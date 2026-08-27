@@ -31,7 +31,7 @@ for (let year of [2024, 2025, 2026]) {
     for (let i = 0; i < TIET_KHI.length; i++) {
         const name = TIET_KHI[i].name;
         const prev = TIET_KHI[(i - 1 + 24) % 24].name;
-        const instant = ctx.findTietKhiJd(name, year);
+        const instant = ctx.findSolarTermInstant(name, year);
 
         // Trước giao tiết 30/10 phút → vẫn là tiết KHÍ TRƯỚC
         assert.strictEqual(ctx.solarTermAtInstant(instant - 30 * MIN).name, prev, `${name} ${year}: -30 phút phải là ${prev}`);

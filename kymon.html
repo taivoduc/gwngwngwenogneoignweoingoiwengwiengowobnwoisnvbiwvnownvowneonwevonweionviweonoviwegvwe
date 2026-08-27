@@ -923,10 +923,10 @@
         const TIET_KHI_LONG = [315, 330, 345, 0, 15, 30, 45, 60, 75, 90, 105, 120,
             135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300];
 
-        // Tìm ngày Julian khi Mặt Trời đạt kinh độ hoàng đạo nhất định (ngày giao tiết)
-        function findTietKhiJd(name, year) {
+        // Tiết khí EXACT INSTANT (fractional JD) — dùng cho audit + boundary tests.
+        function findSolarTermInstant(name, year) {
             const t = TIET_KHI.find(x => x.name === name);
-            if (!t) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Tiết khí không tồn tại', { name: name }, 'findTietKhiJd');
+            if (!t) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Tiết khí không tồn tại', { name: name }, 'findSolarTermInstant');
             const idx = TIET_KHI.indexOf(t);
             const longitude = TIET_KHI_LONG[idx];
             const approxJd = jdFromDate(t.d, t.m, year);
@@ -941,22 +941,26 @@
                 if (diff > 180) diff -= 360;
                 const start = ((longitude - lng1) % 360 + 360) % 360;
                 if (diff > 0 && start <= diff) {
-                    const frac = start / diff;
-                    return jd1 + frac; // EXACT INSTANT (fractional JD)
+                    return jd1 + start / diff; // EXACT INSTANT
                 }
                 jd1 = jd2;
                 lng1 = lng2;
             }
-            throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không tìm thấy giao điểm tiết khí', { name: name, year: year }, 'findTietKhiJd');
+            throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không tìm thấy giao điểm tiết khí', { name: name, year: year }, 'findSolarTermInstant');
         }
 
-        // Tiết khí tại một JD bất kỳ (fractional) — term có instant <= target < instant kế tiếp.
+        // Ngày giao tiết (DAY-LEVEL) — dùng cho Cục 拆补 (khớp convention bazi.vn).
+        function findTietKhiJd(name, year) {
+            return Math.floor(findSolarTermInstant(name, year) + 0.5);
+        }
+
+        // Tiết khí tại một JD bất kỳ (EXACT INSTANT) — term có instant <= target < instant kế tiếp.
         function solarTermAtInstant(targetJd) {
             const approxYear = jdToDate(Math.floor(targetJd)).year;
             let best = null;
             for (let y of [approxYear - 1, approxYear, approxYear + 1]) {
                 for (let t of TIET_KHI) {
-                    const termJd = findTietKhiJd(t.name, y);
+                    const termJd = findSolarTermInstant(t.name, y);
                     if (termJd <= targetJd) {
                         if (!best || termJd > best.jd) best = { name: t.name, jd: termJd };
                     }
@@ -966,9 +970,20 @@
             return best;
         }
 
-        // Tiết khí tại đầu ngày (midnight) — dùng cho Cục theo Phù Đầu.
+        // Tiết khí DAY-LEVEL (term có ngày giao tiết <= ngày đang xét) — dùng cho Cục theo Phù Đầu.
         function getTietKhi(month, day, year) {
-            return solarTermAtInstant(jdFromDate(day, month, year));
+            const targetJd = jdFromDate(day, month, year);
+            let best = null;
+            for (let y of [year - 1, year, year + 1]) {
+                for (let t of TIET_KHI) {
+                    const termJd = findTietKhiJd(t.name, y); // day-level
+                    if (termJd <= targetJd) {
+                        if (!best || termJd > best.jd) best = { name: t.name, jd: termJd };
+                    }
+                }
+            }
+            if (!best) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không xác định được tiết khí hiện tại', { month: month, day: day, year: year }, 'getTietKhi');
+            return best;
         }
 
         function tinhCuc(month, day, year) {
