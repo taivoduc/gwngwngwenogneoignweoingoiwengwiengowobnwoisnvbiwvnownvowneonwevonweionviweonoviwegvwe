@@ -1004,6 +1004,92 @@
         }
 
         // ================================================================
+        // ZHIRUN (置闰) — engine ĐỘC LẬP, port từ atopx/qimen internal/compute/zhirun.go (MIT).
+        // Source: https://github.com/atopx/qimen/blob/master/internal/compute/zhirun.go
+        // Status: IMPLEMENTATION_VERIFIED (port) · SOURCE_SUPPORTED (atopx) — CHƯA có citation cổ thư.
+        // ================================================================
+        const ZHI_RUN_THRESHOLD = 7; // "符头超前九日则置闰" (tính gồm ngày 符头) = interval 8 → ngưỡng 7
+
+        function mod15(x) { return ((x % 15) + 15) % 15; }
+        function dayNumber(jd) { return Math.floor(jd + 0.5); }
+        // 符头 (15-day leader: 甲子/己卯/甲午/己酉) tại hoặc trước ngày jd.
+        function leaderDay(jd) { const dn = dayNumber(jd); return dn - mod15(dn + 49); }
+        // 符头 "nhận" điểm chí (adopting leader): lead 0..7 → 超神/正授; lead 8..14 → 置闰 → 接气.
+        function adoptingLeader(solsticeJd) {
+            const zd = dayNumber(solsticeJd);
+            const lead = mod15(zd + 49);
+            const g = zd - lead;
+            return (lead > ZHI_RUN_THRESHOLD) ? g + 15 : g;
+        }
+        function termIndexOf(name) {
+            for (let i = 0; i < TIET_KHI.length; i++) if (TIET_KHI[i].name === name) return i;
+            throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Tiết khí không tồn tại', { name: name }, 'termIndexOf');
+        }
+
+        // Working term (用局节气) theo 置闰: từ điểm chí "nhận" (đông chí/hạ chí),
+        // mỗi 符头 tiến 1 tiết; 芒种/大雪 có thể lặp (30 ngày) khi 置闰.
+        function nearestSolstice(name, jd, direction) {
+            const approxYear = jdToDate(Math.floor(jd)).year;
+            let best = null;
+            for (let y = approxYear - 1; y <= approxYear + 1; y++) {
+                const sJd = findTietKhiJd(name, y);
+                if (direction < 0 && sJd <= jd) { if (!best || sJd > best.jd) best = { name: name, jd: sJd }; }
+                if (direction > 0 && sJd > jd) { if (!best || sJd < best.jd) best = { name: name, jd: sJd }; }
+            }
+            if (!best) throw new QimenCalculationError('SOLAR_TERM_NOT_FOUND', 'Không tìm thấy điểm chí', { name: name, jd: jd }, 'nearestSolstice');
+            return best;
+        }
+
+        function zhiRunWorkingTermName(jd, realTermName) {
+            const f = leaderDay(jd);
+            const dongChiCur = nearestSolstice('Đông Chí', jd, -1);
+            const haChiCur = nearestSolstice('Hạ Chí', jd, -1);
+            let candidates;
+            if (dongChiCur.jd > haChiCur.jd) {
+                // Dương nửa năm (điểm chí gần nhất là Đông Chí)
+                candidates = [
+                    nearestSolstice('Hạ Chí', jd, +1),          // Hạ Chí sắp tới
+                    dongChiCur,                                 // Đông Chí hiện tại
+                    nearestSolstice('Hạ Chí', dongChiCur.jd, -1) // Hạ Chí trước đó
+                ];
+            } else {
+                // Âm nửa năm (điểm chí gần nhất là Hạ Chí)
+                candidates = [
+                    nearestSolstice('Đông Chí', jd, +1),         // Đông Chí sắp tới
+                    haChiCur,                                     // Hạ Chí hiện tại
+                    nearestSolstice('Đông Chí', haChiCur.jd, -1)  // Đông Chí trước đó
+                ];
+            }
+            for (const z of candidates) {
+                const g = adoptingLeader(z.jd);
+                if (g > f) continue;
+                let k = (f - g) / 15;
+                if (k > 11) k = 11;
+                const zIdx = termIndexOf(z.name);
+                return TIET_KHI[(zIdx + k) % 24].name;
+            }
+            return realTermName;
+        }
+
+        function resolveJuZhiRun(month, day, year) {
+            const jd = jdFromDate(day, month, year);
+            const dayN = ((jd + 49) % 60 + 60) % 60;
+            const fu = dayN - (dayN % 5);
+            const chi = fu % 12;
+            const nguyen = YUAN_BY_CHI[chi];
+            if (!nguyen) throw new QimenCalculationError('INVALID_YUAN', 'Địa chi Phù Đầu không hợp lệ', { chi: chi }, 'resolveJuZhiRun');
+            const realTerm = getTietKhi(month, day, year).name;
+            const workingTerm = zhiRunWorkingTermName(jd, realTerm);
+            const info = CUC_TRA[workingTerm];
+            if (!info || !info[nguyen]) throw new QimenCalculationError('JU_NOT_FOUND', 'Không tìm thấy cục (ZHIRUN)', { tiet: workingTerm, nguyen: nguyen }, 'resolveJuZhiRun');
+            return { so: info[nguyen].cuc, duong: info[nguyen].duong, tiet: workingTerm, nguyen: nguyen };
+        }
+
+        function resolveJu(month, day, year, juRule) {
+            return (juRule === 'ZHIRUN') ? resolveJuZhiRun(month, day, year) : tinhCuc(month, day, year);
+        }
+
+        // ================================================================
         // 5. HÀM AN BÀN KỲ MÔN (CHUẨN)
         // ================================================================
         function getCanChi(year) {
@@ -1051,8 +1137,9 @@
             const gioChi = Math.floor((hours + 1) / 2) % 12; // 0=Tý, 1=Sửu, ...
             const gioGan = (dayInfo.ganIdx * 2 + gioChi) % 10;
 
-            // 2. Xác định cục (phép Sách Bổ)
-            const cuc = tinhCuc(month, day, year);
+            // 2. Xác định cục (juRule: 'CHAIBU' default | 'ZHIRUN')
+            const juRule = (opts && opts.juRule) || 'CHAIBU';
+            const cuc = resolveJu(month, day, year, juRule);
 
             // 3. Sắp Địa bàn (Kỳ Nghi) theo cục số.
             // Thứ tự Kỳ Nghi: Mậu(1) Kỷ(2) Canh(3) Tân(4) Nhâm(5) Quý(6) Đinh(7) Bính(8) Ất(9).
@@ -1204,7 +1291,12 @@
                 trucSu: { mon: trucSuMon, cung: trucSuCung },
                 date: date,
                 ruleSetVersion: QIMEN_CONFIG.ruleSetVersion,
-                ruleSetHash: ruleSetHash()
+                ruleSetHash: ruleSetHash(),
+                method: 'ShiJia',
+                style: 'ZhuanPan',
+                juRule: juRule,
+                dayBoundary: dayBoundary,
+                timezoneMode: 'IANA_CIVIL' // chưa implement IANA; giữ nhãn để audit
             };
 
             // QimenBoard immutable — không được sửa sau khi lập.

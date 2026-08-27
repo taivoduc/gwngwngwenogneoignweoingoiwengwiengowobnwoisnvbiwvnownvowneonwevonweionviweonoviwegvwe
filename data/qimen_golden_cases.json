@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "note": "Golden cases có provenance. KHÔNG tự sinh expected. Hiện chỉ 3 case CHAIBU đã cross-validate; cần 200+ từ nguồn độc lập (cổ thư/textbook/engine) để đạt target.",
+    "ruleSetVersion": "1.0.0",
+    "school": "ZhuanPan",
+    "defaultJuRule": "CHAIBU"
+  },
+  "cases": [
+    {
+      "id": "GOLDEN-CHAIBU-001",
+      "source": "atopx/qimen plate.RotateStems/BuildDoor/BuildGod + bazi.vn (cross-validated)",
+      "school": "ZhuanPan",
+      "method": "ShiJia",
+      "style": "ZhuanPan",
+      "juRule": "CHAIBU",
+      "dayBoundary": "2300",
+      "timezone": "UTC+7 (hardcoded)",
+      "input": { "year": 2021, "month": 3, "day": 17, "hour": 3, "minute": 0 },
+      "expected": {
+        "yearGanZhi": "Tân Sửu",
+        "dayGanZhi": "Giáp Tý",
+        "hourGanZhi": "Bính Dần",
+        "solarTerm": "Kinh Trập",
+        "yuan": "Thượng",
+        "yinYang": "Dương",
+        "ju": 1,
+        "zhiFu": { "star": "Thiên Bồng", "palace": 8 },
+        "zhiShi": { "door": "Hưu", "palace": 3 },
+        "diPan": { "1": "Mậu", "2": "Kỷ", "3": "Canh", "4": "Tân", "5": "Nhâm", "6": "Quý", "7": "Đinh", "8": "Bính", "9": "Át" },
+        "tianPan": { "1": "Quý", "2": "Át", "3": "Bính", "4": "Canh", "5": "Nhâm", "6": "Đinh", "7": "Kỷ", "8": "Mậu", "9": "Tân" },
+        "jiuXing": { "1": "Thiên Tâm", "2": "Thiên Anh", "3": "Thiên Nhậm", "4": "Thiên Xung", "5": "", "6": "Thiên Trụ", "7": "Thiên Nhuế", "8": "Thiên Bồng", "9": "Thiên Phụ" },
+        "baMen": { "1": "Kinh", "2": "Đỗ", "3": "Hưu", "4": "Sinh", "5": "", "6": "Tử", "7": "Cảnh", "8": "Khai", "9": "Thương" },
+        "baShen": { "1": "Cửu Thiên", "2": "Bạch Hổ", "3": "Đằng Xà", "4": "Thái Âm", "5": "", "6": "Cửu Địa", "7": "Huyền Vũ", "8": "Trực Phù", "9": "Lục Hợp" }
+      }
+    },
+    {
+      "id": "GOLDEN-CHAIBU-002",
+      "source": "derived from GOLDEN-CHAIBU-001 (giờ Giáp Tuất, phục ngâm)",
+      "school": "ZhuanPan",
+      "method": "ShiJia",
+      "style": "ZhuanPan",
+      "juRule": "CHAIBU",
+      "dayBoundary": "2300",
+      "timezone": "UTC+7",
+      "input": { "year": 2021, "month": 3, "day": 17, "hour": 19, "minute": 0 },
+      "expected": {
+        "solarTerm": "Kinh Trập",
+        "yuan": "Thượng",
+        "yinYang": "Dương",
+        "ju": 1,
+        "note": "Giờ Giáp → toàn bàn phục ngâm: Thiên bàn = Địa bàn, sao/môn/thần tại bản vị"
+      }
+    },
+    {
+      "id": "GOLDEN-CHAIBU-003",
+      "source": "atopx/qimen cross-check (Âm độn)",
+      "school": "ZhuanPan",
+      "method": "ShiJia",
+      "style": "ZhuanPan",
+      "juRule": "CHAIBU",
+      "dayBoundary": "2300",
+      "timezone": "UTC+7",
+      "input": { "year": 2026, "month": 8, "day": 22, "hour": 10, "minute": 16 },
+      "expected": {
+        "solarTerm": "Lập Thu",
+        "yuan": "Thượng",
+        "yinYang": "Âm",
+        "ju": 2
+      }
+    }
+  ]
+}
