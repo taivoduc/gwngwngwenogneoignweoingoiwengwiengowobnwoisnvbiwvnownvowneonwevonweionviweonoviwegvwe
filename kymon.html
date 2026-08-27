@@ -1027,7 +1027,7 @@
             return { gan: gan[ganIdx], chi: chi[chiIdx], ganIdx: ganIdx, chiIdx: chiIdx };
         }
 
-        function anBan(date) {
+        function anBan(date, opts) {
             const year = date.getFullYear();
             const month = date.getMonth() + 1;
             const day = date.getDate();
@@ -1039,9 +1039,10 @@
             const solarYear = (jd < liChunJd) ? year - 1 : year;
             const yearCanChi = getCanChi(solarYear);
 
-            // DAY_BOUNDARY_MODE: '2300' đổi ngày từ 23:00 (truyền thống), '0000' đổi ngày từ 0:00.
+            // DAY_BOUNDARY: '2300' (default, 子时 bắt đầu 23:00) | '0000' (đổi ngày lúc 0:00).
+            const dayBoundary = (opts && opts.dayBoundaryMode) || QIMEN_CONFIG.dayBoundary;
             let ganzhiJd = jd;
-            if (QIMEN_CONFIG.dayBoundary === '2300' && hours >= 23) {
+            if (dayBoundary === '2300' && hours >= 23) {
                 ganzhiJd = jd + 1; // 23:00–23:59 thuộc ngày kế tiếp (子时)
             }
             const dayInfo = getDayCanChi(ganzhiJd);
@@ -1101,12 +1102,24 @@
             const chiefRing = LUO_SHU.indexOf(chiefCung);
             const thiCanRing = LUO_SHU.indexOf(thiCanCung);
             const ringSteps = (thiCanRing - chiefRing + 8) % 8;
+            const heavenPlateRule = (opts && opts.heavenPlateRule) || 'LUOSHU';
             const thienBan = {};
-            thienBan[5] = diaBan[5]; // Trung cung giữ nguyên Kỳ Nghi (không xoay)
-            for (let i = 0; i < 8; i++) {
-                const srcPalace = LUO_SHU[i];
-                const dstPalace = LUO_SHU[(i + ringSteps) % 8];
-                thienBan[dstPalace] = diaBan[srcPalace];
+            if (heavenPlateRule === 'LINEAR') {
+                // Biến thể SO SÁNH (KHÔNG phải default): xoay tuyến tính 1..9.
+                const rotLinear = (c, k) => ((c - 1 + k) % 9 + 9) % 9 + 1;
+                const steps = cuc.duong
+                    ? ((thiCanCung - chiefCung + 9) % 9)
+                    : ((chiefCung - thiCanCung + 9) % 9);
+                for (let p = 1; p <= 9; p++) {
+                    thienBan[p] = diaBan[cuc.duong ? rotLinear(p, -steps) : rotLinear(p, steps)];
+                }
+            } else {
+                thienBan[5] = diaBan[5]; // Trung cung giữ nguyên Kỳ Nghi (không xoay)
+                for (let i = 0; i < 8; i++) {
+                    const srcPalace = LUO_SHU[i];
+                    const dstPalace = LUO_SHU[(i + ringSteps) % 8];
+                    thienBan[dstPalace] = diaBan[srcPalace];
+                }
             }
 
             // 7. An Cửu tinh (转盘: 8 sao ngoài xoay theo vòng Lạc Thư, Thiên Cầm giữ Trung cung)
@@ -1123,7 +1136,11 @@
                 ringPos = (ringPos + (cuc.duong ? 1 : -1) + 8) % 8;
                 starIdx = (starIdx + (cuc.duong ? 1 : -1) + 8) % 8;
             }
-            // 天禽 (Thiên Cầm) 寄坤二: đi cùng Thiên Nhuế (芮) — Trung cung KHÔNG có sao.
+            // 天禽 (Thiên Cầm): JI_KUN2 (default, 禽芮 — Trung không sao) | KEEP_CENTER (giữ Trung).
+            const tianQinRule = (opts && opts.tianQinRule) || QIMEN_CONFIG.tianQinRule;
+            if (tianQinRule === 'KEEP_CENTER') {
+                starAtPalace[5] = 5;
+            }
 
             // 8. An Bát môn — 值使随时支: 值使 từ 值符原宫 đi theo số bước (时支 − 旬首支),
             //    thuận (Dương) / nghịch (Âm) qua vòng 1..9; rồi 8 môn xoay cứng theo vòng Lạc Thư.
@@ -1163,7 +1180,8 @@
             for (let i = 0; i <= 9; i++) {
                 cung[i] = { ten: TEN_CUNG[i], mon: '', than: '', tinh: '', dia: '', thien: '' };
             }
-            const thanArr = (QIMEN_CONFIG.spiritRuleset === 'YIN_YANG_SWAP' && cuc.duong)
+            const spiritRuleset = (opts && opts.spiritRuleset) || QIMEN_CONFIG.spiritRuleset;
+            const thanArr = (spiritRuleset === 'YIN_YANG_SWAP' && cuc.duong)
                 ? TEN_THAN_YANG_SWAP : TEN_THAN;
             for (let p = 1; p <= 9; p++) {
                 cung[p].mon = TEN_MON[doorAtPalace[p]] || '';
