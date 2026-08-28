@@ -62,6 +62,7 @@
             border-radius: 8px;
             outline: none;
             transition: 0.2s;
+            touch-action: none; /* mobile: cho phép kéo lên/xuống đổi giá trị, không cuộn trang */
         }
         .group .val-input:focus { border-color: #f7971e; background: #1a2a5a; }
         .group .val-input.year-input { width: 60px; }
@@ -279,19 +280,12 @@
         .compass-luan-giai {
             margin: 0;
             text-align: left;
-            background: linear-gradient(180deg, #10142a 0%, #05060f 100%);
-            border: 1px solid rgba(255, 255, 255, 0.10);
-            padding: 8px 10px;
+            padding: 20px 0px;
             border-radius: 8px;
             font-size: 0.85rem;
             line-height: 1.5;
             color: #d8d8e0;
         }
-        .compass-luan-giai .lg-title { font-weight: bold; color: #ffd93d; font-size: 0.95rem; margin-bottom: 6px; }
-        .compass-luan-giai .lg-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.14); padding-bottom: 6px; margin-bottom: 8px; }
-        .compass-luan-giai .lg-head .lg-title { margin-bottom: 0; }
-        .compass-luan-giai .lg-close { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22); color: #d8d8e0; border-radius: 50%; width: 26px; height: 26px; font-size: 0.75rem; line-height: 1; cursor: pointer; flex: 0 0 auto; transition: 0.2s; }
-        .compass-luan-giai .lg-close:hover { background: rgba(255,255,255,0.20); color: #ffffff; }
         .compass-luan-giai .lg-sec { margin: 4px 0; }
         .compass-luan-giai .lg-tag { font-weight: bold; color: #7dd3fc; }
         .compass-luan-giai .lg-hanh { color: #a4b0be; }
@@ -1387,7 +1381,6 @@
                                     <table class="cell-table">
                                         ${hi.topicsHTML}
                                     </table>
-                                    <div class="center-hint">📖 Xem luận giải</div>
                                 </div>
                             </div>`;
                     continue;
@@ -1569,7 +1562,7 @@
                 else capNhatTuDuong();
             });
 
-            // Drag
+            // Drag (chuột): kéo lên = tăng, kéo xuống = giảm
             let isDragging = false, startY = 0, startVal = 0;
             input.addEventListener('mousedown', function(e) {
                 if (document.activeElement === this) return;
@@ -1581,10 +1574,24 @@
                 e.preventDefault();
                 this.style.borderColor = '#f7971e';
             });
+            // Mobile: chạm kéo lên = tăng, kéo xuống = giảm (giống chuột trên desktop)
+            input.addEventListener('touchstart', function(e) {
+                if (!e.touches || !e.touches[0]) return;
+                if (document.activeElement === this) return;
+                isDragging = true;
+                startY = e.touches[0].clientY;
+                startVal = parseInt(this.value) || 0;
+                document.addEventListener('touchmove', onTouchMove, { passive: false });
+                document.addEventListener('touchend', onTouchEnd);
+                document.addEventListener('touchcancel', onTouchEnd);
+                e.preventDefault(); // chặn mở bàn phím / cuộn trang
+                this.style.borderColor = '#f7971e';
+            }, { passive: false });
 
             const onDragMove = (e) => {
                 if (!isDragging) return;
-                const deltaY = startY - e.clientY;
+                const y = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+                const deltaY = startY - y;
                 const steps = Math.round(deltaY / 12);
                 if (steps !== 0) {
                     let newVal = startVal + steps;
@@ -1595,11 +1602,16 @@
                     else if (field === 'hour') newVal = Math.max(0, Math.min(23, newVal));
                     input.value = (field === 'year') ? String(newVal) : String(newVal).padStart(2, '0');
                     startVal = newVal;
-                    startY = e.clientY;
+                    startY = y;
                     const isAm = input.id.startsWith('am');
                     if (isAm) capNhatTuAm();
                     else capNhatTuDuong();
                 }
+            };
+
+            const onTouchMove = (e) => {
+                if (e.cancelable && e.preventDefault) e.preventDefault(); // chặn cuộn trang khi kéo
+                onDragMove(e);
             };
 
             const onDragEnd = () => {
@@ -1607,6 +1619,14 @@
                 input.style.borderColor = '#2a4a7a';
                 document.removeEventListener('mousemove', onDragMove);
                 document.removeEventListener('mouseup', onDragEnd);
+            };
+
+            const onTouchEnd = () => {
+                isDragging = false;
+                input.style.borderColor = '#2a4a7a';
+                document.removeEventListener('touchmove', onTouchMove);
+                document.removeEventListener('touchend', onTouchEnd);
+                document.removeEventListener('touchcancel', onTouchEnd);
             };
         });
 
@@ -2019,8 +2039,7 @@
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
                     + hi.topicsHTML
-                    + '</table>'
-                    + '<div class="center-hint">📖 Xem luận giải</div>';
+                    + '</table>';
                 inner.style.color = st.txt;
             }
         }
@@ -2064,7 +2083,6 @@
             const thanInfo = THAN_LUAN[than] || null;
 
             let html = '';
-            html += '<div class="lg-head"><span class="lg-title">📖 Luận giải hướng ' + dir.name + ' — Cung ' + dir.cung + ' (' + dir.short + ')</span><button type="button" class="lg-close" title="Đóng luận giải">✕</button></div>';
             html += '<div class="lg-grid">';
 
             // 4 ô bản chất (tô màu theo trạng thái)
