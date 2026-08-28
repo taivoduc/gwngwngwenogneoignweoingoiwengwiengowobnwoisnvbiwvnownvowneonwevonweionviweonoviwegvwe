@@ -140,6 +140,11 @@
             box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 4px 14px rgba(0, 0, 0, 0.5);
         }
         .cell:hover { border-color: #f7971e; z-index: 2; }
+        /* Vòng tròn trung tâm (Trung cung): bấm để xem luận giải như la bàn nhỏ */
+        .center-cell { cursor: pointer; }
+        .center-cell:hover { border-color: #ffffff; box-shadow: 0 0 0 3px rgba(255,255,255,0.22), 0 0 22px rgba(255,255,255,0.45); transform: scale(1.04); }
+        .center-cell:active { transform: scale(0.97); }
+        .center-cell .center-hint { font-size: 0.55rem; color: rgba(255,255,255,0.85); margin-top: 3px; font-weight: 600; letter-spacing: 0.4px; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
         .cell-inner {
             position: absolute;
             inset: 0px;
@@ -274,8 +279,8 @@
         .compass-luan-giai {
             margin: 0;
             text-align: left;
-            background: #000000;
-            border: none;
+            background: linear-gradient(180deg, #10142a 0%, #05060f 100%);
+            border: 1px solid rgba(255, 255, 255, 0.10);
             padding: 8px 10px;
             border-radius: 8px;
             font-size: 0.85rem;
@@ -283,6 +288,10 @@
             color: #d8d8e0;
         }
         .compass-luan-giai .lg-title { font-weight: bold; color: #ffd93d; font-size: 0.95rem; margin-bottom: 6px; }
+        .compass-luan-giai .lg-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.14); padding-bottom: 6px; margin-bottom: 8px; }
+        .compass-luan-giai .lg-head .lg-title { margin-bottom: 0; }
+        .compass-luan-giai .lg-close { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22); color: #d8d8e0; border-radius: 50%; width: 26px; height: 26px; font-size: 0.75rem; line-height: 1; cursor: pointer; flex: 0 0 auto; transition: 0.2s; }
+        .compass-luan-giai .lg-close:hover { background: rgba(255,255,255,0.20); color: #ffffff; }
         .compass-luan-giai .lg-sec { margin: 4px 0; }
         .compass-luan-giai .lg-tag { font-weight: bold; color: #7dd3fc; }
         .compass-luan-giai .lg-hanh { color: #a4b0be; }
@@ -1378,6 +1387,7 @@
                                     <table class="cell-table">
                                         ${hi.topicsHTML}
                                     </table>
+                                    <div class="center-hint">📖 Xem luận giải</div>
                                 </div>
                             </div>`;
                     continue;
@@ -2009,7 +2019,8 @@
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
                     + hi.topicsHTML
-                    + '</table>';
+                    + '</table>'
+                    + '<div class="center-hint">📖 Xem luận giải</div>';
                 inner.style.color = st.txt;
             }
         }
@@ -2053,6 +2064,7 @@
             const thanInfo = THAN_LUAN[than] || null;
 
             let html = '';
+            html += '<div class="lg-head"><span class="lg-title">📖 Luận giải hướng ' + dir.name + ' — Cung ' + dir.cung + ' (' + dir.short + ')</span><button type="button" class="lg-close" title="Đóng luận giải">✕</button></div>';
             html += '<div class="lg-grid">';
 
             // 4 ô bản chất (tô màu theo trạng thái)
@@ -2292,6 +2304,13 @@
             });
         }
 
+        // Nút ✕ đóng khung luận giải
+        if (compassLuanGiai) {
+            compassLuanGiai.addEventListener('click', function (e) {
+                if (e.target && e.target.closest && e.target.closest('.lg-close')) closeCompass();
+            });
+        }
+
         // Xoay thử (khi mở trên máy tính không có la bàn)
         document.getElementById('headingSlider').addEventListener('input', function () {
             window._compass.manual = true;
@@ -2312,7 +2331,7 @@
         function initBoardDrag() {
             const board = document.getElementById('board');
             if (!board || !board.addEventListener) return;
-            let dragging = false, startAngle = 0, startHeading = 0;
+            let dragging = false, startAngle = 0, startHeading = 0, tapInfo = null;
 
             function pointerAngle(clientX, clientY) {
                 const rect = board.getBoundingClientRect();
@@ -2320,14 +2339,18 @@
                 const cy = rect.top + rect.height / 2;
                 return Math.atan2(clientY - cy, clientX - cx) * 180 / Math.PI;
             }
-            function onStart(clientX, clientY) {
+            function onStart(clientX, clientY, e) {
                 dragging = true;
                 window._compass.manual = true;
                 startAngle = pointerAngle(clientX, clientY);
                 startHeading = window._compass.heading;
+                // Ghi nhận điểm bắt đầu: nếu là vòng tròn trung tâm thì chạm nhẹ = mở luận giải
+                const t = (e && e.target && e.target.closest) ? e.target.closest('.center-cell') : null;
+                tapInfo = { x: clientX, y: clientY, center: !!t, moved: false };
             }
             function onMove(clientX, clientY) {
                 if (!dragging) return;
+                if (tapInfo && Math.hypot(clientX - tapInfo.x, clientY - tapInfo.y) > 10) tapInfo.moved = true;
                 const a = pointerAngle(clientX, clientY);
                 let delta = a - startAngle;
                 delta = ((delta + 180) % 360 + 360) % 360 - 180;
@@ -2337,6 +2360,19 @@
                 if (!dragging) return;
                 dragging = false;
                 window._compass.manual = false;
+                // Chạm (không kéo) vào vòng tròn trung tâm: mở/đóng luận giải như la bàn nhỏ
+                if (tapInfo && tapInfo.center && !tapInfo.moved) {
+                    tapInfo = null;
+                    if (compassOpen) closeCompass();
+                    else {
+                        openCompass();
+                        if (compassLuanGiai && compassLuanGiai.scrollIntoView) {
+                            compassLuanGiai.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                    return;
+                }
+                tapInfo = null;
                 // Tự động chọn lại giờ hiện tại khi thao tác vào các vòng tròn
                 const now = new Date();
                 const hourInput = document.getElementById('duongHour');
@@ -2344,8 +2380,8 @@
                 capNhatTuDuong();
             }
 
-            board.addEventListener('mousedown', function (e) { onStart(e.clientX, e.clientY); if (e.preventDefault) e.preventDefault(); });
-            board.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX, e.touches[0].clientY); if (e.preventDefault) e.preventDefault(); }, { passive: false });
+            board.addEventListener('mousedown', function (e) { onStart(e.clientX, e.clientY, e); if (e.preventDefault) e.preventDefault(); });
+            board.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX, e.touches[0].clientY, e); if (e.preventDefault) e.preventDefault(); }, { passive: false });
 
             if (document.addEventListener) {
                 document.addEventListener('mousemove', function (e) { onMove(e.clientX, e.clientY); });
