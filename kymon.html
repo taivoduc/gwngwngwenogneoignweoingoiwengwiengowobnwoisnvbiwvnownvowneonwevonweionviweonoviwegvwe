@@ -282,7 +282,7 @@
             text-align: left;
             padding: 20px 0px;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.93rem; /* +10% cho dễ đọc */
             line-height: 1.5;
             color: #d8d8e0;
         }
@@ -339,6 +339,28 @@
         .compass-controls .heading-val { font-weight: bold; color: #fff; min-width: 42px; text-align: right; }
         .compass-panel.hidden { display: none; }
         .compass-luan-giai.hidden { display: none; }
+
+        /* ===== Luận giải theo hướng — lưới 9 ô chủ đề (3×3) ===== */
+        /* Nền mỗi ô = màu tô của HƯỚNG đang chọn (scoreToColor, inline) — chữ trắng đọc được trên nền đậm */
+        .compass-luan-giai .lg-grid9 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 4px 0; }
+        .compass-luan-giai .lg-cell { border-radius: 8px; padding: 6px 7px; text-align: left; border: 1px solid rgba(255,255,255,0.18); }
+        .compass-luan-giai .lg-cell .lg-cell-top { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .compass-luan-giai .lg-cell .lg-cell-emoji { font-size: 1.1rem; line-height: 1.2; }
+        .compass-luan-giai .lg-cell .lg-cell-name { font-size: 0.77rem; color: #fff; font-weight: 600; flex: 1; }
+        .compass-luan-giai .lg-cell .lg-cell-word { font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+        .compass-luan-giai .lg-cell .lg-cell-detail { margin-top: 4px; }
+        .compass-luan-giai .lg-cell .lg-reason { font-size: 0.7rem; line-height: 1.4; margin: 2px 0; color: #eef1f5; }
+        .compass-luan-giai .lg-cell .lg-reason.fav { color: #d9f7e4; }
+        .compass-luan-giai .lg-cell .lg-reason.unfav { color: #ffd6d6; }
+        .compass-luan-giai .lg-cell .lg-reason.neu { color: #e2e5ea; }
+        .compass-luan-giai .lg-cell.fav .lg-cell-word { color: #c8f7da; }
+        .compass-luan-giai .lg-cell.unfav .lg-cell-word { color: #ffd9d9; }
+        .compass-luan-giai .lg-cell.mix .lg-cell-word { color: #ffe38f; }
+        .compass-luan-giai .lg-cell.neu .lg-cell-word { color: #e8eaf0; }
+        @media (max-width: 640px) {
+            .compass-luan-giai .lg-grid9 { grid-template-columns: 1fr; }
+        }
+
         .compass-toggle {
             display: inline-flex;
             align-items: center;
@@ -487,6 +509,7 @@
 
     <div id="board"></div>
 
+    <script src="qimen-interpreter.bundle.js"></script>
     <script>
         // ================================================================
         // 1. THƯ VIỆN ÂM LỊCH HỒ NGỌC ĐỨC (đầy đủ)
@@ -1379,13 +1402,14 @@
                     html += `<div class="cell center-cell" style="background:${st.bg}; border-color:${st.bd};">
                                 <div class="cell-inner" style="color:${st.txt}">
                                     <table class="cell-table">
-                                        ${hi.topicsHTML}
+                                        ${iqCenterTopicsHTML(cung)}
                                     </table>
                                 </div>
                             </div>`;
                     continue;
                 }
-                const score10 = normalizeScore(palaceScore(cell));
+                const iqsc = iqScores();
+                const score10 = (iqsc && iqsc.per[idx] !== undefined) ? iqsc.per[idx] : normalizeScore(palaceScore(cell));
                 const bg = scoreToColor(score10);
                 const scoreText = (score10 > 0 ? '+' : '') + score10;
                 const scoreCls = score10 > 0 ? 'diem-tot' : (score10 < 0 ? 'diem-xau' : 'diem-trung');
@@ -1510,24 +1534,48 @@
             const currentChi = Math.floor((selectedHour + 1) / 2) % 12;
 
             let container = document.getElementById('gioCompact');
+            // Điểm 12 canh giờ (Rule Engine −9..+9): tổng điểm tốt − tổng điểm xấu của TẤT CẢ hướng trong giờ đó
+            const hourScores = iqHourScores();
             let html = '<table class="gio-table"><tr>';
             for (let i = 0; i < 12; i++) {
-                const star = getGioStarInfo(dayGanIdx, i);
-                const isHoang = star.good;
-                const bg = getGioBackgroundColor(star.level);
-                const border = isHoang ? '#2ecc71' : '#e74c3c';
+                const sc = (hourScores && hourScores[i] !== undefined) ? hourScores[i] : 0;
+                const bg = scoreToColor(sc);
+                const border = sc > 0 ? '#2ecc71' : (sc < 0 ? '#e74c3c' : '#2a4a7a');
                 const emoji = GiapEmoji[i];
                 const tenChi = chi[i];
                 const gioBD = GioBatDau[i];
                 const gioEnd = GioBatDau[(i + 1) % 12];
                 const isNow = (i === currentChi);
-                html += `<td class="gio-item-mini${isNow ? ' now' : ''}" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} - ${star.name} (${isHoang?'Hoàng Đạo':'Hắc Đạo'})${isNow?' - GIỜ HIỆN TẠI':''}">
-                            <span class="line1"><span class="gio-emoji">${emoji}</span><span class="gio-ten"> ${tenChi}</span></span>
+                const scText = (sc > 0 ? '+' : '') + sc;
+                html += `<td class="gio-item-mini${isNow ? ' now' : ''}" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} ${scText}${isNow ? ' - GIỜ HIỆN TẠI' : ''}">
+                            <span class="line1"><span class="gio-emoji">${emoji}</span><span class="gio-ten"> ${tenChi} ${scText}</span></span>
                             <span class="line2"><span class="gio-bd">${gioBD}</span><span class="gio-end"> - ${gioEnd}</span></span>
                         </td>`;
             }
             html += '</tr></table>';
             container.innerHTML = html;
+        }
+
+        // Điểm của 12 canh giờ trong NGÀY hiện tại (cache theo ngày):
+        // mỗi giờ dựng lá số riêng (anBan) → scoreHour = tổng điểm tốt − tổng điểm xấu mọi hướng
+        function iqHourScores() {
+            if (!window.KYMON_IQ) return null;
+            const y = parseInt(document.getElementById('duongYear').value) || 2024;
+            const m = parseInt(document.getElementById('duongMonth').value) || 1;
+            const d = parseInt(document.getElementById('duongDay').value) || 1;
+            const key = y + '-' + m + '-' + d;
+            if (window._iqHourCache && window._iqHourCache.key === key) return window._iqHourCache.scores;
+            const scores = {};
+            for (let i = 0; i < 12; i++) {
+                let startHour = (i * 2 - 1) % 24;
+                if (startHour < 0) startHour = 23;
+                try {
+                    const chart = anBan(new Date(y, m - 1, d, startHour, 0, 0));
+                    scores[i] = window.KYMON_IQ.scoreHour(chart).score;
+                } catch (e) { scores[i] = 0; }
+            }
+            window._iqHourCache = { key: key, scores: scores };
+            return scores;
         }
 
         // ================================================================
@@ -1961,6 +2009,8 @@
         }
 
         // Điểm tổng hợp của 1 cung: Môn + Tinh + Thần (môn/tinh/thần đã theo thời gian nên không cộng thêm giờ)
+        // ⚠️ LEGACY HEURISTIC SCORE — chỉ dùng cho màu hiển thị UI (backward compatibility).
+        // Interpretation Engine (KYMON_IQ) KHÔNG gọi hàm này; điểm này KHÔNG phải xác suất.
         function palaceScore(cell) {
             if (!cell.mon) return 0; // Trung cung (không có môn) -> trung tính
             let score = 0;
@@ -1969,6 +2019,9 @@
             score += componentWeight('than', cell.than);
             return score;
         }
+
+        // Deprecated compatibility layer — UI display only (alias của palaceScore).
+        const legacyHeuristicScore = palaceScore;
 
         // Bảng màu: xanh đậm (tốt nhất) -> vàng (0) -> đỏ đậm (xấu nhất)
         // Chuẩn hoá điểm về thang -10..+10 (điểm thô -4..+4 = Môn + Tinh + Thần + Giờ)
@@ -2038,76 +2091,174 @@
             const inner = center.querySelector('.cell-inner');
             if (inner) {
                 inner.innerHTML = '<table class="cell-table">'
-                    + hi.topicsHTML
+                    + iqCenterTopicsHTML(cung)
                     + '</table>';
                 inner.style.color = st.txt;
             }
         }
 
+        // Chủ đề THUẬN LỢI tại hướng hiện tại — hiển thị ở ô trung tâm
+        // (giống cách renderGoodTopics cũ, nhưng dùng Rule Engine).
+        let _iqCenterCache = null;
+        function iqCenterTopicsHTML(cung) {
+            if (!window.KYMON_IQ || !cung) return '<tr><td class="ct" colspan="2">—</td></tr>';
+            const h = window._compass.heading;
+            const dir = getDirection(h);
+            const focusPalace = dir.palace;
+            const key = 'c' + focusPalace + '|' + (cung.info && cung.info.date ? cung.info.date.toString() : '');
+            if (_iqCenterCache && _iqCenterCache.key === key) return _iqCenterCache.html;
+            let rows = '', favCount = 0;
+            for (let i = 0; i < IQ_CELLS.length; i++) {
+                const c = IQ_CELLS[i];
+                let res = null;
+                try { res = window.KYMON_IQ.interpretQimen(cung, { type: c.type, text: '' }, { focusPalace: focusPalace }); }
+                catch (e) { continue; }
+                let d = null;
+                for (let j = 0; j < res.conclusion.dimensions.length; j++) {
+                    if (res.conclusion.dimensions[j].dimension === c.dim) { d = res.conclusion.dimensions[j]; break; }
+                }
+                if (!d) d = res.conclusion.dimensions[0];
+                if (d && d.direction === 'FAVORABLE') {
+                    favCount++;
+                    rows += '<tr><td class="ci">' + c.emoji + '</td><td class="ct">' + c.label + '</td></tr>';
+                }
+            }
+            if (!favCount) rows = '<tr><td class="ct" colspan="2">—</td></tr>';
+            _iqCenterCache = { key: key, html: rows };
+            return rows;
+        }
+
         // Màu nhạt: xanh (tốt) -> trung tính -> đỏ (xấu), không dùng màu vàng
+        // Màu điểm −9..+9: càng cao càng XANH LÁ đậm, càng thấp càng ĐỎ đậm.
+        // Giữ độ sáng 24–38% để chữ trắng vẫn đọc rõ trên nền đậm.
         function scoreToColor(score) {
-            const s = Math.max(-6, Math.min(6, Math.round(score)));
+            const s = Math.max(-9, Math.min(9, Math.round(score)));
             if (s === 0) return '#2e2e3c';
-            if (s > 0) return 'hsl(135, 38%, ' + (40 - s * 2) + '%)';
-            return 'hsl(0, 45%, ' + (40 + s * 2) + '%)';
+            const t = Math.abs(s) / 9;
+            if (s > 0) return 'hsl(140, 52%, ' + Math.round(38 - 14 * t) + '%)';
+            return 'hsl(0, 52%, ' + Math.round(38 - 14 * t) + '%)';
         }
 
         // Tô màu nền 8 nhãn hướng trên la bàn theo đúng màu nền (điểm) của 8 cung lớn tương ứng
-        function updateRoseLabels(cung) {
+        function updateRoseLabels(cung, sc) {
             const ring = document.getElementById('roseRing');
             if (!ring || !ring.querySelectorAll) return;
             const labels = ring.querySelectorAll('.rose-label');
             for (let i = 0; i < labels.length; i++) {
                 const p = parseInt(labels[i].dataset.palace, 10);
                 if (p >= 1 && p <= 9 && cung && cung[p]) {
-                    const score10 = normalizeScore(palaceScore(cung[p]));
-                    labels[i].style.background = scoreToColor(score10);
+                    const s10 = (sc && sc.per && sc.per[p] !== undefined) ? sc.per[p] : 0;
+                    labels[i].style.background = scoreToColor(s10);
                     labels[i].style.color = '#ffffff';
                     labels[i].style.borderColor = HANH_COLOR[CUNG_HANH[p]] || '#2a4a7a';
                     const scoreSpan = labels[i].querySelector('.rl-score');
-                    if (scoreSpan) scoreSpan.textContent = (score10 > 0 ? '+' : '') + score10;
+                    if (scoreSpan) scoreSpan.textContent = (s10 > 0 ? '+' : '') + s10;
                 }
             }
+        }
+
+        // ================================================================
+        // LUẬN GIẢI THEO HƯỚNG — Rule Engine (KYMON_IQ) — 12 ô chủ đề (3×4).
+        // RÀNG BUỘC HƯỚNG: interpretation chạy trên CUNG ĐANG HƯỚNG TỚI
+        // (focusPalace = dir.palace) → đổi hướng = đổi kết quả luận giải.
+        // Chỉ hiển thị KẾT QUẢ — không hiển thị cách suy luận (trace/factors).
+        // ================================================================
+        // 9 chủ đề lớn (3 dòng × 3 cột) — gom từ 19 loại câu hỏi:
+        //   Sự nghiệp ← CAREER, JOB_INTERVIEW, PROJECT, COMPETITION
+        //   Tài lộc   ← WEALTH, REAL_ESTATE, INVESTMENT
+        //   Kinh doanh ← BUSINESS, PARTNERSHIP
+        //   Hôn nhân · Tình cảm ← MARRIAGE, LOVE
+        //   Sức khỏe  ← HEALTH
+        //   Học hành · Thi cử ← STUDY, EXAM
+        //   Đi lại    ← TRAVEL
+        //   Kiện tụng ← LITIGATION
+        //   An toàn   ← SAFETY, LOST_OBJECT
+        const IQ_CELLS = [
+            { type: 'CAREER', dim: 'career', label: 'Sự nghiệp', emoji: '💼' },
+            { type: 'WEALTH', dim: 'wealth', label: 'Tài lộc', emoji: '💰' },
+            { type: 'BUSINESS', dim: 'wealth', label: 'Kinh doanh', emoji: '🏪' },
+            { type: 'MARRIAGE', dim: 'relationship', label: 'Tình cảm', emoji: '❤️' }, // + LOVE
+            { type: 'HEALTH', dim: 'health', label: 'Sức khỏe', emoji: '🏥' },
+            { type: 'STUDY', dim: 'study', label: 'Học hành', emoji: '📚' }, // + EXAM
+            { type: 'TRAVEL', dim: 'travel', label: 'Đi lại', emoji: '✈️' },
+            { type: 'LITIGATION', dim: 'litigation', label: 'Kiện tụng', emoji: '⚖️' },
+            { type: 'SAFETY', dim: 'safety', label: 'An toàn', emoji: '🛡️' }
+        ];
+        let _iqLastKey = null, _iqLastHtml = '';
+
+        // Lý do dẫn tới kết luận của 1 chủ đề (từ findings — ngắn gọn, dễ đọc)
+        function iqCellReasons(res, dim) {
+            const fav = [], unfav = [];
+            res.findings.forEach(function (f) {
+                const relevant = f.dimensions === null || (Array.isArray(f.dimensions) && f.dimensions.indexOf(dim) >= 0);
+                if (!relevant) return;
+                if (f.priority === 100) return; // bỏ note Trung cung
+                let txt = f.explanation || f.name;
+                // Dịch chữ Trung → Việt cho dễ đọc
+                txt = txt.split('用神').join('Dụng thần');
+                // Tránh lặp subject khi explanation đã nhắc tới subject
+                if (f.subject && txt.indexOf(f.subject) < 0) txt = f.subject + ' — ' + txt;
+                if (txt.length > 140) txt = txt.slice(0, 137) + '…';
+                // Viết hoa chữ cái đầu mỗi câu lý do (vd: can Kỷ → Can Kỷ)
+                txt = txt.charAt(0).toUpperCase() + txt.slice(1);
+                if (f.polarity === 'FAVORABLE' && fav.length < 2) fav.push(txt);
+                else if (f.polarity === 'UNFAVORABLE' && unfav.length < 2) unfav.push(txt);
+            });
+            return { fav: fav, unfav: unfav };
         }
 
         function renderLuanGiai(dir, cell) {
             const box = document.getElementById('compassLuanGiai');
             if (!box) return;
-            const hanhCung = CUNG_HANH[dir.palace] || '';
-            const cungChat = CUNG_LUAN[dir.palace] || '';
-            const mon = cell ? (cell.mon || '') : '';
-            const tinh = cell ? (cell.tinh || '') : '';
-            const than = cell ? (cell.than || '') : '';
-            const monInfo = MON_LUAN[mon] || null;
-            const tinhInfo = TINH_LUAN[tinh] || null;
-            const thanInfo = THAN_LUAN[than] || null;
+            if (!window.KYMON_IQ || !window._cungData) { box.innerHTML = ''; return; }
+            const chart = window._cungData;
+            const focusPalace = dir.palace;
+            // Cache: chỉ tính lại khi ĐỔI CUNG hướng hoặc ĐỔI NGÀY/GIỜ
+            const key = focusPalace + '|' + (chart.info && chart.info.date ? chart.info.date.toString() : '');
+            if (_iqLastKey === key) { box.innerHTML = _iqLastHtml; return; }
+            _iqLastKey = key;
 
-            let html = '';
-            html += '<div class="lg-grid">';
-
-            // 4 ô bản chất (tô màu theo trạng thái)
-            const stCung = 'trung';
-            const stMon = componentStatus('mon', mon);
-            const stTinh = componentStatus('tinh', tinh);
-            const stThan = componentStatus('than', than);
-            const iconCung = HANH_ICON[hanhCung] || '';
-            const iconMon = monInfo ? (HANH_ICON[monInfo.hanh] || '') : '';
-            const iconTinh = tinhInfo ? (HANH_ICON[tinhInfo.hanh] || '') : '';
-            const iconThan = HANH_ICON[THAN_HANH[than]] || '';
-            const score10 = cell ? normalizeScore(palaceScore(cell)) : 0;
-            const scoreText = (score10 > 0 ? '+' : '') + score10;
-            html += '<div class="lg-item ' + stCung + '"><span class="lg-tag">' + iconCung + ' Cung ' + dir.cung + ' ' + dir.short + ' ' + scoreText + '</span><br>' + cungChat + '</div>';
-            html += '<div class="lg-item ' + stMon + '">' + (monInfo ? ('<span class="lg-tag">' + iconMon + ' Môn ' + mon + '</span><br>' + monInfo.chat) : '') + '</div>';
-            html += '<div class="lg-item ' + stTinh + '">' + (tinhInfo ? ('<span class="lg-tag">' + iconTinh + ' Tinh ' + tinh + '</span><br>' + tinhInfo.chat) : '') + '</div>';
-            html += '<div class="lg-item ' + stThan + '">' + (thanInfo ? ('<span class="lg-tag">' + iconThan + ' Thần ' + than + '</span><br>' + thanInfo) : '') + '</div>';
-
-            // 8 chủ đề lớn
-            for (let i = 0; i < CHU_DE.length; i++) {
-                html += taoChuDe(CHU_DE[i], mon, tinh, than);
+            // 9 ô chủ đề (3 dòng × 3 cột) — mỗi ô: kết quả + luận giải chi tiết
+            let html = '<div class="lg-grid9">';
+            for (let i = 0; i < IQ_CELLS.length; i++) {
+                const c = IQ_CELLS[i];
+                let res = null;
+                try { res = window.KYMON_IQ.interpretQimen(chart, { type: c.type, text: '' }, { focusPalace: focusPalace }); }
+                catch (e) { continue; }
+                let d = null;
+                for (let j = 0; j < res.conclusion.dimensions.length; j++) {
+                    if (res.conclusion.dimensions[j].dimension === c.dim) { d = res.conclusion.dimensions[j]; break; }
+                }
+                if (!d) d = res.conclusion.dimensions[0] || { direction: 'NEUTRAL', intensity: 'WEAK' };
+                const cls = d.direction === 'FAVORABLE' ? 'fav' : d.direction === 'UNFAVORABLE' ? 'unfav' : d.direction === 'MIXED' ? 'mix' : 'neu';
+                let word = d.direction === 'FAVORABLE' ? 'Thuận' : d.direction === 'UNFAVORABLE' ? 'Không thuận' : d.direction === 'MIXED' ? 'Trái chiều' : 'Trung tính';
+                if (d.intensity === 'STRONG') word += ' (rõ)';
+                else if (d.intensity === 'MODERATE') word += ' (vừa)';
+                // Điểm chủ đề −2..+2 (Thuận rõ +2, Thuận vừa +1, Không thuận vừa −1, Không thuận rõ −2)
+                const ts = window.KYMON_IQ.topicScoreFromVerdict(d.direction, d.intensity);
+                word += ' ' + (ts > 0 ? '+' : '') + ts;
+                const reasons = iqCellReasons(res, c.dim);
+                // Màu nền ô theo ĐIỂM CHỦ ĐỀ RIÊNG của nó: +2 xanh đậm, −2 đỏ đậm, càng dương càng xanh, càng âm càng đỏ
+                const cellBg = scoreToColor(ts * 4.5);
+                html += '<div class="lg-cell ' + cls + '" style="background:' + cellBg + ';">'
+                    + '<div class="lg-cell-top"><span class="lg-cell-emoji">' + c.emoji + '</span>'
+                    + '<span class="lg-cell-name">' + c.label + '</span>'
+                    + '<span class="lg-cell-word">' + word + '</span></div>'
+                    + '<div class="lg-cell-detail">';
+                if (reasons.fav.length) {
+                    html += '<div class="lg-reason fav">' + reasons.fav.map(function (t) { return '• ' + t; }).join('</div><div class="lg-reason fav">') + '</div>';
+                }
+                if (reasons.unfav.length) {
+                    html += '<div class="lg-reason unfav">' + reasons.unfav.map(function (t) { return '• ' + t; }).join('</div><div class="lg-reason unfav">') + '</div>';
+                }
+                if (!reasons.fav.length && !reasons.unfav.length) {
+                    html += '<div class="lg-reason neu">• Không có yếu tố nổi bật — cân nhắc kỹ.</div>';
+                }
+                html += '</div></div>';
             }
-
             html += '</div>';
 
+            _iqLastHtml = html;
             box.innerHTML = html;
         }
 
@@ -2136,42 +2287,79 @@
             }
         }
 
+        // Điểm −9..+9 (Rule Engine): cache theo lá số — chỉ tính lại khi đổi ngày/giờ.
+        // Điểm HƯỚNG = round(Σ điểm 9 chủ đề ÷ 2); Điểm GIỜ = tổng tốt − tổng xấu của 8 hướng.
+        function iqScores() {
+            if (!window.KYMON_IQ || !window._cungData || !window._cungData.info) return null;
+            const key = window._cungData.info.date ? window._cungData.info.date.toString() : '';
+            let base = window._iqScoresCache;
+            if (!base || base.key !== key) {
+                const hs = window.KYMON_IQ.scoreHour(window._cungData);
+                const per = {};
+                [1, 2, 3, 4, 6, 7, 8, 9].forEach(function (p) {
+                    per[p] = window.KYMON_IQ.scoreDirection(window._cungData, p).score;
+                });
+                base = { key: key, hourScore: hs.score, per: per };
+                window._iqScoresCache = base;
+            }
+            return Object.assign({}, base);
+        }
+
         function updateCompass() {
             const hi = headingInfo(window._cungData);
             const h = hi.h, dir = hi.dir, cell = hi.cell;
-            const scoreText = hi.scoreText, scoreCls = hi.scoreCls;
-            const st = scoreStyle(scoreCls);
-
-            document.getElementById('compassDeg').textContent = h + '°';
-            document.getElementById('compassDir').textContent = dir.name;
             document.getElementById('headingVal').textContent = h + '°';
             document.getElementById('headingSlider').value = h;
 
-            // Dòng 1 la bàn: <Giờ> <độ, hướng> <điểm> — cùng màu theo trọng số
+            // Điểm mới (Rule Engine −9..+9): điểm HƯỚNG + điểm GIỜ
+            const sc = iqScores();
+            const dirScore = (sc && sc.per[dir.palace] !== undefined) ? sc.per[dir.palace] : 0;
+            const hourScore = sc ? sc.hourScore : 0;
+            const scoreText = (dirScore > 0 ? '+' : '') + dirScore;
+            const scoreCls = dirScore > 0 ? 'diem-tot' : (dirScore < 0 ? 'diem-xau' : 'diem-trung');
+
+            // Dòng 1 la bàn: <độ> <hướng> - <Giờ> <điểm giờ> - <Cung> <điểm cung>, <Môn – Tinh – Thần>
             const heading = document.getElementById('compassHeading');
-            if (heading) heading.className = 'compass-heading ' + scoreCls;
-            const gioEl = document.getElementById('compassGio');
-            if (gioEl) gioEl.innerHTML = hi.gioHTML;
+            if (heading) {
+                let line = h + '° ' + dir.name;
+                if (window._cungData && window._cungData.info) {
+                    const chiIndex = window._cungData.info.gioChi;
+                    line += ' - ' + CHI[chiIndex] + ' ' + (hourScore > 0 ? '+' : '') + hourScore;
+                }
+                line += ' - ' + dir.cung + ' ' + dir.short + ' ' + scoreText;
+                if (cell) {
+                    const parts = [];
+                    if (cell.mon) parts.push(cell.mon + ' Môn');
+                    if (cell.tinh) parts.push('Sao ' + cell.tinh);
+                    if (cell.than) parts.push('Thần ' + cell.than);
+                    if (parts.length) line += ', ' + parts.join(' – ');
+                }
+                heading.textContent = line;
+                heading.className = 'compass-heading ' + scoreCls;
+            }
+
             const diem = document.getElementById('compassDiem');
             if (diem) {
                 diem.textContent = scoreText;
                 diem.className = 'diem-heading ' + scoreCls;
             }
 
-            // Vòng la bàn tô màu theo trọng số
+            // Vòng la bàn: màu theo điểm hướng (càng cao càng xanh đậm, càng thấp càng đỏ đậm)
             const rose = document.getElementById('rose');
             if (rose && rose.style) {
-                rose.style.background = st.bg;
-                rose.style.borderColor = st.bd;
-                rose.style.boxShadow = '0 0 24px ' + st.glow;
+                rose.style.background = scoreToColor(dirScore);
+                rose.style.borderColor = dirScore >= 0 ? '#2ecc71' : '#e74c3c';
+                rose.style.boxShadow = '0 0 24px ' + (dirScore >= 0 ? 'rgba(46, 204, 113, 0.45)' : 'rgba(231, 76, 60, 0.45)');
             }
 
-            // Tô màu nền 8 nhãn hướng theo màu của 8 cung lớn
-            updateRoseLabels(window._cungData);
+            // Tô màu nền 8 nhãn hướng theo màu của 8 cung lớn (điểm mới)
+            updateRoseLabels(window._cungData, sc);
 
-            // Điểm ở tâm la bàn (size lớn)
+            // Tâm la bàn: điểm HƯỚNG (trên) + điểm GIỜ (dưới)
             const roseCenter = document.getElementById('roseCenter');
-            if (roseCenter) roseCenter.textContent = scoreText;
+            if (roseCenter) {
+                roseCenter.innerHTML = scoreText + '<br>' + (hourScore > 0 ? '+' : '') + hourScore;
+            }
 
             // Đồng bộ slider giờ + icon con giáp
             if (window._cungData && window._cungData.info) {
@@ -2328,6 +2516,7 @@
                 if (e.target && e.target.closest && e.target.closest('.lg-close')) closeCompass();
             });
         }
+
 
         // Xoay thử (khi mở trên máy tính không có la bàn)
         document.getElementById('headingSlider').addEventListener('input', function () {
