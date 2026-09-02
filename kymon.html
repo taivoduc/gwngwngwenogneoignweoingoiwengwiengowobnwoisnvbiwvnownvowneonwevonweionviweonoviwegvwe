@@ -218,13 +218,14 @@
         .compass-top { width: 100%; }
         .compass-top-table { width: 100%; border-collapse: collapse; }
         .compass-top-table td { vertical-align: middle; padding: 2px 20px; }
-        .rose-cell { width: 96px; text-align: center; }
-        .info-cell { text-align: left; padding-left: 100px; }
+        .rose-cell { width: 172px; text-align: center; }
+        .info-cell { text-align: left; padding-left: 36px; }
         .rose {
             position: relative;
-            width: 96px;
-            height: 96px;
+            width: 120px;  /* rose rộng hơn để 8 vòng nhỏ +20% (40px) đủ chỗ, không chồng lấn */
+            height: 120px;
             flex: 0 0 auto;
+            margin: 22px auto; /* chừa trên/dưới cho 8 vòng nhỏ nhô ra, không đè hiển thị khác */
             border-radius: 50%;
             background: radial-gradient(circle, #1a1a40 0%, #0b0e1a 100%);
             border: 3px solid #2a4a7a;
@@ -236,8 +237,8 @@
         .rose-label {
             position: absolute;
             transform: translate(-50%, -50%);
-            width: 33px;
-            height: 33px;
+            width: 40px;   /* 8 vòng nhỏ +20% (33px -> 40px) */
+            height: 40px;
             border-radius: 50%;
             border: 2px solid #2a4a7a;
             background: #1a1a40;
@@ -248,8 +249,8 @@
             line-height: 1;
             color: #ffffff;
         }
-        .rose-label .rl-dir { font-weight: bold; font-size: 0.6rem; }
-        .rose-label .rl-score { font-size: 0.5rem; }
+        .rose-label .rl-dir { font-weight: 800; font-size: 0.74rem; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .rose-label .rl-score { font-weight: 800; font-size: 0.74rem; text-shadow: 0 0 4px rgba(0,0,0,0.95); }
         .rose-center {
             position: absolute;
             inset: 0;
@@ -409,9 +410,9 @@
             /* Giờ: mobile hiện icon con giáp thay tên chi */
             .gio-ico { display: inline; }
             .gio-txt { display: none; }
-            /* La bàn nhỏ lại, dòng 2 wrap, bar vừa màn hình */
-            .rose { width: 100px; height: 100px; }
-            .rose-cell { width: 72px; }
+            /* La bàn nhỏ (mobile): giữ đủ chỗ cho 8 vòng nhỏ 40px */
+            .rose { width: 116px; height: 116px; margin: 20px auto 22px; }
+            .rose-cell { width: 100%; }
             .compass-toggle { width: 100%; justify-content: center; }
             .compass-heading .deg { font-size: 0.9rem; }
             .compass-heading .dir { font-size: 0.9rem; }
@@ -439,7 +440,8 @@
             }
             .compass-top-table td { padding: 3px 0 !important; text-align: center; }
             .rose-cell { padding: 2px 0 8px !important; }
-            .rose { margin: 0 auto; }
+            .rose { margin: 20px auto 26px; } /* chừa trên/dưới: 8 vòng nhỏ 40px không đè dòng hướng */
+
             .info-cell { padding-left: 0 !important; }
             .compass-heading {
                 justify-content: center;
@@ -462,6 +464,23 @@
         /* Rất nhỏ (≤360px): 12 canh giờ & lưới luận giải về 1 cột cho dễ bấm */
         @media (max-width: 360px) {
             .compass-luan-giai .lg-grid9 { grid-template-columns: 1fr; }
+        }
+
+        /* ===== Desktop (≥701px): cột info khôi phục như bản trước =====
+           .info-cell nằm thành cột phải, cách rose rõ ràng, từng dòng thẳng hàng. */
+        @media (min-width: 701px) {
+            .compass-top-table td { padding: 2px 0 !important; }
+            .compass-top-table td.rose-cell { width: 150px !important; padding: 20px 0 !important; }
+            .compass-top-table td.info-cell { padding-left: 96px !important; }
+            .rose { margin: 0 auto !important; }
+            .compass-heading { justify-content: flex-start; white-space: normal; font-size: 1rem; }
+        }
+        /* ===== Mobile (≤700px): các dòng info căn giữa cho gọn, thẳng hàng ===== */
+        @media (max-width: 700px) {
+            .compass-heading { justify-content: center; }
+            .compass-heading,
+            .compass-palace,
+            .compass-controls { width: 100%; }
         }
     </style>
 </head>
@@ -505,14 +524,14 @@
                     <td class="rose-cell" rowspan="4">
                         <div class="rose" id="rose">
                             <div class="rose-ring" id="roseRing">
-                                <span class="rose-label" data-palace="9" style="top:4%;left:50%"><span class="rl-dir">N</span><span class="rl-score"></span></span>
-                                <span class="rose-label" data-palace="2" style="top:13%;left:85%"><span class="rl-dir">TN</span><span class="rl-score"></span></span>
-                                <span class="rose-label" data-palace="7" style="top:50%;left:94%"><span class="rl-dir">T</span><span class="rl-score"></span></span>
-                                <span class="rose-label" data-palace="6" style="top:87%;left:85%"><span class="rl-dir">TB</span><span class="rl-score"></span></span>
-                                <span class="rose-label" data-palace="1" style="top:96%;left:50%"><span class="rl-dir">B</span><span class="rl-score"></span></span>
-                                <span class="rose-label" data-palace="8" style="top:87%;left:15%"><span class="rl-dir">ĐB</span><span class="rl-score"></span></span>
-                                <span class="rose-label" data-palace="3" style="top:50%;left:6%"><span class="rl-dir">Đ</span><span class="rl-score"></span></span>
-                                <span class="rose-label" data-palace="4" style="top:13%;left:15%"><span class="rl-dir">ĐN</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="9" style="top:0%;left:50%"><span class="rl-dir">N</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="2" style="top:14.6%;left:85.4%"><span class="rl-dir">TN</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="7" style="top:50%;left:100%"><span class="rl-dir">T</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="6" style="top:85.4%;left:85.4%"><span class="rl-dir">TB</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="1" style="top:100%;left:50%"><span class="rl-dir">B</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="8" style="top:85.4%;left:14.6%"><span class="rl-dir">ĐB</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="3" style="top:50%;left:0%"><span class="rl-dir">Đ</span><span class="rl-score"></span></span>
+                                <span class="rose-label" data-palace="4" style="top:14.6%;left:14.6%"><span class="rl-dir">ĐN</span><span class="rl-score"></span></span>
                             </div>
                             <div class="rose-center" id="roseCenter">0</div>
                         </div>
