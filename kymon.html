@@ -117,7 +117,7 @@
 
         #board {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px; /* 9 vòng tròn lớn to thêm ~20% (500px → 600px) — grid 3×3 không chồng lấn */
             background: transparent;
             border-radius: 0;
             padding: 0;
@@ -174,6 +174,12 @@
         .cell-table .ct { text-align: left; font-size: 0.7rem; white-space: nowrap; }
         /* Ô trung tâm (Trung cung): cho chữ xuống dòng, căn giữa */
         .cell.center-cell .cell-table .ct { white-space: normal; text-align: center; line-height: 1.3; }
+        /* Trung cung: format cũ 2 cột (cột 1 icon | cột 2 tên + điểm) — chỉ chủ đề ≥ +1 */
+        .center-cell .cell-table td { font-size: 0.62rem; padding: 0 3px; vertical-align: middle; }
+        .center-cell .ct .cs-s { font-weight: 700; color: #7bed9f; white-space: nowrap; }
+        @media (max-width: 450px) {
+            .center-cell .cell-table td { font-size: 0.55rem; }
+        }
         /* 8 hướng thuần Việt quanh ô trung tâm (như la bàn), luôn thẳng đứng */
         .center-dirs { position: absolute; inset: 0; pointer-events: none; }
         .center-dirs .cdir { position: absolute; transform: translate(-50%, -50%); font-size: 0.5rem; color: #a4b0be; font-weight: bold; }
@@ -416,6 +422,46 @@
             .cell-table td { padding: 0 1px; }
             .cell-table .ci, .cell-table .ct { font-size: 0.55rem; }
             .cell-inner { gap: 0; }
+        }
+
+        /* ==== Responsive chống bể layout (iPhone ~390px, ≤700px) ====
+           La bàn nhỏ (.compass-top-table) có min-width ~614px cố định do table
+           2 cột (rose + info, padding 100px) → chuyển thành 1 cột dọc. */
+        @media (max-width: 700px) {
+            body { padding: 10px; }
+            .compass-top-table,
+            .compass-top-table tbody,
+            .compass-top-table tr,
+            .compass-top-table td {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .compass-top-table td { padding: 3px 0 !important; text-align: center; }
+            .rose-cell { padding: 2px 0 8px !important; }
+            .rose { margin: 0 auto; }
+            .info-cell { padding-left: 0 !important; }
+            .compass-heading {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 2px 10px;
+                white-space: normal;
+            }
+            .compass-heading .deg,
+            .compass-heading .dir,
+            .compass-heading .diem-heading,
+            .compass-heading .gio-heading { font-size: 0.85rem; }
+            .compass-palace { white-space: normal; text-align: center; font-size: 0.8rem; }
+            .compass-controls { width: 100%; justify-content: center; gap: 8px; }
+            .compass-controls input[type="range"] { flex: 1 1 auto; min-width: 0; width: 100%; max-width: 280px; }
+            .heading-val { flex: 0 0 auto; }
+            .control { padding: 4px 0 10px; margin-bottom: 10px; gap: 10px; }
+            .compass-luan-giai { padding: 12px 0; }
+            .compass-top-table .rose-label { position: absolute; } /* 8 nhãn hướng vẫn bám theo rose */
+        }
+        /* Rất nhỏ (≤360px): 12 canh giờ & lưới luận giải về 1 cột cho dễ bấm */
+        @media (max-width: 360px) {
+            .compass-luan-giai .lg-grid9 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -2097,8 +2143,9 @@
             }
         }
 
-        // Chủ đề THUẬN LỢI tại hướng hiện tại — hiển thị ở ô trung tâm
-        // (giống cách renderGoodTopics cũ, nhưng dùng Rule Engine).
+        // Chủ đề THUẬN (điểm ≥ +1) tại hướng hiện tại — format CŨ 2 cột ở ô trung tâm:
+        // cột 1 = icon, cột 2 = tên chủ đề kèm điểm (vd "Sự nghiệp +2"),
+        // XẾP THEO ĐIỂM GIẢM DẦN (tới +1); chủ đề điểm < +1 (0/âm) KHÔNG trả về.
         let _iqCenterCache = null;
         function iqCenterTopicsHTML(cung) {
             if (!window.KYMON_IQ || !cung) return '<tr><td class="ct" colspan="2">—</td></tr>';
@@ -2107,7 +2154,7 @@
             const focusPalace = dir.palace;
             const key = 'c' + focusPalace + '|' + (cung.info && cung.info.date ? cung.info.date.toString() : '');
             if (_iqCenterCache && _iqCenterCache.key === key) return _iqCenterCache.html;
-            let rows = '', favCount = 0;
+            const items = [];
             for (let i = 0; i < IQ_CELLS.length; i++) {
                 const c = IQ_CELLS[i];
                 let res = null;
@@ -2118,12 +2165,20 @@
                     if (res.conclusion.dimensions[j].dimension === c.dim) { d = res.conclusion.dimensions[j]; break; }
                 }
                 if (!d) d = res.conclusion.dimensions[0];
-                if (d && d.direction === 'FAVORABLE') {
-                    favCount++;
-                    rows += '<tr><td class="ci">' + c.emoji + '</td><td class="ct">' + c.label + '</td></tr>';
-                }
+                const score = window.KYMON_IQ.topicScoreFromVerdict(
+                    d ? d.direction : 'NEUTRAL', d ? d.intensity : 'WEAK');
+                if (score >= 1) items.push({ emoji: c.emoji, label: c.label, score: score, order: i });
             }
-            if (!favCount) rows = '<tr><td class="ct" colspan="2">—</td></tr>';
+            // Điểm CAO → THẤP; cùng điểm giữ nguyên thứ tự 16 chủ đề (sort ổn định)
+            items.sort(function (a, b) { return (b.score - a.score) || (a.order - b.order); });
+            let rows = '';
+            for (let i = 0; i < items.length; i++) {
+                const it = items[i];
+                const scText = (it.score > 0 ? '+' : '') + it.score;
+                rows += '<tr><td class="ci">' + it.emoji + '</td>'
+                    + '<td class="ct">' + it.label + ' <span class="cs-s">' + scText + '</span></td></tr>';
+            }
+            if (!rows) rows = '<tr><td class="ct" colspan="2">—</td></tr>';
             _iqCenterCache = { key: key, html: rows };
             return rows;
         }

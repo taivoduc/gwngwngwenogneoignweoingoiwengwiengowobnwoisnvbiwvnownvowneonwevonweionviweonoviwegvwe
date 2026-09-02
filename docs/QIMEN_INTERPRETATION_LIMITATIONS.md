@@ -47,7 +47,10 @@
   Nhà đất, Hợp tác, Hôn nhân, Con cái, Sức khỏe, Học hành, Danh tiếng, Đi lại,
   Kiện tụng, An toàn, Tìm kiếm, Kết thúc, Tâm linh.
   NỀN MỖI Ô tô theo ĐIỂM CHỦ ĐỀ RIÊNG của nó. Ô TRUNG TÂM của bàn hiển thị
-  các chủ đề thuận lợi tại hướng hiện tại.
+  format 2 cột (icon | tên + điểm, vd "Sự nghiệp +2") các chủ đề có ĐIỂM ≥ +1,
+  XẾP THEO ĐIỂM GIẢM DẦN tại hướng hiện tại (chủ đề 0/âm không trả về).
+  9 vòng tròn lớn: #board max-width 500→600px (to thêm ~20%, grid 3×3 nên không
+  chồng lấn).
 - ĐIỂM CHỦ ĐỀ −2..+2: Thuận (rõ) +2 · Thuận (vừa/nhẹ) +1 · Trung tính/Trái
   chiều 0 · Không thuận (vừa/nhẹ) −1 · Không thuận (rõ) −2. UI chỉ hiển thị
   SỐ ĐIỂM (bỏ từ chỉ mức độ "Thuận (rõ)/Không thuận (vừa)/Trái chiều"...). Màu ô:

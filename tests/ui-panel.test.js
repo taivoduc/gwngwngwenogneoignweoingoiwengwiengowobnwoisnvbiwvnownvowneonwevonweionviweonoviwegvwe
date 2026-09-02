@@ -92,6 +92,21 @@ setTimeout(() => {
   const distinctScore = new Set(scoresShown).size;
   check('mỗi ô có điểm chủ đề −2..+2', scoresShown.every(s => s >= -2 && s <= 2), scoresShown);
   check('đủ 16 tên chủ đề mới', ['Con cái','Danh tiếng','Kết thúc','Tâm linh','Nhà đất','Hợp tác','Tìm kiếm'].every(lb => text.indexOf(lb) >= 0), text.slice(0, 200));
+  // --- Trung cung (vòng lớn giữa): 2 cột (icon | tên + điểm), CHỈ chủ đề ≥ +1, xếp giảm dần ---
+  const center = document.querySelector('#board .center-cell');
+  const csRows = center ? Array.from(center.querySelectorAll('.cell-table tr')) : [];
+  const ciList = csRows.map(r => r.querySelector('.ci'));
+  const ctList = csRows.map(r => r.querySelector('.ct'));
+  const csVals = ctList.map(td => {
+    const s = td ? td.querySelector('.cs-s') : null;
+    return s ? parseInt(s.textContent.trim(), 10) : NaN;
+  });
+  check('trung cung: 2 cột icon + tên kèm điểm', csRows.length >= 1 && csRows.every((r, i) => {
+    const ci = ciList[i], ct = ctList[i], s = ct ? ct.querySelector('.cs-s') : null;
+    return ci && ci.textContent.trim().length > 0 && ct && /^[+-]?\d+$/.test((s ? s.textContent.trim() : ''));
+  }), center ? center.textContent.slice(0, 120) : 'no center');
+  check('trung cung: chỉ chủ đề ≥ +1', csVals.every(v => v >= 1), csVals);
+  check('trung cung: điểm xếp giảm dần', csVals.length >= 1 && csVals.every((v, i, a) => i === 0 || a[i - 1] >= v), csVals);
   check('màu ô theo điểm riêng (số điểm khác nhau → màu khác nhau)', distinctBg === distinctScore, distinctBg + ' vs ' + distinctScore);
   check('9 ô có nền màu (hsl/rgb)', bgs.every(b => /hsl|rgb/.test(b)));
   check('có đủ 2+ màu khác nhau (không đồng màu)', distinctBg >= 2, distinctBg);
