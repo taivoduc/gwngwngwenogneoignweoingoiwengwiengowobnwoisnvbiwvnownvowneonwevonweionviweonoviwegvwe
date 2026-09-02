@@ -114,6 +114,7 @@
         .gio-item-mini.now { outline: 2px solid #ffffff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); z-index: 2; position: relative; }
         .gio-item-mini .line1 { display: block; font-size: 0.72rem; color: #fff; font-weight: 600; }
         .gio-item-mini .line2 { display: block; font-size: 0.6rem; color: #ddd; }
+        .gio-item-mini .line3 { display: none; font-size: 0.62rem; color: #fff; font-weight: 700; line-height: 1.2; } /* điểm giờ: chỉ hiện mobile (thêm 1 dòng) */
 
         #board {
             width: 100%;
@@ -405,8 +406,9 @@
                 width: 100%;
             }
             .top-table td { padding: 3px 0; }
-            /* 12 canh giờ: chỉ icon + giờ bắt đầu */
+            /* 12 canh giờ: icon + giờ bắt đầu + dòng ĐIỂM riêng (line3) */
             .gio-ten, .gio-end { display: none; }
+            .gio-item-mini .line3 { display: block; }
             /* Giờ: mobile hiện icon con giáp thay tên chi */
             .gio-ico { display: inline; }
             .gio-txt { display: none; }
@@ -1615,6 +1617,7 @@
                 html += `<td class="gio-item-mini${isNow ? ' now' : ''}" style="background:${bg}; border-color:${border};" onclick="chonGio(${i})" title="${tenChi} ${scText}${isNow ? ' - GIỜ HIỆN TẠI' : ''}">
                             <span class="line1"><span class="gio-emoji">${emoji}</span><span class="gio-ten"> ${tenChi} ${scText}</span></span>
                             <span class="line2"><span class="gio-bd">${gioBD}</span><span class="gio-end"> - ${gioEnd}</span></span>
+                            <span class="line3">${scText}</span>
                         </td>`;
             }
             html += '</tr></table>';
