@@ -340,9 +340,9 @@
         .compass-panel.hidden { display: none; }
         .compass-luan-giai.hidden { display: none; }
 
-        /* ===== Luận giải theo hướng — lưới 9 ô chủ đề (3×3) ===== */
+        /* ===== Luận giải theo hướng — lưới 16 ô chủ đề (4×4) ===== */
         /* Nền mỗi ô = màu tô của HƯỚNG đang chọn (scoreToColor, inline) — chữ trắng đọc được trên nền đậm */
-        .compass-luan-giai .lg-grid9 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 4px 0; }
+        .compass-luan-giai .lg-grid9 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 4px 0; }
         .compass-luan-giai .lg-cell { border-radius: 8px; padding: 6px 7px; text-align: left; border: 1px solid rgba(255,255,255,0.18); }
         .compass-luan-giai .lg-cell .lg-cell-top { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
         .compass-luan-giai .lg-cell .lg-cell-emoji { font-size: 1.2rem; line-height: 1.2; }
@@ -358,7 +358,7 @@
         .compass-luan-giai .lg-cell.mix .lg-cell-word { color: #ffe38f; }
         .compass-luan-giai .lg-cell.neu .lg-cell-word { color: #e8eaf0; }
         @media (max-width: 640px) {
-            .compass-luan-giai .lg-grid9 { grid-template-columns: 1fr; }
+            .compass-luan-giai .lg-grid9 { grid-template-columns: repeat(2, 1fr); }
         }
 
         .compass-toggle {
@@ -2173,16 +2173,24 @@
         //   Đi lại    ← TRAVEL
         //   Kiện tụng ← LITIGATION
         //   An toàn   ← SAFETY, LOST_OBJECT
+        // 16 chủ đề (khớp lib/score.js TOPIC_CELLS) — lưới 4×4
         const IQ_CELLS = [
             { type: 'CAREER', dim: 'career', label: 'Sự nghiệp', emoji: '💼' },
             { type: 'WEALTH', dim: 'wealth', label: 'Tài lộc', emoji: '💰' },
             { type: 'BUSINESS', dim: 'wealth', label: 'Kinh doanh', emoji: '🏪' },
-            { type: 'MARRIAGE', dim: 'relationship', label: 'Tình cảm', emoji: '❤️' }, // + LOVE
+            { type: 'REAL_ESTATE', dim: 'wealth', label: 'Nhà đất', emoji: '🏠' },
+            { type: 'PARTNERSHIP', dim: 'relationship', label: 'Hợp tác', emoji: '🤝' },
+            { type: 'MARRIAGE', dim: 'relationship', label: 'Hôn nhân', emoji: '💍' }, // + LOVE
+            { type: 'CHILDREN', dim: 'children', label: 'Con cái', emoji: '👶' },
             { type: 'HEALTH', dim: 'health', label: 'Sức khỏe', emoji: '🏥' },
             { type: 'STUDY', dim: 'study', label: 'Học hành', emoji: '📚' }, // + EXAM
+            { type: 'REPUTATION', dim: 'reputation', label: 'Danh tiếng', emoji: '🏆' },
             { type: 'TRAVEL', dim: 'travel', label: 'Đi lại', emoji: '✈️' },
             { type: 'LITIGATION', dim: 'litigation', label: 'Kiện tụng', emoji: '⚖️' },
-            { type: 'SAFETY', dim: 'safety', label: 'An toàn', emoji: '🛡️' }
+            { type: 'SAFETY', dim: 'safety', label: 'An toàn', emoji: '🛡️' },
+            { type: 'LOST_OBJECT', dim: 'general', label: 'Tìm kiếm', emoji: '🔍' },
+            { type: 'ENDING', dim: 'ending', label: 'Kết thúc', emoji: '🏁' },
+            { type: 'SPIRITUAL', dim: 'spiritual', label: 'Tâm linh', emoji: '🕯️' }
         ];
         let _iqLastKey = null, _iqLastHtml = '';
 

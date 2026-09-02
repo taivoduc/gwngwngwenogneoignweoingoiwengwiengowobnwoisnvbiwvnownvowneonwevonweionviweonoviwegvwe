@@ -12,7 +12,7 @@ const YONGSHEN_MAP = {
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can tượng trưng cho người hỏi (tự thân).' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = người đứng đầu, cấp trên, quý nhân.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = người đứng đầu, cấp trên, quý nhân.' },
             { kind: 'PALACE', id: 6, label: 'Cung Càn', rationale: 'Càn = công danh, quyền uy, người cha.' }
         ]
     },
@@ -22,7 +22,7 @@ const YONGSHEN_MAP = {
             { kind: 'STAR', id: 'TIAN_REN', label: 'Thiên Nhậm', rationale: 'Thiên Nhậm chủ đất đai, bất động sản, gánh vác.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = chủ sự, nguồn lực chính.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = chủ sự, nguồn lực chính.' },
             { kind: 'DEITY', id: 'TAI_YIN', label: 'Thái Âm', rationale: 'Thái Âm = tiền ngầm, quỹ kín, mưu kế.' }
         ]
     },
@@ -33,7 +33,7 @@ const YONGSHEN_MAP = {
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = người hỏi.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = việc đang tiến hành.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = việc đang tiến hành.' }
         ]
     },
     INVESTMENT: {
@@ -82,7 +82,7 @@ const YONGSHEN_MAP = {
             { kind: 'DEITY', id: 'BAI_HU', label: 'Bạch Hổ', rationale: 'Bạch Hổ = hung hăng, xung đột.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = pháp lý, quyền lực.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = pháp lý, quyền lực.' },
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' }
         ]
     },
@@ -92,13 +92,13 @@ const YONGSHEN_MAP = {
             { kind: 'STAR', id: 'TIAN_CHONG', label: 'Thiên Xung', rationale: 'Thiên Xung = di chuyển, động.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = hành trình.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = hành trình.' },
             { kind: 'PALACE', id: 3, label: 'Cung Chấn', rationale: 'Chấn = động, chuyển dịch.' }
         ]
     },
     LOST_OBJECT: {
         primary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = sự việc, vật thể.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = sự việc, vật thể.' },
             { kind: 'STEM', role: 'hourStem', label: 'Thời can', rationale: 'Thời can = sự việc đang xảy ra.' }
         ],
         secondary: [
@@ -139,7 +139,7 @@ const YONGSHEN_MAP = {
     JOB_INTERVIEW: {
         primary: [
             { kind: 'DOOR', id: 'KHAI', label: 'Khai Môn', rationale: 'Khai Môn = sự nghiệp, cơ hội.' },
-            { kind: 'DEITY', id: 'ZHI_FU', label: 'Trực Phù', rationale: 'Trực Phù = cấp trên, người quyết định.' }
+            { kind: 'DEITY', id: 'ZHI_FU', label: 'Trực Phù của bàn', rationale: 'Trực Phù = cấp trên, người quyết định.' }
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = ứng viên.' },
@@ -153,7 +153,7 @@ const YONGSHEN_MAP = {
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = thỏa thuận, giao dịch.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = thỏa thuận, giao dịch.' }
         ]
     },
     REAL_ESTATE: {
@@ -168,7 +168,7 @@ const YONGSHEN_MAP = {
     },
     PROJECT: {
         primary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = việc đang tiến hành.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = việc đang tiến hành.' },
             { kind: 'STEM', role: 'hourStem', label: 'Thời can', rationale: 'Thời can = sự việc hiện tại.' }
         ],
         secondary: [
@@ -183,17 +183,57 @@ const YONGSHEN_MAP = {
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = người đứng đầu.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = người đứng đầu.' }
         ]
     },
     GENERAL: {
         primary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = chủ sự.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = chủ sự.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = việc.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = việc.' },
             { kind: 'DOOR', id: 'SINH', label: 'Sinh Môn', rationale: 'Sinh Môn = vận khí chung.' }
+        ]
+    },
+    CHILDREN: {
+        primary: [
+            { kind: 'DEITY', id: 'LIU_HE', label: 'Lục Hợp', rationale: 'Lục Hợp = con cái, quan hệ gia đình.' },
+            { kind: 'DOOR', id: 'SINH', label: 'Sinh Môn', rationale: 'Sinh Môn = sinh sôi, nảy nở.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'TAI_YIN', label: 'Thái Âm', rationale: 'Thái Âm = thai nghén, điều kín.' }
+        ]
+    },
+    REPUTATION: {
+        primary: [
+            { kind: 'DOOR', id: 'CẢNH', label: 'Cảnh Môn', rationale: 'Cảnh Môn = danh tiếng, văn minh.' },
+            { kind: 'STAR', id: 'TIAN_YING', label: 'Thiên Anh', rationale: 'Thiên Anh = danh tiếng, nổi bật.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'JIU_TIAN', label: 'Cửu Thiên', rationale: 'Cửu Thiên = vươn xa, mở rộng.' }
+        ]
+    },
+    ENDING: {
+        primary: [
+            { kind: 'DOOR', id: 'TỬ', label: 'Tử Môn', rationale: 'Tử Môn = kết thúc, thanh lý, từ bỏ.' },
+            { kind: 'STAR', id: 'TIAN_ZHU', label: 'Thiên Trụ', rationale: 'Thiên Trụ = phá bỏ cái cũ.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'JIU_DI', label: 'Cửu Địa', rationale: 'Cửu Địa = dừng lại, ổn định.' }
+        ]
+    },
+    SPIRITUAL: {
+        primary: [
+            { kind: 'STAR', id: 'TIAN_RUI', label: 'Thiên Nhuế', rationale: 'Thiên Nhuế = tu đạo, tâm linh.' },
+            { kind: 'DOOR', id: 'ĐỖ', label: 'Đỗ Môn', rationale: 'Đỗ Môn = ẩn tu, tĩnh tâm.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'TENG_SHE', label: 'Đằng Xà', rationale: 'Đằng Xà = mộng mị, quái sự, điềm lạ.' }
         ]
     }
 };

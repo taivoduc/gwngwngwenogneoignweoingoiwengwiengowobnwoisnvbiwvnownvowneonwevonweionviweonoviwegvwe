@@ -34,7 +34,6 @@ module.exports = {
     scoreDirection: scoreLib.directionScore,
     scoreHour: scoreLib.scoreHour,
     topicScores: scoreLib.topicScores,
-    componentScores: scoreLib.componentScores,
     topicScoreFromVerdict: scoreLib.topicScoreFromVerdict,
     dimensionVerdicts: scoreLib.dimensionVerdicts,
     TOPIC_CELLS: scoreLib.TOPIC_CELLS,

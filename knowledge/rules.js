@@ -488,11 +488,19 @@ const R_YONG_SHEN_FOCUS = {
             if (!m) return;
             const subj = 'hướng ' + palaceLabel;
             const obj = 'Dụng thần ' + ys.label;
+            // Ghi rõ hành khi CÙNG HÀNH (so ngũ hành giữa cung hướng và Dụng thần,
+            // KHÔNG phải "cùng đóng một cung") — tránh hiểu nhầm như Thần Trực Phù.
+            let text;
+            if (rel === 'sameElement') {
+                text = subj + ' đồng hành với ' + obj + ' — đều hành ' + focusCell.palace.element;
+            } else {
+                text = relText(rel, subj, obj);
+            }
             out.push(F(this, {
                 polarity: m.polarity, strength: m.strength,
                 subject: subj, object: obj,
-                evidence: [relText(rel, subj, obj)],
-                explanation: relText(rel, subj, obj) + '.',
+                evidence: [text],
+                explanation: text + '.',
                 dimensions: null
             }));
         }, this);

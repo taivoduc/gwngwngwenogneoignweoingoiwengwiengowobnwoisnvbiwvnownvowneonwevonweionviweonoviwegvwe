@@ -365,7 +365,7 @@ module.exports = {
  */
 
 // Các dimension tổng hợp (xem interpretationSynthesizer.js).
-const DIMENSIONS = ['career', 'wealth', 'relationship', 'health', 'travel', 'litigation', 'safety', 'study'];
+const DIMENSIONS = ['career', 'wealth', 'relationship', 'health', 'study', 'travel', 'litigation', 'safety', 'children', 'reputation', 'ending', 'spiritual'];
 
 const QUESTION_TYPES = [
     {
@@ -595,6 +595,54 @@ const QUESTION_TYPES = [
         relevantPalaces: [],
         interpretationRules: ['DOOR_PALACE_GENERATION'],
         school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Loại mặc định khi không xác định được câu hỏi.'
+    },
+    {
+        id: 'CHILDREN', nameVi: 'Con cái / Sinh nở', emoji: '👶',
+        dimensions: ['children'],
+        primaryYongShen: [{ kind: 'DEITY', id: 'LIU_HE' }, { kind: 'DOOR', id: 'SINH' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'TAI_YIN' }],
+        relevantDoors: ['SINH', 'HƯU', 'TỬ'],
+        relevantStars: ['TIAN_FU', 'TIAN_RUI'],
+        relevantDeities: ['LIU_HE', 'TAI_YIN', 'TENG_SHE'],
+        relevantPalaces: [8, 1],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT', 'KONG_WANG'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Lục Hợp = con cái (quan hệ gia đình); Sinh Môn = sinh sôi; Thái Âm = thai nghén.'
+    },
+    {
+        id: 'REPUTATION', nameVi: 'Danh tiếng / Quảng bá', emoji: '🏆',
+        dimensions: ['reputation'],
+        primaryYongShen: [{ kind: 'DOOR', id: 'CẢNH' }, { kind: 'STAR', id: 'TIAN_YING' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'JIU_TIAN' }],
+        relevantDoors: ['CẢNH', 'KHAI', 'ĐỖ'],
+        relevantStars: ['TIAN_YING', 'TIAN_FU', 'TIAN_QIN'],
+        relevantDeities: ['JIU_TIAN', 'ZHI_FU'],
+        relevantPalaces: [9, 6],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Cảnh Môn + Thiên Anh = danh tiếng, quảng bá; Cửu Thiên = vươn xa.'
+    },
+    {
+        id: 'ENDING', nameVi: 'Kết thúc / Thanh lý', emoji: '🏁',
+        dimensions: ['ending'],
+        primaryYongShen: [{ kind: 'DOOR', id: 'TỬ' }, { kind: 'STAR', id: 'TIAN_ZHU' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'JIU_DI' }],
+        relevantDoors: ['TỬ', 'THƯƠNG', 'ĐỖ'],
+        relevantStars: ['TIAN_ZHU', 'TIAN_RUI', 'TIAN_PENG'],
+        relevantDeities: ['JIU_DI', 'BAI_HU'],
+        relevantPalaces: [2, 7],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT', 'MEN_PO'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Tử Môn = kết thúc, thanh lý, từ bỏ; Thiên Trụ = phá bỏ cái cũ.'
+    },
+    {
+        id: 'SPIRITUAL', nameVi: 'Tâm linh / Tu tập', emoji: '🕯️',
+        dimensions: ['spiritual'],
+        primaryYongShen: [{ kind: 'STAR', id: 'TIAN_RUI' }, { kind: 'DOOR', id: 'ĐỖ' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'TENG_SHE' }],
+        relevantDoors: ['ĐỖ', 'HƯU', 'KHAI'],
+        relevantStars: ['TIAN_RUI', 'TIAN_FU', 'TIAN_QIN'],
+        relevantDeities: ['ZHI_FU', 'TENG_SHE', 'JIU_DI'],
+        relevantPalaces: [2, 4],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT', 'RU_MU'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Thiên Nhuế = tu đạo, tâm linh; Đỗ Môn = ẩn tu tĩnh tâm; Đằng Xà = mộng mị, quái sự.'
     }
 ];
 
@@ -619,7 +667,7 @@ const YONGSHEN_MAP = {
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can tượng trưng cho người hỏi (tự thân).' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = người đứng đầu, cấp trên, quý nhân.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = người đứng đầu, cấp trên, quý nhân.' },
             { kind: 'PALACE', id: 6, label: 'Cung Càn', rationale: 'Càn = công danh, quyền uy, người cha.' }
         ]
     },
@@ -629,7 +677,7 @@ const YONGSHEN_MAP = {
             { kind: 'STAR', id: 'TIAN_REN', label: 'Thiên Nhậm', rationale: 'Thiên Nhậm chủ đất đai, bất động sản, gánh vác.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = chủ sự, nguồn lực chính.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = chủ sự, nguồn lực chính.' },
             { kind: 'DEITY', id: 'TAI_YIN', label: 'Thái Âm', rationale: 'Thái Âm = tiền ngầm, quỹ kín, mưu kế.' }
         ]
     },
@@ -640,7 +688,7 @@ const YONGSHEN_MAP = {
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = người hỏi.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = việc đang tiến hành.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = việc đang tiến hành.' }
         ]
     },
     INVESTMENT: {
@@ -689,7 +737,7 @@ const YONGSHEN_MAP = {
             { kind: 'DEITY', id: 'BAI_HU', label: 'Bạch Hổ', rationale: 'Bạch Hổ = hung hăng, xung đột.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = pháp lý, quyền lực.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = pháp lý, quyền lực.' },
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' }
         ]
     },
@@ -699,13 +747,13 @@ const YONGSHEN_MAP = {
             { kind: 'STAR', id: 'TIAN_CHONG', label: 'Thiên Xung', rationale: 'Thiên Xung = di chuyển, động.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = hành trình.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = hành trình.' },
             { kind: 'PALACE', id: 3, label: 'Cung Chấn', rationale: 'Chấn = động, chuyển dịch.' }
         ]
     },
     LOST_OBJECT: {
         primary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = sự việc, vật thể.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = sự việc, vật thể.' },
             { kind: 'STEM', role: 'hourStem', label: 'Thời can', rationale: 'Thời can = sự việc đang xảy ra.' }
         ],
         secondary: [
@@ -746,7 +794,7 @@ const YONGSHEN_MAP = {
     JOB_INTERVIEW: {
         primary: [
             { kind: 'DOOR', id: 'KHAI', label: 'Khai Môn', rationale: 'Khai Môn = sự nghiệp, cơ hội.' },
-            { kind: 'DEITY', id: 'ZHI_FU', label: 'Trực Phù', rationale: 'Trực Phù = cấp trên, người quyết định.' }
+            { kind: 'DEITY', id: 'ZHI_FU', label: 'Trực Phù của bàn', rationale: 'Trực Phù = cấp trên, người quyết định.' }
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = ứng viên.' },
@@ -760,7 +808,7 @@ const YONGSHEN_MAP = {
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = thỏa thuận, giao dịch.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = thỏa thuận, giao dịch.' }
         ]
     },
     REAL_ESTATE: {
@@ -775,7 +823,7 @@ const YONGSHEN_MAP = {
     },
     PROJECT: {
         primary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = việc đang tiến hành.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = việc đang tiến hành.' },
             { kind: 'STEM', role: 'hourStem', label: 'Thời can', rationale: 'Thời can = sự việc hiện tại.' }
         ],
         secondary: [
@@ -790,17 +838,57 @@ const YONGSHEN_MAP = {
         ],
         secondary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = người đứng đầu.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = người đứng đầu.' }
         ]
     },
     GENERAL: {
         primary: [
             { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
-            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', rationale: 'Trực Phù = chủ sự.' }
+            { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', rationale: 'Trực Phù = chủ sự.' }
         ],
         secondary: [
-            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', rationale: 'Trực Sử = việc.' },
+            { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', rationale: 'Trực Sử = việc.' },
             { kind: 'DOOR', id: 'SINH', label: 'Sinh Môn', rationale: 'Sinh Môn = vận khí chung.' }
+        ]
+    },
+    CHILDREN: {
+        primary: [
+            { kind: 'DEITY', id: 'LIU_HE', label: 'Lục Hợp', rationale: 'Lục Hợp = con cái, quan hệ gia đình.' },
+            { kind: 'DOOR', id: 'SINH', label: 'Sinh Môn', rationale: 'Sinh Môn = sinh sôi, nảy nở.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'TAI_YIN', label: 'Thái Âm', rationale: 'Thái Âm = thai nghén, điều kín.' }
+        ]
+    },
+    REPUTATION: {
+        primary: [
+            { kind: 'DOOR', id: 'CẢNH', label: 'Cảnh Môn', rationale: 'Cảnh Môn = danh tiếng, văn minh.' },
+            { kind: 'STAR', id: 'TIAN_YING', label: 'Thiên Anh', rationale: 'Thiên Anh = danh tiếng, nổi bật.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'JIU_TIAN', label: 'Cửu Thiên', rationale: 'Cửu Thiên = vươn xa, mở rộng.' }
+        ]
+    },
+    ENDING: {
+        primary: [
+            { kind: 'DOOR', id: 'TỬ', label: 'Tử Môn', rationale: 'Tử Môn = kết thúc, thanh lý, từ bỏ.' },
+            { kind: 'STAR', id: 'TIAN_ZHU', label: 'Thiên Trụ', rationale: 'Thiên Trụ = phá bỏ cái cũ.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'JIU_DI', label: 'Cửu Địa', rationale: 'Cửu Địa = dừng lại, ổn định.' }
+        ]
+    },
+    SPIRITUAL: {
+        primary: [
+            { kind: 'STAR', id: 'TIAN_RUI', label: 'Thiên Nhuế', rationale: 'Thiên Nhuế = tu đạo, tâm linh.' },
+            { kind: 'DOOR', id: 'ĐỖ', label: 'Đỗ Môn', rationale: 'Đỗ Môn = ẩn tu, tĩnh tâm.' }
+        ],
+        secondary: [
+            { kind: 'STEM', role: 'dayStem', label: 'Nhật can', rationale: 'Nhật can = bản thân.' },
+            { kind: 'DEITY', id: 'TENG_SHE', label: 'Đằng Xà', rationale: 'Đằng Xà = mộng mị, quái sự, điềm lạ.' }
         ]
     }
 };
@@ -1499,11 +1587,19 @@ const R_YONG_SHEN_FOCUS = {
             if (!m) return;
             const subj = 'hướng ' + palaceLabel;
             const obj = 'Dụng thần ' + ys.label;
+            // Ghi rõ hành khi CÙNG HÀNH (so ngũ hành giữa cung hướng và Dụng thần,
+            // KHÔNG phải "cùng đóng một cung") — tránh hiểu nhầm như Thần Trực Phù.
+            let text;
+            if (rel === 'sameElement') {
+                text = subj + ' đồng hành với ' + obj + ' — đều hành ' + focusCell.palace.element;
+            } else {
+                text = relText(rel, subj, obj);
+            }
             out.push(F(this, {
                 polarity: m.polarity, strength: m.strength,
                 subject: subj, object: obj,
-                evidence: [relText(rel, subj, obj)],
-                explanation: relText(rel, subj, obj) + '.',
+                evidence: [text],
+                explanation: text + '.',
                 dimensions: null
             }));
         }, this);
@@ -1805,12 +1901,12 @@ function resolveRef(norm, ref) {
             if (ref.role === 'zhiFu') {
                 const p = norm.trucPhu ? norm.trucPhu.palace : null;
                 const star = p ? norm.palaces[p].star : null;
-                return { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù', palace: p, element: star ? star.element : null, nameVi: star ? star.nameVi : null, ref: ref };
+                return { kind: 'CHARTSYMBOL', role: 'zhiFu', label: 'Trực Phù của bàn', palace: p, element: star ? star.element : null, nameVi: star ? star.nameVi : null, ref: ref };
             }
             if (ref.role === 'zhiShi') {
                 const p = norm.trucSu ? norm.trucSu.palace : null;
                 const door = p ? norm.palaces[p].door : null;
-                return { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử', palace: p, element: door ? door.element : null, nameVi: door ? door.nameVi : null, ref: ref };
+                return { kind: 'CHARTSYMBOL', role: 'zhiShi', label: 'Trực Sử của bàn', palace: p, element: door ? door.element : null, nameVi: door ? door.nameVi : null, ref: ref };
             }
             return { kind: 'CHARTSYMBOL', role: ref.role, label: ref.label || 'Chart symbol', palace: null, element: null, ref: ref };
         }
@@ -1913,6 +2009,7 @@ const POLARITY_SIGN = { FAVORABLE: 1, UNFAVORABLE: -1, NEUTRAL: 0, MIXED: 0 };
 const DIM_LABEL = {
     career: 'Sự nghiệp', wealth: 'Tài lộc', relationship: 'Quan hệ', health: 'Sức khỏe',
     travel: 'Đi lại', litigation: 'Kiện tụng', safety: 'An toàn', study: 'Học hành',
+    children: 'Con cái', reputation: 'Danh tiếng', ending: 'Kết thúc', spiritual: 'Tâm linh',
     lost: 'Tìm kiếm', general: 'Tổng quát'
 };
 
@@ -1940,7 +2037,7 @@ function verdictText(dim, direction, intensity) {
     }
 }
 
-const ALL_DIMS = ['career', 'wealth', 'relationship', 'health', 'study', 'travel', 'litigation', 'safety', 'general'];
+const ALL_DIMS = ['career', 'wealth', 'relationship', 'health', 'study', 'travel', 'litigation', 'safety', 'children', 'reputation', 'ending', 'spiritual', 'general'];
 
 /**
  * Verdict (−∞..+∞ trọng số, direction, intensity, fav/unfav count) cho TẤT CẢ
@@ -2305,29 +2402,19 @@ module.exports = { interpretQimen, resolveQuestionType, detectQuestionType, expl
  * ⚠️ KHÔNG phải xác suất / không dùng làm kết luận chính (xem docs/).
  * Chỉ dùng để tô màu trực quan + hiển thị điểm.
  *
- * CÔNG THỨC (theo yêu cầu — Môn 20% + Tinh 20% + Thần 20% + 9 chủ đề 40%):
+ * CÔNG THỨC (theo yêu cầu user — CHỈ DỰA VÀO 16 CHỦ ĐỀ, không trọng số Môn/Tinh/Thần):
  *
- * 1. Mỗi CHỦ ĐỀ trong lưới 9 ô có điểm −2..+2 từ verdict dimension
+ * 1. Mỗi CHỦ ĐỀ trong lưới 16 ô có điểm −2..+2 từ verdict dimension
  *    (Thuận rõ +2 · Thuận vừa/nhẹ +1 · Trung tính/Trái chiều 0 ·
  *    Không thuận vừa/nhẹ −1 · Không thuận rõ −2) — xem topicScoreFromVerdict.
- *    Σ 9 ô ∈ [−18..+18] → quy về điểm chủ đề −9..+9 (chia 2).
  *
- * 2. Môn / Tinh / Thần TẠI CUNG HƯỚNG: +1 / 0 / −1 theo phân loại lành/dữ
- *    INTRINSIC trong knowledge/doors|stars|deities.js (MỘT nguồn dữ liệu,
- *    không hardcode danh sách tên ở đây):
- *        AUSPICIOUS → +1   NEUTRAL → 0   OMINOUS → −1
+ * 2. Điểm HƯỚNG (−9..+9) = Σ điểm 16 chủ đề (∈ [−32..+32]) quy về thang −9..+9:
+ *        score = clamp(round(Σ × 9 ÷ 32), −9, +9)
+ *    Môn/Tinh/Thần tại cung hướng KHÔNG cộng trực tiếp vào điểm (chúng chỉ tác
+ *    động gián tiếp qua verdict của từng chủ đề — engine per-type). Thời gian đi
+ *    vào qua lá số (chart của giờ đang chọn) — không có thành phần giờ riêng.
  *
- * 3. Điểm HƯỚNG (−9..+9) = round( 20%×Môn + 20%×Tinh + 20%×Thần + 40%×chủ đề ).
- *    Mỗi phần quy về CÙNG thang −9..+9, làm tròn 1 lần cuối:
- *        part_Môn   = 9 × điểm Môn (∈ {−9, 0, +9})   — trọng 20%
- *        part_Tinh  = 9 × điểm Tinh (∈ {−9, 0, +9})   — trọng 20%
- *        part_Thần  = 9 × điểm Thần (∈ {−9, 0, +9})   — trọng 20%
- *        part_chủ đề = Σ điểm 9 ô ÷ 2  (∈ [−9..+9])   — trọng 40%
- *        score = clamp(round(0.20 × (part_Môn + part_Tinh + part_Thần) + 0.40 × part_chủ đề), −9, +9)
- *    → Môn+Tinh+Thần góp tối đa 5.4, chủ đề góp tối đa 3.6, tổng nằm gọn trong −9..+9.
- *    Thời gian đi vào qua lá số (chart của giờ đang chọn) — không có thành phần giờ riêng.
- *
- * 4. Điểm GIỜ (−9..+9) = TỔNG ĐIỂM TỐT − TỔNG ĐIỂM XẤU của TẤT CẢ hướng
+ * 3. Điểm GIỜ (−9..+9) = TỔNG ĐIỂM TỐT − TỔNG ĐIỂM XẤU của TẤT CẢ hướng
  *    trong canh giờ đó (KHÔNG phụ thuộc hướng nào được chọn):
  *        hourScore = Σ max(0, dir_i) − Σ max(0, −dir_i)   (8 hướng ngoài Trung cung)
  *    Mỗi canh giờ dựng lá số riêng → điểm giờ đổi theo giờ.
@@ -2339,20 +2426,25 @@ const { runRuleEngine } = require('./ruleEngine.js');
 const { dimensionVerdicts } = require('./interpretationSynthesizer.js');
 
 const PALACES_OUTER = [1, 2, 3, 4, 6, 7, 8, 9];
-// Phân loại lành/dữ INTRINSIC — khớp nature/classicalNature trong knowledge/*.js
-const NATURE_SIGN = { AUSPICIOUS: 1, NEUTRAL: 0, OMINOUS: -1 };
 
-// 9 chủ đề lớn (khớp UI): type → dimension chính
+// 16 chủ đề lớn (khớp UI 4×4): type → dimension chính của type đó.
 const TOPIC_CELLS = [
   { type: 'CAREER', dim: 'career', label: 'Sự nghiệp' },
   { type: 'WEALTH', dim: 'wealth', label: 'Tài lộc' },
   { type: 'BUSINESS', dim: 'wealth', label: 'Kinh doanh' },
-  { type: 'MARRIAGE', dim: 'relationship', label: 'Tình cảm' },
+  { type: 'REAL_ESTATE', dim: 'wealth', label: 'Nhà đất' },
+  { type: 'PARTNERSHIP', dim: 'relationship', label: 'Hợp tác' },
+  { type: 'MARRIAGE', dim: 'relationship', label: 'Hôn nhân' },
+  { type: 'CHILDREN', dim: 'children', label: 'Con cái' },
   { type: 'HEALTH', dim: 'health', label: 'Sức khỏe' },
   { type: 'STUDY', dim: 'study', label: 'Học hành' },
+  { type: 'REPUTATION', dim: 'reputation', label: 'Danh tiếng' },
   { type: 'TRAVEL', dim: 'travel', label: 'Đi lại' },
   { type: 'LITIGATION', dim: 'litigation', label: 'Kiện tụng' },
-  { type: 'SAFETY', dim: 'safety', label: 'An toàn' }
+  { type: 'SAFETY', dim: 'safety', label: 'An toàn' },
+  { type: 'LOST_OBJECT', dim: 'general', label: 'Tìm kiếm' },
+  { type: 'ENDING', dim: 'ending', label: 'Kết thúc' },
+  { type: 'SPIRITUAL', dim: 'spiritual', label: 'Tâm linh' }
 ];
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -2365,9 +2457,9 @@ function topicScoreFromVerdict(direction, intensity) {
 }
 
 /**
- * Điểm 9 chủ đề (−2..+2 mỗi chủ đề) tại một hướng — CHẠY PER-TYPE
- * (9 lần chạy rule engine, mỗi lần với đúng loại câu hỏi của ô) để điểm
- * khớp CHÍNH XÁC với luận giải 9 ô hiển thị.
+ * Điểm 16 chủ đề (−2..+2 mỗi chủ đề) tại một hướng — CHẠY PER-TYPE
+ * (16 lần chạy rule engine, mỗi lần với đúng loại câu hỏi của ô) để điểm
+ * khớp CHÍNH XÁC với luận giải 16 ô hiển thị.
  * @param {object} norm normalized chart (đã normalize 1 lần)
  */
 function topicScoresFromNorm(norm, focusPalace, options) {
@@ -2395,45 +2487,15 @@ function topicScores(chart, focusPalace, options) {
 }
 
 /**
- * Điểm Môn/Tinh/Thần +1/0/−1 tại một cung, theo nature intrinsic
- * (AUSPICIOUS=+1, NEUTRAL=0, OMINOUS=−1). Trung cung / thiếu thành phần → 0.
- * @param {object} norm normalized chart
- */
-function componentScoresFromNorm(norm, focusPalace) {
-  const cell = norm.palaces[focusPalace];
-  if (!cell || !cell.door) return { mon: 0, tinh: 0, than: 0 };
-  return {
-    mon: NATURE_SIGN[cell.door.nature] || 0,
-    tinh: cell.star ? (NATURE_SIGN[cell.star.nature] || 0) : 0,
-    than: cell.deity ? (NATURE_SIGN[cell.deity.nature] || 0) : 0
-  };
-}
-
-function componentScores(chart, focusPalace) {
-  return componentScoresFromNorm(normalizeChart(chart), focusPalace);
-}
-
-/**
- * Điểm HƯỚNG (−9..+9):
- *   round( 20%×Môn + 20%×Tinh + 20%×Thần + 40%×(Σ 9 chủ đề ÷ 2) )
- * với mỗi phần quy về cùng thang −9..+9 trước khi nhân trọng số (Môn/Tinh/Thần
- * 0.20, chủ đề 0.40 — luận giải 9 ô giữ vai trò lớn hơn).
- * Phản ánh đúng nội dung luận giải của hướng đó trong thời gian đã chọn.
+ * Điểm HƯỚNG (−9..+9) — CHỈ DỰA VÀO 16 CHỦ ĐỀ (không trọng số Môn/Tinh/Thần):
+ *   score = clamp(round(Σ điểm 16 ô × 9 ÷ 32), −9, +9)
+ * Σ ∈ [−32..+32] → [−9..+9]. Phản ánh đúng nội dung luận giải 16 ô của hướng đó
+ * trong thời gian (lá số) đã chọn.
  */
 function directionScoreFromNorm(norm, focusPalace, options) {
   const ts = topicScoresFromNorm(norm, focusPalace, options);
-  const cs = componentScoresFromNorm(norm, focusPalace);
-  const topics9 = ts.sum / 2;                       // −9..+9
-  // Môn 20% + Tinh 20% + Thần 20% + 9 chủ đề 40% (mỗi phần quy cùng thang −9..+9)
-  const raw = 0.2 * (9 * cs.mon + 9 * cs.tinh + 9 * cs.than) + 0.4 * topics9;
-  const score = clamp(Math.round(raw), -9, 9);
-  return {
-    score: score,
-    sum: ts.sum,                                   // Σ điểm 9 ô (−18..+18, giữ để đối chiếu)
-    topicScores: ts.scores,                        // 9 ô chi tiết
-    components: cs,                                // { mon, tinh, than } ∈ {−1,0,1}
-    topics9: Math.round(topics9 * 10) / 10         // phần chủ đề −9..+9
-  };
+  const score = clamp(Math.round(ts.sum * 9 / 32), -9, 9);
+  return { score: score, sum: ts.sum, topicScores: ts.scores };
 }
 
 function directionScore(chart, focusPalace, options) {
@@ -2462,7 +2524,7 @@ function scoreHour(chart, options) {
 }
 
 module.exports = {
-  directionScore, scoreHour, topicScores, componentScores,
+  directionScore, scoreHour, topicScores,
   topicScoreFromVerdict, TOPIC_CELLS, PALACES_OUTER
 };
 
@@ -2504,7 +2566,6 @@ module.exports = {
     scoreDirection: scoreLib.directionScore,
     scoreHour: scoreLib.scoreHour,
     topicScores: scoreLib.topicScores,
-    componentScores: scoreLib.componentScores,
     topicScoreFromVerdict: scoreLib.topicScoreFromVerdict,
     dimensionVerdicts: scoreLib.dimensionVerdicts,
     TOPIC_CELLS: scoreLib.TOPIC_CELLS,

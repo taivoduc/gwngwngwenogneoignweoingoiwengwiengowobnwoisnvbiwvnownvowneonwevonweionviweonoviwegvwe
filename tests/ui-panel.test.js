@@ -75,9 +75,9 @@ setTimeout(() => {
   const idx = chiNames.indexOf(gioTexts()[currentChi].match(/[A-ZÀ-ỸĂÂĐÔƠƯ][a-zà-ỹăâđôơư]*/)[0]);
   check('ô giờ hiện tại có màu score (hsl/rgb)', !!currentCell && /hsl|rgb/.test(currentCell.style.background));
 
-  // --- lưới 9 ô: nền trùng màu hướng đang chọn + không còn 用神 ---
+  // --- lưới 16 ô (4×4): mỗi ô số điểm + lý do, không còn 用神 ---
   const cells = document.querySelectorAll('#compassLuanGiai .lg-cell');
-  check('đúng 9 ô', cells.length === 9);
+  check('đúng 16 ô', cells.length === 16, cells.length);
   const text = document.getElementById('compassLuanGiai').textContent;
   check('không còn chữ 用神 (đã dịch Dụng thần)', text.indexOf('用神') < 0, text.slice(0, 80));
   check('có Dụng thần', text.indexOf('Dụng thần') >= 0 || text.indexOf('Dụng') >= 0);
@@ -90,11 +90,12 @@ setTimeout(() => {
   });
   const distinctBg = new Set(bgs).size;
   const distinctScore = new Set(scoresShown).size;
-  check('mỗi ô có điểm chủ đề [+-]số', scoresShown.every(s => s >= -2 && s <= 2), scoresShown);
+  check('mỗi ô có điểm chủ đề −2..+2', scoresShown.every(s => s >= -2 && s <= 2), scoresShown);
+  check('đủ 16 tên chủ đề mới', ['Con cái','Danh tiếng','Kết thúc','Tâm linh','Nhà đất','Hợp tác','Tìm kiếm'].every(lb => text.indexOf(lb) >= 0), text.slice(0, 200));
   check('màu ô theo điểm riêng (số điểm khác nhau → màu khác nhau)', distinctBg === distinctScore, distinctBg + ' vs ' + distinctScore);
   check('9 ô có nền màu (hsl/rgb)', bgs.every(b => /hsl|rgb/.test(b)));
   check('có đủ 2+ màu khác nhau (không đồng màu)', distinctBg >= 2, distinctBg);
-  check('mỗi ô có luận giải chi tiết', document.querySelectorAll('#compassLuanGiai .lg-reason').length >= 9);
+  check('mỗi ô có luận giải chi tiết', document.querySelectorAll('#compassLuanGiai .lg-reason').length >= 16);
   // Viết hoa chữ cái đầu mỗi câu lý do (sau dấu •)
   const firstLetters = Array.from(document.querySelectorAll('#compassLuanGiai .lg-reason')).map(r => (r.textContent.trim().replace(/^•\s*/, '') || ' ')[0]);
   const isUpper = ch => /^[A-ZÀ-Ỹ]/.test(ch) || !/[a-zà-ỹ]/.test(ch);

@@ -41,22 +41,22 @@
 - Interpretation có RÀNG BUỘC HƯỚNG: UI luôn truyền `focusPalace` = cung đang
   hướng tới → đổi hướng = đổi kết quả. Không truyền focusPalace → quét toàn bàn
   (dành cho API/cron).
-- UI luận giải: lưới 9 ô chủ đề (3×3) — mỗi ô = kết quả + luận giải chi tiết
-  kèm lý do ngắn (bằng tiếng Việt, không còn chữ Trung; font +10%; viết hoa
-  chữ cái đầu mỗi câu). Tên ô gọn: Sự nghiệp, Tài lộc, Kinh doanh, Tình cảm,
-  Sức khỏe, Học hành, Đi lại, Kiện tụng, An toàn.
+- UI luận giải: lưới 16 ô chủ đề (4×4) — mỗi ô = kết quả + luận giải chi tiết
+  kèm lý do ngắn (bằng tiếng Việt, không còn chữ Trung; font +20% tổng cộng;
+  viết hoa chữ cái đầu mỗi câu). Tên ô gọn: Sự nghiệp, Tài lộc, Kinh doanh,
+  Nhà đất, Hợp tác, Hôn nhân, Con cái, Sức khỏe, Học hành, Danh tiếng, Đi lại,
+  Kiện tụng, An toàn, Tìm kiếm, Kết thúc, Tâm linh.
   NỀN MỖI Ô tô theo ĐIỂM CHỦ ĐỀ RIÊNG của nó. Ô TRUNG TÂM của bàn hiển thị
   các chủ đề thuận lợi tại hướng hiện tại.
 - ĐIỂM CHỦ ĐỀ −2..+2: Thuận (rõ) +2 · Thuận (vừa/nhẹ) +1 · Trung tính/Trái
   chiều 0 · Không thuận (vừa/nhẹ) −1 · Không thuận (rõ) −2. UI chỉ hiển thị
   SỐ ĐIỂM (bỏ từ chỉ mức độ "Thuận (rõ)/Không thuận (vừa)/Trái chiều"...). Màu ô:
   +2 xanh lá đậm, −2 đỏ đậm, càng dương càng xanh, càng âm càng đỏ.
-- ĐIỂM HƯỚNG −9..+9 = round(20%×Môn + 20%×Tinh + 20%×Thần + 40%×chủ đề) — tính
-  PER-TYPE: phần chủ đề = Σ điểm 9 ô ÷ 2 (trọng 40%); phần Môn/Tinh/Thần = +1/0/−1
-  theo phân loại lành/dữ intrinsic (knowledge/*.js: AUSPICIOUS=+1, NEUTRAL=0,
-  OMINOUS=−1); mỗi phần quy về cùng thang −9..+9 — biểu tượng góp tối đa 5.4,
-  chủ đề góp tối đa 3.6 — làm tròn 1 lần cuối → gọn trong −9..+9. Thời gian đi
-  vào qua lá số (chart) của giờ đang chọn.
+- ĐIỂM HƯỚNG −9..+9 = round(Σ điểm 16 chủ đề × 9 ÷ 32) — CHỈ DỰA VÀO CHỦ ĐỀ
+  (không còn trọng số Môn/Tinh/Thần; Môn/Tinh/Thần chỉ tác động gián tiếp qua
+  verdict của từng ô). Tính PER-TYPE: mỗi ô chạy đúng loại câu hỏi của nó nên
+  KHỚP CHÍNH XÁC với luận giải hiển thị. Σ ∈ [−32..+32] → quy về [−9..+9].
+  Thời gian đi vào qua lá số (chart) của giờ đang chọn.
 - ĐIỂM GIỜ −9..+9 = TỔNG ĐIỂM TỐT − TỔNG ĐIỂM XẤU của TẤT CẢ 8 hướng trong
   canh giờ đó (không phụ thuộc hướng được chọn; mỗi giờ dựng lá số riêng).
   API: `scoreDirection(chart, palace)`, `scoreHour(chart)`, `topicScores(...)`.

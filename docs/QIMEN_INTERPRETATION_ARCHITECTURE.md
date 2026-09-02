@@ -16,7 +16,7 @@ Chart Normalizer (lib/chartNormalizer.js)
 Qimen Knowledge Graph (knowledge/*.js — data-driven)
         │
         ▼
-Question Ontology (knowledge/question-types.js — 19 loại câu hỏi)
+Question Ontology (knowledge/question-types.js — 23 loại câu hỏi)
         │
         ▼
 用神 Resolver (lib/yongShenResolver.js)
@@ -62,11 +62,15 @@ interpretQimen(chart, question, options) → { chartId, questionType, yongShen,
   YongShen, Pattern, Relationship, InterpretationRule.
 
 ### 2.4 Question Ontology
-- 19 loại câu hỏi (CAREER, WEALTH, BUSINESS, INVESTMENT, MARRIAGE, LOVE,
+- 23 loại câu hỏi (CAREER, WEALTH, BUSINESS, INVESTMENT, MARRIAGE, LOVE,
   HEALTH, LITIGATION, TRAVEL, LOST_OBJECT, SAFETY, STUDY, EXAM,
-  JOB_INTERVIEW, PARTNERSHIP, REAL_ESTATE, PROJECT, COMPETITION, GENERAL).
-- UI gom thành 9 chủ đề lớn (3×3): Sự nghiệp, Tài lộc, Kinh doanh,
-  Hôn nhân·Tình cảm, Sức khỏe, Học hành·Thi cử, Đi lại, Kiện tụng, An toàn.
+  JOB_INTERVIEW, PARTNERSHIP, REAL_ESTATE, PROJECT, COMPETITION, GENERAL,
+  CHILDREN, REPUTATION, ENDING, SPIRITUAL).
+- UI hiển thị 16 chủ đề lớn (4×4): Sự nghiệp, Tài lộc, Kinh doanh, Nhà đất,
+  Hợp tác, Hôn nhân, Con cái, Sức khỏe, Học hành, Danh tiếng, Đi lại,
+  Kiện tụng, An toàn, Tìm kiếm, Kết thúc, Tâm linh — mỗi ô chạy đúng type
+  riêng (LOVE/EXAM/INVESTMENT/JOB_INTERVIEW/PROJECT/COMPETITION dùng qua
+  nhận diện keyword, không hiển thị riêng).
 - Mỗi loại: primaryYongShen, secondaryYongShen, relevantDoors/Stars/Deities/
   Palaces, dimensions, school, confidence.
 - Nhận diện tự động từ văn bản tiếng Việt (keyword) hoặc truyền `type` tường minh.

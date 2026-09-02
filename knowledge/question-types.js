@@ -15,7 +15,7 @@
  */
 
 // Các dimension tổng hợp (xem interpretationSynthesizer.js).
-const DIMENSIONS = ['career', 'wealth', 'relationship', 'health', 'travel', 'litigation', 'safety', 'study'];
+const DIMENSIONS = ['career', 'wealth', 'relationship', 'health', 'study', 'travel', 'litigation', 'safety', 'children', 'reputation', 'ending', 'spiritual'];
 
 const QUESTION_TYPES = [
     {
@@ -245,6 +245,54 @@ const QUESTION_TYPES = [
         relevantPalaces: [],
         interpretationRules: ['DOOR_PALACE_GENERATION'],
         school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Loại mặc định khi không xác định được câu hỏi.'
+    },
+    {
+        id: 'CHILDREN', nameVi: 'Con cái / Sinh nở', emoji: '👶',
+        dimensions: ['children'],
+        primaryYongShen: [{ kind: 'DEITY', id: 'LIU_HE' }, { kind: 'DOOR', id: 'SINH' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'TAI_YIN' }],
+        relevantDoors: ['SINH', 'HƯU', 'TỬ'],
+        relevantStars: ['TIAN_FU', 'TIAN_RUI'],
+        relevantDeities: ['LIU_HE', 'TAI_YIN', 'TENG_SHE'],
+        relevantPalaces: [8, 1],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT', 'KONG_WANG'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Lục Hợp = con cái (quan hệ gia đình); Sinh Môn = sinh sôi; Thái Âm = thai nghén.'
+    },
+    {
+        id: 'REPUTATION', nameVi: 'Danh tiếng / Quảng bá', emoji: '🏆',
+        dimensions: ['reputation'],
+        primaryYongShen: [{ kind: 'DOOR', id: 'CẢNH' }, { kind: 'STAR', id: 'TIAN_YING' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'JIU_TIAN' }],
+        relevantDoors: ['CẢNH', 'KHAI', 'ĐỖ'],
+        relevantStars: ['TIAN_YING', 'TIAN_FU', 'TIAN_QIN'],
+        relevantDeities: ['JIU_TIAN', 'ZHI_FU'],
+        relevantPalaces: [9, 6],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Cảnh Môn + Thiên Anh = danh tiếng, quảng bá; Cửu Thiên = vươn xa.'
+    },
+    {
+        id: 'ENDING', nameVi: 'Kết thúc / Thanh lý', emoji: '🏁',
+        dimensions: ['ending'],
+        primaryYongShen: [{ kind: 'DOOR', id: 'TỬ' }, { kind: 'STAR', id: 'TIAN_ZHU' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'JIU_DI' }],
+        relevantDoors: ['TỬ', 'THƯƠNG', 'ĐỖ'],
+        relevantStars: ['TIAN_ZHU', 'TIAN_RUI', 'TIAN_PENG'],
+        relevantDeities: ['JIU_DI', 'BAI_HU'],
+        relevantPalaces: [2, 7],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT', 'MEN_PO'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Tử Môn = kết thúc, thanh lý, từ bỏ; Thiên Trụ = phá bỏ cái cũ.'
+    },
+    {
+        id: 'SPIRITUAL', nameVi: 'Tâm linh / Tu tập', emoji: '🕯️',
+        dimensions: ['spiritual'],
+        primaryYongShen: [{ kind: 'STAR', id: 'TIAN_RUI' }, { kind: 'DOOR', id: 'ĐỖ' }],
+        secondaryYongShen: [{ kind: 'STEM', role: 'dayStem' }, { kind: 'DEITY', id: 'TENG_SHE' }],
+        relevantDoors: ['ĐỖ', 'HƯU', 'KHAI'],
+        relevantStars: ['TIAN_RUI', 'TIAN_FU', 'TIAN_QIN'],
+        relevantDeities: ['ZHI_FU', 'TENG_SHE', 'JIU_DI'],
+        relevantPalaces: [2, 4],
+        interpretationRules: ['DOOR_PALACE_GENERATION', 'YONG_SHEN_SUPPORT', 'RU_MU'],
+        school: 'CURRENT_PROJECT', confidence: 'SCHOOL_DEPENDENT', notes: 'Thiên Nhuế = tu đạo, tâm linh; Đỗ Môn = ẩn tu tĩnh tâm; Đằng Xà = mộng mị, quái sự.'
     }
 ];
 
