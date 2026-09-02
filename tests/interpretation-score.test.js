@@ -1,4 +1,4 @@
-// tests/interpretation-score.test.js — Điểm −9..+9 (hướng từ 9 chủ đề, giờ = tổng tốt − tổng xấu)
+// tests/interpretation-score.test.js — Điểm −9..+9 (hướng = Môn 25% + Tinh 25% + Thần 25% + 9 chủ đề 25%; giờ = tổng tốt − tổng xấu)
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -40,15 +40,48 @@ test('topicScoreFromVerdict: Thuận rõ +2, Thuận vừa +1, Không thuận v�
   if (f('MIXED', 'MODERATE') !== 0) throw new Error('Trái chiều phải 0');
 });
 
-test('điểm hướng = round(Σ điểm 9 chủ đề ÷ 2), trong −9..+9', () => {
+test('điểm Môn/Tinh/Thần = +1/0/−1 theo nature intrinsic (knowledge)', () => {
+  const sgn = n => n === 'AUSPICIOUS' ? 1 : (n === 'OMINOUS' ? -1 : 0);
+  [1,2,3,4,6,7,8,9].forEach(p => {
+    const cell = chart[p];
+    const c = iq.componentScores(chart, p);
+    if (c.mon !== (iq.knowledge.doors.BY_NAME[cell.mon] ? sgn(iq.knowledge.doors.BY_NAME[cell.mon].classicalNature) : 0))
+      throw new Error('cung ' + p + ': mon lệch ' + c.mon);
+    if (c.tinh !== (iq.knowledge.stars.BY_NAME[cell.tinh] ? sgn(iq.knowledge.stars.BY_NAME[cell.tinh].nature) : 0))
+      throw new Error('cung ' + p + ': tinh lệch ' + c.tinh);
+    if (c.than !== (iq.knowledge.deities.BY_NAME[cell.than] ? sgn(iq.knowledge.deities.BY_NAME[cell.than].nature) : 0))
+      throw new Error('cung ' + p + ': than lệch ' + c.than);
+  });
+});
+
+test('điểm hướng = round(20%×Môn + 20%×Tinh + 20%×Thần + 40%×chủ đề), trong −9..+9', () => {
   [1,2,3,4,6,7,8,9].forEach(p => {
     const d = iq.scoreDirection(chart, p);
     const ts = iq.topicScores(chart, p);
-    const expect = Math.max(-9, Math.min(9, Math.round(ts.sum / 2)));
+    const c = iq.componentScores(chart, p);
+    const expect = Math.max(-9, Math.min(9, Math.round(0.2 * (9 * c.mon + 9 * c.tinh + 9 * c.than) + 0.4 * ts.sum / 2)));
     if (d.score !== expect) throw new Error('cung ' + p + ': ' + d.score + ' != ' + expect);
     if (d.score < -9 || d.score > 9) throw new Error('ngoài −9..+9');
     if (d.sum !== ts.sum) throw new Error('sum lệch');
+    if (d.components.mon !== c.mon || d.components.tinh !== c.tinh || d.components.than !== c.than) throw new Error('components lệch');
   });
+});
+
+test('bộ biểu tượng toàn lành cho điểm cao hơn hẳn bộ toàn dữ (cùng lá số)', () => {
+  // Chênh phần Môn/Tinh/Thần = 3 biểu tượng × (9×2×0.2) = 10.8; phần chủ đề dao động ≤ 0.4×18 = 7.2
+  // → good > bad là BẤT BIẾN theo công thức 20/20/20/40.
+  const mk = (mon, tinh, than) => {
+    const ch = { info: chart.info };
+    for (let pp = 1; pp <= 9; pp++) {
+      const src = chart[pp];
+      ch[pp] = { mon: src.mon, tinh: src.tinh, than: src.than, thien: src.thien, dia: src.dia };
+    }
+    ch[6] = { mon: mon, tinh: tinh, than: than, thien: chart[6].thien, dia: chart[6].dia };
+    return ch;
+  };
+  const good = iq.scoreDirection(mk('Sinh', 'Thiên Tâm', 'Trực Phù'), 6).score;
+  const bad  = iq.scoreDirection(mk('Tử', 'Thiên Bồng', 'Bạch Hổ'), 6).score;
+  if (!(good > bad)) throw new Error('good=' + good + ' phải > bad=' + bad);
 });
 
 test('điểm giờ = tổng điểm tốt − tổng điểm xấu của TẤT CẢ hướng (không phụ thuộc hướng)', () => {

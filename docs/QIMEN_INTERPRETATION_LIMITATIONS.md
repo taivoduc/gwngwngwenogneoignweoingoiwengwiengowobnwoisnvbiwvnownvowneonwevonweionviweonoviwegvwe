@@ -48,16 +48,21 @@
   NỀN MỖI Ô tô theo ĐIỂM CHỦ ĐỀ RIÊNG của nó. Ô TRUNG TÂM của bàn hiển thị
   các chủ đề thuận lợi tại hướng hiện tại.
 - ĐIỂM CHỦ ĐỀ −2..+2: Thuận (rõ) +2 · Thuận (vừa/nhẹ) +1 · Trung tính/Trái
-  chiều 0 · Không thuận (vừa/nhẹ) −1 · Không thuận (rõ) −2. Màu ô: +2 xanh lá
-  đậm, −2 đỏ đậm, càng dương càng xanh, càng âm càng đỏ.
-- ĐIỂM HƯỚNG −9..+9 = round(Σ điểm 9 chủ đề ÷ 2) — tính PER-TYPE (mỗi ô chạy
-  đúng loại câu hỏi của nó) nên KHỚP CHÍNH XÁC với luận giải hiển thị.
-  Thời gian đi vào qua lá số (chart) của giờ đang chọn.
+  chiều 0 · Không thuận (vừa/nhẹ) −1 · Không thuận (rõ) −2. UI chỉ hiển thị
+  SỐ ĐIỂM (bỏ từ chỉ mức độ "Thuận (rõ)/Không thuận (vừa)/Trái chiều"...). Màu ô:
+  +2 xanh lá đậm, −2 đỏ đậm, càng dương càng xanh, càng âm càng đỏ.
+- ĐIỂM HƯỚNG −9..+9 = round(20%×Môn + 20%×Tinh + 20%×Thần + 40%×chủ đề) — tính
+  PER-TYPE: phần chủ đề = Σ điểm 9 ô ÷ 2 (trọng 40%); phần Môn/Tinh/Thần = +1/0/−1
+  theo phân loại lành/dữ intrinsic (knowledge/*.js: AUSPICIOUS=+1, NEUTRAL=0,
+  OMINOUS=−1); mỗi phần quy về cùng thang −9..+9 — biểu tượng góp tối đa 5.4,
+  chủ đề góp tối đa 3.6 — làm tròn 1 lần cuối → gọn trong −9..+9. Thời gian đi
+  vào qua lá số (chart) của giờ đang chọn.
 - ĐIỂM GIỜ −9..+9 = TỔNG ĐIỂM TỐT − TỔNG ĐIỂM XẤU của TẤT CẢ 8 hướng trong
   canh giờ đó (không phụ thuộc hướng được chọn; mỗi giờ dựng lá số riêng).
   API: `scoreDirection(chart, palace)`, `scoreHour(chart)`, `topicScores(...)`.
 - 12 canh giờ: mỗi ô ghi "Tý +5 / 23h-1h" (tên + điểm giờ), màu theo điểm giờ.
-- La bàn: dòng 1 = "<độ> <hướng> - <Giờ> <điểm giờ> - <Cung> <điểm cung>, <Môn – Tinh – Thần>";
+- La bàn: dòng 1 rút gọn = "<độ>° Cung <cung> <hướng tt>, <Môn> Môn – Sao <Tinh> – Thần <Thần>"
+  (vd "31° Cung Cấn ĐB, Khai Môn – Sao Thiên Phụ – Thần Huyền Vũ");
   tâm la bàn = điểm hướng (trên) + điểm giờ (dưới).
 - Hướng "có lợi" trong conclusion chỉ là hướng cung chứa 用神 chính — tham khảo.
 

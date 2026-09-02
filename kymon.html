@@ -282,7 +282,7 @@
             text-align: left;
             padding: 20px 0px;
             border-radius: 8px;
-            font-size: 0.93rem; /* +10% cho dễ đọc */
+            font-size: 1.02rem; /* đã +10% (0.93) rồi +10% nữa theo yêu cầu */
             line-height: 1.5;
             color: #d8d8e0;
         }
@@ -345,11 +345,11 @@
         .compass-luan-giai .lg-grid9 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 4px 0; }
         .compass-luan-giai .lg-cell { border-radius: 8px; padding: 6px 7px; text-align: left; border: 1px solid rgba(255,255,255,0.18); }
         .compass-luan-giai .lg-cell .lg-cell-top { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-        .compass-luan-giai .lg-cell .lg-cell-emoji { font-size: 1.1rem; line-height: 1.2; }
-        .compass-luan-giai .lg-cell .lg-cell-name { font-size: 0.77rem; color: #fff; font-weight: 600; flex: 1; }
-        .compass-luan-giai .lg-cell .lg-cell-word { font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+        .compass-luan-giai .lg-cell .lg-cell-emoji { font-size: 1.2rem; line-height: 1.2; }
+        .compass-luan-giai .lg-cell .lg-cell-name { font-size: 0.85rem; color: #fff; font-weight: 600; flex: 1; }
+        .compass-luan-giai .lg-cell .lg-cell-word { font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
         .compass-luan-giai .lg-cell .lg-cell-detail { margin-top: 4px; }
-        .compass-luan-giai .lg-cell .lg-reason { font-size: 0.7rem; line-height: 1.4; margin: 2px 0; color: #eef1f5; }
+        .compass-luan-giai .lg-cell .lg-reason { font-size: 0.77rem; line-height: 1.4; margin: 2px 0; color: #eef1f5; }
         .compass-luan-giai .lg-cell .lg-reason.fav { color: #d9f7e4; }
         .compass-luan-giai .lg-cell .lg-reason.unfav { color: #ffd6d6; }
         .compass-luan-giai .lg-cell .lg-reason.neu { color: #e2e5ea; }
@@ -2231,12 +2231,10 @@
                 }
                 if (!d) d = res.conclusion.dimensions[0] || { direction: 'NEUTRAL', intensity: 'WEAK' };
                 const cls = d.direction === 'FAVORABLE' ? 'fav' : d.direction === 'UNFAVORABLE' ? 'unfav' : d.direction === 'MIXED' ? 'mix' : 'neu';
-                let word = d.direction === 'FAVORABLE' ? 'Thuận' : d.direction === 'UNFAVORABLE' ? 'Không thuận' : d.direction === 'MIXED' ? 'Trái chiều' : 'Trung tính';
-                if (d.intensity === 'STRONG') word += ' (rõ)';
-                else if (d.intensity === 'MODERATE') word += ' (vừa)';
                 // Điểm chủ đề −2..+2 (Thuận rõ +2, Thuận vừa +1, Không thuận vừa −1, Không thuận rõ −2)
+                // Chỉ hiển thị SỐ ĐIỂM — bỏ từ chỉ mức độ (Thuận (rõ)/Không thuận (vừa)/Trái chiều...)
                 const ts = window.KYMON_IQ.topicScoreFromVerdict(d.direction, d.intensity);
-                word += ' ' + (ts > 0 ? '+' : '') + ts;
+                const word = (ts > 0 ? '+' : '') + ts;
                 const reasons = iqCellReasons(res, c.dim);
                 // Màu nền ô theo ĐIỂM CHỦ ĐỀ RIÊNG của nó: +2 xanh đậm, −2 đỏ đậm, càng dương càng xanh, càng âm càng đỏ
                 const cellBg = scoreToColor(ts * 4.5);
@@ -2318,15 +2316,11 @@
             const scoreText = (dirScore > 0 ? '+' : '') + dirScore;
             const scoreCls = dirScore > 0 ? 'diem-tot' : (dirScore < 0 ? 'diem-xau' : 'diem-trung');
 
-            // Dòng 1 la bàn: <độ> <hướng> - <Giờ> <điểm giờ> - <Cung> <điểm cung>, <Môn – Tinh – Thần>
+            // Dòng 1 la bàn (rút gọn): <độ>° Cung <cung> <hướng tt>, <Môn> Môn – Sao <Tinh> – Thần <Thần>
+            // (bỏ tên hướng đầy đủ, giờ + điểm giờ, điểm cung — điểm vẫn ở tâm la bàn & 8 nhãn)
             const heading = document.getElementById('compassHeading');
             if (heading) {
-                let line = h + '° ' + dir.name;
-                if (window._cungData && window._cungData.info) {
-                    const chiIndex = window._cungData.info.gioChi;
-                    line += ' - ' + CHI[chiIndex] + ' ' + (hourScore > 0 ? '+' : '') + hourScore;
-                }
-                line += ' - ' + dir.cung + ' ' + dir.short + ' ' + scoreText;
+                let line = h + '° Cung ' + dir.cung + ' ' + dir.short;
                 if (cell) {
                     const parts = [];
                     if (cell.mon) parts.push(cell.mon + ' Môn');

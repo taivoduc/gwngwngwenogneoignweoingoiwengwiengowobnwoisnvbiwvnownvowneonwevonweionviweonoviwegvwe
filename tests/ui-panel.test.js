@@ -46,14 +46,13 @@ setTimeout(() => {
   [1,2,3,4,6,7,8,9].forEach(p => { const s = window.KYMON_IQ.scoreDirection(chart, p, {hourScore: hs.score}).score; if (s < -9 || s > 9) inRange = false; });
   check('mọi hướng score trong −9..+9', inRange);
 
-  // --- dòng 1 la bàn: <độ> <hướng> - <Giờ> <điểm giờ> - <Cung> <điểm cung>, <Môn – Tinh – Thần> ---
+  // --- dòng 1 la bàn (rút gọn): <độ>° Cung <cung> <hướng tt>, <Môn> Môn – Sao <Tinh> – Thần <Thần> ---
   setHeading(0);
   const line1 = document.getElementById('compassHeading').textContent;
   check('dòng 1 có độ', /\d+°/.test(line1), line1);
-  check('dòng 1 có hướng (Bắc)', line1.indexOf('Bắc') >= 0, line1);
-  check('dòng 1 có giờ + điểm giờ', /(Tý|Sửu|Dần|Mão|Thìn|Tỵ|Ngọ|Mùi|Thân|Dậu|Tuất|Hợi) [+-]?\d/.test(line1), line1);
-  check('dòng 1 có cung + điểm cung', /(Khảm|Khôn|Chấn|Tốn|Càn|Đoài|Cấn|Ly) (N|TN|Đ|ĐN|TB|T|ĐB|B) [+-]?\d/.test(line1), line1);
-  check('dòng 1 có Môn – Tinh – Thần', /(Hưu|Sinh|Thương|Đỗ|Cảnh|Tử|Kinh|Khai) Môn/.test(line1) && /Sao /.test(line1) && /Thần /.test(line1) && line1.indexOf('–') >= 0, line1);
+  check('dòng 1 có Cung + hướng viết tắt', /Cung (Khảm|Khôn|Chấn|Tốn|Càn|Đoài|Cấn|Ly) (B|TN|Đ|ĐN|TB|T|ĐB|N)/.test(line1), line1);
+  check('dòng 1 rút gọn (không còn giờ/điểm giờ/điểm cung)', line1.indexOf(' - ') < 0 && !/[+-]\d/.test(line1), line1);
+  check('dòng 1 có Môn – Tinh – Thần', /(Hưu|Sinh|Thương|Đỗ|Cảnh|Tử|Kinh|Khai) Môn/.test(line1) && /Sao /.test(line1) && /Thần /.test(line1) && line1.indexOf(' – ') >= 0, line1);
 
   // --- tâm la bàn: điểm hướng (trên) + điểm giờ (dưới) ---
   const rc = document.getElementById('roseCenter');
@@ -64,7 +63,9 @@ setTimeout(() => {
   // --- 12 canh giờ: mỗi ô có tên + điểm, màu theo điểm ---
   const gio = gioTexts();
   check('đủ 12 canh giờ', gio.length === 12, gio.length);
-  check('mỗi giờ có điểm [+-]số', gio.every(t => /[+-]\d/.test(t)), gio);
+  // Điểm giờ −9..+9: số dương/âm có dấu, riêng 0 không dấu (quy ước chung toàn UI)
+  const hourNums = gio.map(t => parseInt(t.replace(/^.*?([+-]?\d+)\s*$/, '$1'), 10));
+  check('mỗi giờ có điểm −9..+9 (0 không dấu)', gio.length === 12 && hourNums.length === 12 && hourNums.every(n => !isNaN(n) && n >= -9 && n <= 9) && gio.every((t, i) => (hourNums[i] === 0 ? !/[+-]0/.test(t) : /[+-]\d/.test(t))), gio);
   check('giờ hiện tại đánh dấu now', !!document.querySelector('.gio-item-mini.now'));
   const sc0 = window.KYMON_IQ.scoreHour(chart).score;
   const expectedBg = window.scoreToColor(sc0);
